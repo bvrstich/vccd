@@ -1,0 +1,15 @@
+mps_btas
+*~
+*.swp
+*.o
+*.txt
+*.pdf
+*.out
+*.png
+*.gif
+*.h5
+callgrind.out.*
+tags
+docs
+workspace
+read
