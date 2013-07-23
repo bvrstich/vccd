@@ -20,7 +20,7 @@ class MPS
 
    public:
 
-      MPS(int);
+      MPS(int,const btas::Quantum &,int);
 
       MPS(const MPS &);
 
@@ -36,6 +36,12 @@ class MPS
 
       //!length of the chain
       int L;
+
+      //!maximal dimension of the symmetryblocks
+      int D;
+
+      //!total quantumnumber of the chain
+      btas::Quantum *qt;
 
       //!array containing the mps's
       btas::QSDArray<3> **mps;

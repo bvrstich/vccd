@@ -14,12 +14,16 @@ namespace btas { typedef SpinQuantum Quantum; };
 /**
  * constructor will allocate place for L btas::QSDArray<3> objects
  * @param L_in length of the chain
+ * @param qt_in total quantumnumber of the chain
+ * @param D_in the max dimension of the symmetryblocks
  */
-MPS::MPS(int L_in){
+MPS::MPS(int L_in,const btas::Quantum &qt_in,int D_in){
 
    L = L_in;
+   D = D_in;
 
    mps = new btas::QSDArray<3> * [L];
+   qt = new btas::Quantum(qt_in);
 
 }
 
@@ -213,17 +217,6 @@ void MPS::initialize(const btas::Quantum &qt,int D){
       }
 
    }
-
-   for(int i = 0;i < L;++i){
-
-      cout << "site " << i << endl;
-      cout << endl;
-      cout << qr[i] << endl;
-      cout << dr[i] << endl;
-      cout << endl;
-
-   }
-
 
 }
 

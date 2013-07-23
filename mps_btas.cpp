@@ -29,11 +29,9 @@ int main(void){
    //max virtual dimension
    int D = 10;
   
-   MPS mps(L);
+   btas::Quantum qt(0);
 
-   btas::Quantum qt(4);
-
-   mps.initialize(qt,D);
+   MPS mps(L,qt,D);
 
    return 0;
 
