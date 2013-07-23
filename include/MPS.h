@@ -123,20 +123,60 @@ class MPS
          }
 
          qr[L-1] = btas::Qshapes(1,qt);
-         dr[L-1] = dp;
+         dr[L-1] = btas::Dshapes(1,1);
 
-         btas::Qshapes tmp;
+         btas::Qshapes tmpq;
+         btas::Dshapes tmpd;
 
          int i = L-2;
 
          for(int i = L - 2;i > 0;--i){
 
-            tmp = qr[i+1] * qp;
+            tmpq = qr[i+1] * qp;
+            tmpd.clear();
 
-            //remove irrelevant quantum blocks from below
+            for(unsigned int j = 0;j < dr[i+1].size();++j)
+               for(unsigned int k = 0;k < dp.size();++k)
+                  tmpd.push_back(dr[i+1][j]*dp[k]);
+
             int j = 0;
 
-            while(qr[i][j] < tmp[0]){
+            while(j < tmpq.size()){
+
+               int k = j + 1;
+
+               while(k < tmpq.size()){
+
+                  //this removes redundant
+                  if( tmpq[k] == tmpq[j] ){
+
+                     //erase the redundant quantumnumber
+                     tmpq.erase(tmpq.begin() + k);
+
+                     //add the dimension to the right block
+                     tmpd[j] += tmpd[k];
+
+                     //erase the redundant dimension
+                     tmpd.erase(tmpd.begin() + k);
+
+                  }
+                  else
+                     ++k;
+
+                  //if dimension is too large, set to D
+                  if(tmpd[j] > D)
+                     tmpd[j] = D;
+
+               }
+
+               ++j;
+
+            }
+
+            //remove irrelevant quantum blocks from below
+            j = 0;
+
+            while(qr[i][j] < tmpq[0]){
 
                qr[i].erase(qr[i].begin() + j);
 
@@ -145,7 +185,7 @@ class MPS
             //remove irrelevant quantum blocks from above
             j = qr[i].size() - 1;
 
-            while(qr[i][j] > tmp[tmp.size() - 1]){
+            while(qr[i][j] > tmpq[tmpq.size() - 1]){
 
                qr[i].erase(qr[i].begin() + j);
 
@@ -153,12 +193,7 @@ class MPS
 
             }
 
-
          }
-
-         for(int i = 0;i < L;++i)
-            cout << qr[i] << endl;
-
 
       }
 
