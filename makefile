@@ -8,7 +8,8 @@
 #   Sources for all modules
 # -----------------------------------------------------------------------------
 BINNAME = mps_btas
-CPPSRC	= mps_btas.cpp
+CPPSRC	= mps_btas.cpp\
+           MPS.cpp
 
 
 OBJ	= $(CPPSRC:.cpp=.o)
