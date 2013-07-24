@@ -9,16 +9,14 @@ using std::ofstream;
 using std::ifstream;
 using std::vector;
 
-#include "SpinQuantum.h"
-namespace btas { typedef SpinQuantum Quantum; };
+#include "include.h"
 
-#include "btas/QSDArray.h"
-
-#include "MPS.h"
+using namespace btas;
 
 int main(void){
 
    cout.precision(10);
+   srand(time(NULL));
 
    //lenght of the chain
    int L = 10;
@@ -32,6 +30,8 @@ int main(void){
    btas::Quantum qt(0);
 
    MPS mps(L,qt,D);
+
+   cout << mps << endl;
 
    return 0;
 

@@ -4,26 +4,26 @@
 using std::cout;
 using std::endl;
 
-#include "SpinQuantum.h"
-namespace btas { typedef SpinQuantum Quantum; };
+#include "include.h"
 
-#include "btas/QSDArray.h"
-
-#include "MPS.h"
+using namespace btas;
 
 /**
- * constructor will allocate place for L btas::QSDArray<3> objects
+ * constructor will allocate place for L QSDArray<3> objects
  * @param L_in length of the chain
  * @param qt_in total quantumnumber of the chain
  * @param D_in the max dimension of the symmetryblocks
  */
-MPS::MPS(int L_in,const btas::Quantum &qt_in,int D_in){
+MPS::MPS(int L_in,const Quantum &qt_in,int D_in){
 
    L = L_in;
    D = D_in;
 
-   mps = new btas::QSDArray<3> * [L];
-   qt = new btas::Quantum(qt_in);
+   mps = new QSDArray<3> * [L];
+   qt = new Quantum(qt_in);
+
+   //function calculates the possible symmetryblocks and dimensions and allocates the memory for the tensors
+   this->initialize();
 
 }
 
@@ -34,7 +34,14 @@ MPS::MPS(int L_in,const btas::Quantum &qt_in,int D_in){
 MPS::MPS(const MPS &mps_c){
 
    L = mps_c.gL();
-   mps = new btas::QSDArray<3> * [L];
+   D = mps_c.gD();
+
+   qt = new Quantum(mps_c.gqt());
+
+   mps = new QSDArray<3> * [L];
+
+   for(int i = 0;i < L;++i)
+      mps[i] = new QSDArray<3>(mps_c[i]);
 
 }
 
@@ -42,6 +49,11 @@ MPS::MPS(const MPS &mps_c){
  * destruct deallocates the memory
  */
 MPS::~MPS(){
+
+   delete qt;
+
+   for(int i = 0;i < L;++i)
+      delete mps[i];
 
    delete [] mps;
 
@@ -52,22 +64,22 @@ MPS::~MPS(){
  * @param qt total quantumnumber
  * @param D maximal dimension of the quantum blocks
  */
-void MPS::initialize(const btas::Quantum &qt,int D){
+void MPS::initialize(){
 
    //physical index
-   btas::Qshapes qp;
+   Qshapes qp;
 
-   qp.push_back(btas::Quantum(-1));
-   qp.push_back(btas::Quantum(1));
+   qp.push_back(Quantum(-1));
+   qp.push_back(Quantum(1));
 
    //shape of the physical index
-   btas::Dshapes dp;
+   Dshapes dp;
 
    dp.push_back(1);
    dp.push_back(1);
 
-   std::vector<btas::Qshapes> qr(L);
-   std::vector<btas::Dshapes> dr(L);
+   std::vector<Qshapes> qr(L);
+   std::vector<Dshapes> dr(L);
 
    qr[0] = qp;
    dr[0] = dp;
@@ -117,11 +129,11 @@ void MPS::initialize(const btas::Quantum &qt,int D){
 
    }
 
-   qr[L-1] = btas::Qshapes(1,qt);
-   dr[L-1] = btas::Dshapes(1,1);
+   qr[L-1] = Qshapes(1,*qt);
+   dr[L-1] = Dshapes(1,1);
 
-   btas::Qshapes tmpq;
-   btas::Dshapes tmpd;
+   Qshapes tmpq;
+   Dshapes tmpd;
 
    int i = L-2;
 
@@ -218,6 +230,32 @@ void MPS::initialize(const btas::Quantum &qt,int D){
 
    }
 
+   //now allocate the tensors!
+   blitz::TinyVector<Qshapes,3> qshape;
+   blitz::TinyVector<Dshapes,3> dshape;
+
+   //first 0
+   Qshapes ql(1,Quantum::zero());
+   Dshapes dl(ql.size(),1);
+
+   qshape = blitz::TinyVector<Qshapes,3>(ql,qp,-qr[0]);
+   dshape = blitz::TinyVector<Dshapes,3>(dl,dp,dr[0]);
+
+   mps[0] = new QSDArray<3> (Quantum::zero(),qshape,dshape,Tools::rgen);
+
+   //then the  middle ones
+   for(int i = 1;i < L;++i){
+
+      ql = qr[i - 1];
+      dl = dr[i - 1];
+
+      qshape = blitz::TinyVector<Qshapes,3>(ql,qp,-qr[i]);
+      dshape = blitz::TinyVector<Dshapes,3>(dl,dp,dr[i]);
+
+      mps[i] = new QSDArray<3> (Quantum::zero(),qshape,dshape,Tools::rgen);
+
+   }
+
 }
 
 /**
@@ -230,11 +268,54 @@ int MPS::gL() const {
 }
 
 /**
+ * @return the maximal dimension of the symmetry blocks
+ */
+int MPS::gD() const {
+
+   return D;
+
+}
+
+/**
  * @return the Tensor on index i
  * @param i the index
  */
-const btas::QSDArray<3> &MPS::operator[](int i){
+const QSDArray<3> &MPS::operator[](int i) const{
 
    return *mps[i];
+
+}
+
+/**
+ * @return the Tensor on index i
+ * @param i the index
+ */
+const Quantum &MPS::gqt() const{
+
+   return *qt;
+
+}
+
+
+ostream &operator<<(ostream &output,MPS &mps_p){
+
+   for(int i = 0;i < mps_p.gL();++i){
+
+      output << "Tensor on block " << i << endl;
+      output << endl;
+      output << mps_p[i] << endl;
+      output << endl;
+
+   }
+
+   return output;
+
+}
+
+/**
+ * Canonicalize the MPS after random initialization using
+ * @param left if true left canonicalize, if false right
+ */
+void MPS::canonicalize(bool left){
 
 }

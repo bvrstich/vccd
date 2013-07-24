@@ -6,31 +6,46 @@
 
 using std::cout;
 using std::endl;
+using std::ostream;
 
 #include "SpinQuantum.h"
 namespace btas { typedef SpinQuantum Quantum; };
 
 #include "btas/QSDArray.h"
 
+using namespace btas;
+
 /**
- * class which contains an array of L btas::QSDArray's. So an MPS of length L
+ * class which contains an array of L QSDArray's. So an MPS of length L
  */
 class MPS
 {
+   /**
+    * Output stream operator overloaded
+    * @param output The stream to which you are writing (e.g. cout)
+    * @param mps_p the mps you want to print
+    */
+   friend ostream &operator<<(ostream &output,MPS &mps_p);
 
    public:
 
-      MPS(int,const btas::Quantum &,int);
+      MPS(int,const Quantum &,int);
 
       MPS(const MPS &);
 
       virtual ~MPS();
 
-      void initialize(const btas::Quantum &,int);
+      void initialize();
 
       int gL() const;
 
-      const btas::QSDArray<3> &operator[](int i);
+      const QSDArray<3> &operator[](int i) const;
+
+      const Quantum &gqt() const;
+
+      int gD() const;
+
+      void Canonicalize(bool);
 
    private:
 
@@ -41,10 +56,10 @@ class MPS
       int D;
 
       //!total quantumnumber of the chain
-      btas::Quantum *qt;
+      Quantum *qt;
 
       //!array containing the mps's
-      btas::QSDArray<3> **mps;
+      QSDArray<3> **mps;
 
 };
 

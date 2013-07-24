@@ -9,7 +9,9 @@
 # -----------------------------------------------------------------------------
 BINNAME = mps_btas
 CPPSRC	= mps_btas.cpp\
-           MPS.cpp
+           Tensor.cpp\
+           MPS.cpp\
+           Tools.cpp
 
 
 OBJ	= $(CPPSRC:.cpp=.o)
