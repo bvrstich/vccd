@@ -9,6 +9,11 @@ using std::endl;
 using namespace btas;
 
 /**
+ * empty constructor
+ */
+Tensor::Tensor() : QSDArray<3>(){ }
+
+/**
  * constructor will construct a QSDArray<3> and fill it randomly
  * @param qshape The allowed quantumnumbers corresponding to the three different legs of the tensor
  * @param dshape The corresponding dimensions of the three different legs of the tensor

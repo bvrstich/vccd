@@ -23,6 +23,8 @@ class Tensor : public QSDArray<3>
 {
    public:
 
+      Tensor();
+      
       Tensor(const blitz::TinyVector<Qshapes,3> &,const blitz::TinyVector<Dshapes,3> &);
 
       Tensor(const Tensor &);

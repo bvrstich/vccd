@@ -9,7 +9,7 @@ using std::endl;
 using namespace btas;
 
 /**
- * constructor will allocate place for L QSDArray<3> objects
+ * constructor will allocate place for L Tensor objects
  * @param L_in length of the chain
  * @param qt_in total quantumnumber of the chain
  * @param D_in the max dimension of the symmetryblocks
@@ -19,7 +19,7 @@ MPS::MPS(int L_in,const Quantum &qt_in,int D_in){
    L = L_in;
    D = D_in;
 
-   mps = new QSDArray<3> * [L];
+   mps = new Tensor * [L];
    qt = new Quantum(qt_in);
 
    //function calculates the possible symmetryblocks and dimensions and allocates the memory for the tensors
@@ -38,10 +38,10 @@ MPS::MPS(const MPS &mps_c){
 
    qt = new Quantum(mps_c.gqt());
 
-   mps = new QSDArray<3> * [L];
+   mps = new Tensor * [L];
 
    for(int i = 0;i < L;++i)
-      mps[i] = new QSDArray<3>(mps_c[i]);
+      mps[i] = new Tensor(mps_c[i]);
 
 }
 
@@ -241,7 +241,7 @@ void MPS::initialize(){
    qshape = blitz::TinyVector<Qshapes,3>(ql,qp,-qr[0]);
    dshape = blitz::TinyVector<Dshapes,3>(dl,dp,dr[0]);
 
-   mps[0] = new QSDArray<3> (Quantum::zero(),qshape,dshape,Tools::rgen);
+   mps[0] = new Tensor (qshape,dshape);
 
    //then the  middle ones
    for(int i = 1;i < L;++i){
@@ -252,7 +252,7 @@ void MPS::initialize(){
       qshape = blitz::TinyVector<Qshapes,3>(ql,qp,-qr[i]);
       dshape = blitz::TinyVector<Dshapes,3>(dl,dp,dr[i]);
 
-      mps[i] = new QSDArray<3> (Quantum::zero(),qshape,dshape,Tools::rgen);
+      mps[i] = new Tensor (qshape,dshape);
 
    }
 
@@ -280,7 +280,7 @@ int MPS::gD() const {
  * @return the Tensor on index i
  * @param i the index
  */
-const QSDArray<3> &MPS::operator[](int i) const{
+const Tensor &MPS::operator[](int i) const{
 
    return *mps[i];
 

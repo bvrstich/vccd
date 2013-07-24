@@ -8,15 +8,14 @@ using std::cout;
 using std::endl;
 using std::ostream;
 
-#include "SpinQuantum.h"
-namespace btas { typedef SpinQuantum Quantum; };
-
-#include "btas/QSDArray.h"
+#include "Tensor.h"
 
 using namespace btas;
 
 /**
- * class which contains an array of L QSDArray's. So an MPS of length L
+ * class which contains an array of L Tensor objects. So an MPS of length L. 
+ * In this class all of the MPS related things are calculated, such as the quantumnumbers and dimensions of the blocks
+ * present in the Tensors, canonicalization of the chain, normalization etc..
  */
 class MPS
 {
@@ -39,13 +38,13 @@ class MPS
 
       int gL() const;
 
-      const QSDArray<3> &operator[](int i) const;
+      const Tensor &operator[](int i) const;
 
       const Quantum &gqt() const;
 
       int gD() const;
 
-      void Canonicalize(bool);
+      void canonicalize(bool);
 
    private:
 
@@ -59,7 +58,7 @@ class MPS
       Quantum *qt;
 
       //!array containing the mps's
-      QSDArray<3> **mps;
+      Tensor **mps;
 
 };
 
