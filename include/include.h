@@ -1,7 +1,6 @@
 //nog enkele definities:
 
 #include "SpinQuantum.h"
-#include "SpinQuantum.h"
 namespace btas { typedef SpinQuantum Quantum; };
 
 #include "btas/QSDArray.h"
@@ -13,6 +12,4 @@ namespace btas { typedef SpinQuantum Quantum; };
 #include "btas/QSDcontract.h"
 #include "btas/QSDpermute.h"
 
-#include "Tensor.h"
-#include "MPS.h"
-#include "Tools.h"
+#include "MPSblas.h"

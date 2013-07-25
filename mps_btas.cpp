@@ -7,7 +7,6 @@ using std::cout;
 using std::endl;
 using std::ofstream;
 using std::ifstream;
-using std::vector;
 
 #include "include.h"
 
@@ -19,24 +18,16 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 10;
+   int L = 20;
 
    //physical dimension
    int d = 2;
 
-   //max virtual dimension
-   int D = 10;
-  
-   btas::Quantum qt(0);
+   MPS mps = create(L,Quantum::zero(),10);
 
-   MPS mps(L,qt,D);
+   compress(mps,true,20);
 
-   mps.canonicalize(true);
-
-   QSDArray<2> out;
-   QSDcontract(1.0,mps[3],shape(0,1),mps[3].conjugate(),shape(0,1),1.0,out);
-
-   cout << out << endl;
+   print(mps);
 
    return 0;
 
