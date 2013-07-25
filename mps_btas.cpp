@@ -31,7 +31,12 @@ int main(void){
 
    MPS mps(L,qt,D);
 
-   cout << mps << endl;
+   mps.canonicalize(true);
+
+   QSDArray<2> out;
+   QSDcontract(1.0,mps[3],shape(0,1),mps[3].conjugate(),shape(0,1),1.0,out);
+
+   cout << out << endl;
 
    return 0;
 

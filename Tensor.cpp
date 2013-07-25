@@ -42,7 +42,37 @@ void Tensor::fill_Random(){
 
 /**
  * Canonicalize the tensor to a right or left normalized tensor
+ * @param left boolean flag that sets to left or right canonicalization
  */
 void Tensor::canonicalize(bool left){
+
+   if(left) {
+
+      DiagonalQSDArray<1> S;//singular values
+      QSDArray<2> V;//V^T
+      QSDArray<3> U;//U --> unitary left normalized matrix
+      QSDgesvd(btas::LeftCanonical,*this,S,U,V,0);
+      QSDcopy(U,*this);
+
+   }
+   else {
+
+      DiagonalQSDArray<1> S;
+      QSDArray<2> U;
+      QSDArray<3> V;
+      QSDgesvd(btas::RightCanonical,*this,S,U,V,0);
+      QSDcopy(V,*this);
+
+   }
+
+}
+
+/**
+ * normalize the tensor, i.e. \sum_{sij} A^s_ij A^s_ij = 1
+ */
+void Tensor::normalize(){
+
+   double norm = btas::QSDdotc(*this,*this);
+   btas::QSDscal(1.0/std::sqrt(norm),*this);
 
 }

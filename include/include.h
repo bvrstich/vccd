@@ -6,6 +6,12 @@ namespace btas { typedef SpinQuantum Quantum; };
 
 #include "btas/QSDArray.h"
 #include "btas/TVector.h"
+#include "btas/DiagonalQSDArray.h"
+#include "btas/Dpermute.h"
+#include "btas/QSDblas.h"
+#include "btas/QSDlapack.h"
+#include "btas/QSDcontract.h"
+#include "btas/QSDpermute.h"
 
 #include "Tensor.h"
 #include "MPS.h"

@@ -40,6 +40,8 @@ class MPS
 
       const Tensor &operator[](int i) const;
 
+      Tensor &operator[](int i);
+
       const Quantum &gqt() const;
 
       int gD() const;

@@ -318,4 +318,19 @@ ostream &operator<<(ostream &output,MPS &mps_p){
  */
 void MPS::canonicalize(bool left){
 
+   for(int i = 0;i < L - 1;++i)
+      mps[i]->canonicalize(left);
+
+   mps[L - 1]->normalize();
+
+}
+
+/**
+ * @return the Tensor on index i
+ * @param i the index
+ */
+Tensor &MPS::operator[](int i){
+
+   return *mps[i];
+
 }

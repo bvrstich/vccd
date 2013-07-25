@@ -37,6 +37,8 @@ class Tensor : public QSDArray<3>
 
       void fill_Random();
 
+      void normalize();
+
    private:
 
 };
