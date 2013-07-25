@@ -27,8 +27,6 @@ int main(void){
 
    compress(mps,true,20);
 
-   print(mps);
-
    return 0;
 
 }

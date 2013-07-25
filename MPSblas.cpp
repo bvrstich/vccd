@@ -268,13 +268,15 @@ namespace btas {
     */
     void compress(MPS &mps,bool left,int D){
 
+       int L = mps.size();
+
        if(left) {
 
           DiagonalQSDArray<1> S;//singular values
           QSDArray<2> V;//V^T
           QSDArray<3> U;//U --> unitary left normalized matrix
           
-          for(unsigned int i = 0;i < mps.size() - 1;++i){
+          for(int i = 0;i < L - 1;++i){
 
              QSDgesvd(btas::LeftCanonical,mps[i],S,U,V,D);
 
@@ -294,6 +296,13 @@ namespace btas {
 
           }
 
+          //now normalize the last tensor
+          
+          double norm = QSDdotc(mps[L - 1],mps[L - 1]);
+
+          QSDscal(1.0/sqrt(norm),mps[L - 1]);
+         
+
        }
        else{//right
 
@@ -301,7 +310,7 @@ namespace btas {
           QSDArray<3> V;//V^T --> unitary right normalized matrix
           QSDArray<2> U;//U
 
-          for(unsigned int i = mps.size() - 1;i > 0;--i){
+          for(int i = L - 1;i > 0;--i){
 
              QSDgesvd(btas::LeftCanonical,mps[i],S,U,V,D);
 
@@ -320,6 +329,12 @@ namespace btas {
              QSDcontract(1.0,V,shape(2),U,shape(0),0.0,mps[i - 1]);
 
           }
+
+          //now normalize the last tensor
+          
+          double norm = QSDdotc(mps[0],mps[0]);
+
+          QSDscal(1.0/sqrt(norm),mps[0]);
 
        }
 
