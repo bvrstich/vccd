@@ -31,7 +31,7 @@ namespace btas{
 
    void compress(MPS &,bool,int);
 
-   void axpy(double,const MPS &,MPS &);
+   MPS axpy(double,const MPS &,const MPS &);
 
    double dot(const MPS &,const MPS &);
 

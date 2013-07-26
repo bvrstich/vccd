@@ -14,7 +14,7 @@ using namespace btas;
 
 int main(void){
 
-   cout.precision(10);
+   cout.precision(5);
    srand(time(NULL));
 
    //lenght of the chain
@@ -23,10 +23,12 @@ int main(void){
    //physical dimension
    int d = 2;
 
-   MPS mps_X = create(L,Quantum(2),10);
-   MPS mps_Y = create(L,Quantum(2),10);
+   MPS A = create(L,Quantum(2),10);
+   MPS B = create(L,Quantum(2),20);
 
-   cout << dist(mps_X,mps_Y) << endl;
+   QSDArray<3> C;
+
+   QSDjoin(A[3],B[3],C);
 
    return 0;
 

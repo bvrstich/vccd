@@ -408,4 +408,22 @@ namespace btas {
 
    }
 
+   /**
+    * construct new MPS XY that is sum of Y + alpha * X: this is done by making a larger MPS object containing X and alpha Y as blocks
+    * @param alpha scaling factor
+    * @param X input MPS
+    * @param Y input MPS
+    * @return the MPS result
+    */
+   MPS axpy(double alpha,const MPS &X,const MPS &Y){
+
+      //first check if we can sum these two:
+      if(X.size() != Y.size())
+         BTAS_THROW(false, "Error: input MPS objects do not have the same length!");
+
+      if(X[X.size()-1].qshape(2) != Y[Y.size()-1].qshape(2))
+         BTAS_THROW(false,"Error: input MPS objects do not have the same total quantumnumbers!");
+
+   }
+
 }

@@ -12,4 +12,5 @@ namespace btas { typedef SpinQuantum Quantum; };
 #include "btas/QSDcontract.h"
 #include "btas/QSDpermute.h"
 
+#include "MPSadd.h"
 #include "MPSblas.h"
