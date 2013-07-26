@@ -33,7 +33,7 @@ namespace btas{
 
    void axpy(double,const MPS &,MPS &);
 
-   QSDArray<2> dot(const MPS &,const MPS &);
+   double dot(const MPS &,const MPS &);
 
    double nrm2(const MPS &);
 

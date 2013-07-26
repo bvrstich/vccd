@@ -23,10 +23,6 @@ int main(void){
    //physical dimension
    int d = 2;
 
-   MPS mps = create(L,Quantum::zero(),10);
-
-   compress(mps,true,20);
-
    return 0;
 
 }

@@ -219,15 +219,15 @@ namespace btas {
     * prints all the tensors in mps_p
     * @param mps_p input MPS
     */
-    void print(const MPS &mps_p){
+   void print(const MPS &mps_p){
 
-       for(MPS::const_iterator it = mps_p.begin();it != mps_p.end();++it){
+      for(MPS::const_iterator it = mps_p.begin();it != mps_p.end();++it){
 
-          cout << endl;
-          cout << *it << endl;
-          cout << endl;
+         cout << endl;
+         cout << *it << endl;
+         cout << endl;
 
-       }
+      }
 
    }
 
@@ -236,26 +236,26 @@ namespace btas {
     * @param mps the MPS to be copied
     * @param mps_copy the MPS into which will be copied
     */
-    void copy(const MPS &mps,MPS &mps_copy){
+   void copy(const MPS &mps,MPS &mps_copy){
 
-       mps_copy.resize(mps.size());
+      mps_copy.resize(mps.size());
 
-       for(unsigned int i = 0;i < mps.size();++i)
-          QSDcopy(mps[i],mps_copy[i]);
+      for(unsigned int i = 0;i < mps.size();++i)
+         QSDcopy(mps[i],mps_copy[i]);
 
-    }
+   }
 
-    /**
-     * scale the MPS with a constant factor
-     * @param alpha scalingfactor
-     * @param mps the MPS to be scaled
-     */
-    void scal(double alpha,MPS &mps){
+   /**
+    * scale the MPS with a constant factor
+    * @param alpha scalingfactor
+    * @param mps the MPS to be scaled
+    */
+   void scal(double alpha,MPS &mps){
 
-       for(unsigned int i = 0;i < mps.size();++i)
-          QSDscal(alpha,mps[i]);
+      for(unsigned int i = 0;i < mps.size();++i)
+         QSDscal(alpha,mps[i]);
 
-    }
+   }
 
 
    /**
@@ -266,87 +266,125 @@ namespace btas {
     *          if == 0  all the states are kept
     *          if < 0 all singular values > 10^-D are kept
     */
-    void compress(MPS &mps,bool left,int D){
+   void compress(MPS &mps,bool left,int D){
 
-       int L = mps.size();
+      int L = mps.size();
 
-       if(left) {
+      if(left) {
 
-          DiagonalQSDArray<1> S;//singular values
-          QSDArray<2> V;//V^T
-          QSDArray<3> U;//U --> unitary left normalized matrix
-          
-          for(int i = 0;i < L - 1;++i){
+         DiagonalQSDArray<1> S;//singular values
+         QSDArray<2> V;//V^T
+         QSDArray<3> U;//U --> unitary left normalized matrix
 
-             QSDgesvd(btas::LeftCanonical,mps[i],S,U,V,D);
+         for(int i = 0;i < L - 1;++i){
 
-             //copy unitary to mps
-             QSDcopy(U,mps[i]);
+            QSDgesvd(btas::LeftCanonical,mps[i],S,U,V,D);
 
-             //paste S and V together
-             SDdidm(S,V);
+            //copy unitary to mps
+            QSDcopy(U,mps[i]);
 
-             //and multiply with mps on the next site
-             U = mps[i + 1];
+            //paste S and V together
+            SDdidm(S,V);
 
-             //when compressing dimensions will change, so reset:
-             mps[i + 1].clear();
+            //and multiply with mps on the next site
+            U = mps[i + 1];
 
-             QSDcontract(1.0,V,shape(2),U,shape(0),0.0,mps[i + 1]);
+            //when compressing dimensions will change, so reset:
+            mps[i + 1].clear();
 
-          }
+            QSDcontract(1.0,V,shape(2),U,shape(0),0.0,mps[i + 1]);
 
-          //now normalize the last tensor
-          
-          double norm = QSDdotc(mps[L - 1],mps[L - 1]);
+         }
 
-          QSDscal(1.0/sqrt(norm),mps[L - 1]);
-         
+         //now normalize the last tensor
 
-       }
-       else{//right
+         double norm = QSDdotc(mps[L - 1],mps[L - 1]);
 
-          DiagonalQSDArray<1> S;//singular values
-          QSDArray<3> V;//V^T --> unitary right normalized matrix
-          QSDArray<2> U;//U
+         QSDscal(1.0/sqrt(norm),mps[L - 1]);
 
-          for(int i = L - 1;i > 0;--i){
 
-             QSDgesvd(btas::LeftCanonical,mps[i],S,U,V,D);
+      }
+      else{//right
 
-             //copy unitary to mps
-             QSDcopy(V,mps[i]);
+         DiagonalQSDArray<1> S;//singular values
+         QSDArray<3> V;//V^T --> unitary right normalized matrix
+         QSDArray<2> U;//U
 
-             //paste U and S together
-             SDdimd(U,S);
+         for(int i = L - 1;i > 0;--i){
 
-             //and multiply with mps on the next site
-             V = mps[i - 1];
+            QSDgesvd(btas::LeftCanonical,mps[i],S,U,V,D);
 
-             //when compressing dimensions will change, so reset:
-             mps[i - 1].clear();
+            //copy unitary to mps
+            QSDcopy(V,mps[i]);
 
-             QSDcontract(1.0,V,shape(2),U,shape(0),0.0,mps[i - 1]);
+            //paste U and S together
+            SDdimd(U,S);
 
-          }
+            //and multiply with mps on the next site
+            V = mps[i - 1];
 
-          //now normalize the last tensor
-          
-          double norm = QSDdotc(mps[0],mps[0]);
+            //when compressing dimensions will change, so reset:
+            mps[i - 1].clear();
 
-          QSDscal(1.0/sqrt(norm),mps[0]);
+            QSDcontract(1.0,V,shape(2),U,shape(0),0.0,mps[i - 1]);
 
-       }
+         }
 
-    }
+         //now normalize the last tensor
 
-    /**
-     * simple random number generator
-     */
-    double rgen() { 
+         double norm = QSDdotc(mps[0],mps[0]);
 
-       return 2.0*(static_cast<double>(rand())/RAND_MAX) - 1.0; 
+         QSDscal(1.0/sqrt(norm),mps[0]);
 
-    }
+      }
+
+   }
+
+   /**
+    * simple random number generator
+    */
+   double rgen() { 
+
+      return 2.0*(static_cast<double>(rand())/RAND_MAX) - 1.0; 
+
+   }
+
+   /**
+    * the contraction of two MPS's
+    * @return the overlap of two MPS objects
+    * @param mps_X input MPS
+    * @param mps_Y input MPS
+    */
+   double dot(const MPS &mps_X,const MPS &mps_Y){
+
+      if(mps_X.size() != mps_Y.size())
+         cout << "input MPS objects do not have the same length" << endl;
+
+      //going from left to right, this will store the already contracted part
+      QSDArray<2> E;
+
+      QSDcontract(1.0,mps_X[0],shape(0,1),mps_Y[0].conjugate(),shape(0,1),0.0,E);
+
+      //this will contain an intermediate
+      QSDArray<3> I;
+
+      for(unsigned int i = 1;i < mps_X.size();++i){
+
+         //construct intermediate, i.e. past mps_X to E
+         QSDcontract(1.0,E,shape(0),mps_X[i],shape(0),0.0,I);
+
+         //clear structure of E
+         E.clear();
+
+         //construct E for site i by contracting I with mps_Y
+         QSDcontract(1.0,I,shape(0,1),mps_Y[i].conjugate(),shape(0,1),0.0,E);
+
+         I.clear();
+
+      }
+
+      return (*(E.begin()->second))(0,0);
+
+   }
 
 }
