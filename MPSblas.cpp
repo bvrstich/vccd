@@ -358,7 +358,10 @@ namespace btas {
    double dot(const MPS &mps_X,const MPS &mps_Y){
 
       if(mps_X.size() != mps_Y.size())
-         cout << "input MPS objects do not have the same length" << endl;
+         cout << "Error: input MPS objects do not have the same length!" << endl;
+
+      if(mps_X[mps_X.size()-1].qshape(2) != mps_Y[mps_Y.size()-1].qshape(2))
+         cout << "Error: input MPS objects do not have the same total quantumnumbers!" << endl;
 
       //going from left to right, this will store the already contracted part
       QSDArray<2> E;
@@ -384,6 +387,24 @@ namespace btas {
       }
 
       return (*(E.begin()->second))(0,0);
+
+   }
+
+   /**
+    * @return the norm of the state
+    */
+   double nrm2(const MPS &mps){
+
+      return dot(mps,mps);
+
+   }
+
+   /**
+    * @return the distance between 2 mps's ||X - Y||_2
+    */
+   double dist(const MPS  &mps_X,const MPS &mps_Y){
+
+      return nrm2(mps_X) + nrm2(mps_Y) - 2.0 * dot(mps_X,mps_Y);
 
    }
 

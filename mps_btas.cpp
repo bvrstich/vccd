@@ -23,6 +23,11 @@ int main(void){
    //physical dimension
    int d = 2;
 
+   MPS mps_X = create(L,Quantum(2),10);
+   MPS mps_Y = create(L,Quantum(2),10);
+
+   cout << dist(mps_X,mps_Y) << endl;
+
    return 0;
 
 }

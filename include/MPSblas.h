@@ -37,6 +37,8 @@ namespace btas{
 
    double nrm2(const MPS &);
 
+   double dist(const MPS &,const MPS &);
+
 }
 
 #endif 
