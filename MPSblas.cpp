@@ -421,8 +421,17 @@ namespace btas {
       if(X.size() != Y.size())
          BTAS_THROW(false, "Error: input MPS objects do not have the same length!");
 
+      int L = X.size();
+
       if(X[X.size()-1].qshape(2) != Y[Y.size()-1].qshape(2))
          BTAS_THROW(false,"Error: input MPS objects do not have the same total quantumnumbers!");
+
+      MPS XY(L);
+
+      for(int i = 0;i < L;++i)
+         QSDjoin(X[i],Y[i],XY[i]);
+
+      return XY;
 
    }
 
