@@ -125,6 +125,82 @@ namespace btas {
 
       C.resize(Quantum::zero(),qc,dc);
 
+      Qshapes qindc(3);
+
+      for(SDArray<3>::const_iterator itc = C.begin();itc != C.end();++itc){
+
+         //put the non-zero index to quantum 
+         qindex(C,itc->first,qindc);
+
+         //check if the same numbers are present in A
+         Qshapes qinda(3);
+
+         int flag_A = 0;
+
+         SDArray<3>::const_iterator A_loc;
+
+         for(SDArray<3>::const_iterator ita = A.begin();ita != A.end();++ita){
+
+            qindex(A,ita->first,qinda);
+
+            if(qindc == qinda){
+
+               A_loc = ita;
+               flag_A = 1;
+
+            }
+
+         }
+
+         //check if the same numbers are present in B
+         Qshapes qindb(3);
+
+         int flag_B = 0;
+
+         SDArray<3>::const_iterator B_loc;
+
+         for(SDArray<3>::const_iterator itb = B.begin();itb != B.end();++itb){
+
+            qindex(B,itb->first,qindb);
+
+            if(qindc == qindb){
+
+               B_loc = itb;
+               flag_B = 1;
+
+            }
+
+         }
+
+         if(flag_A == 1){//if quantumnumber is present in A
+
+            if(flag_B == 1)//and quantumnumber is present in B
+               Djoin(*(A_loc->second),*(B_loc->second),*(itc->second));
+            else//copy A to C
+               Dcopy(*(A_loc->second),*(itc->second));
+
+         }
+         else//copy B to C
+            Dcopy(*(B_loc->second),*(itc->second));
+
+      }
+
+   }
+
+   /** 
+    * given a block_tag from the SDArray::iterator
+    * @param A input QSDArray object
+    * @param block_tag index of the non-zero block (key of the map)
+    * @param q Qshapes of length 3 will contain the 3 indices at exit
+    * @return the Quantumnumbers belonging to the non-zero block 
+    */
+   void qindex(const QSDArray<3> &A,int block_tag,Qshapes &q){
+
+      TinyVector<int,3> ind = A.index(block_tag);
+
+      for(int i = 0;i < 3;++i)
+         q[i] = A.qshape(i)[ind[i]];
+
    }
 
 }
