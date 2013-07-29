@@ -26,15 +26,12 @@ int main(void){
    MPS A = create(L,Quantum(2),20);
    MPS B = create(L,Quantum(2),20);
 
-   compress(A,true,100);
-   compress(B,true,100);
+   compress(A,true,50);
+   compress(B,true,50);
 
-   QSDArray<3> tmp;
+   MPS AB = add(A,B);
 
-   for(int i = 0;i < L;++i)
-      QSDjoin(A[i],B[i],tmp);
-
- //  print(AB);
+   print(AB);
 
    return 0;
 

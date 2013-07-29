@@ -415,7 +415,7 @@ namespace btas {
     * @param Y input MPS
     * @return the MPS result
     */
-   MPS axpy(double alpha,const MPS &X,const MPS &Y){
+   MPS add(const MPS &X,const MPS &Y){
 
       //first check if we can sum these two:
       if(X.size() != Y.size())

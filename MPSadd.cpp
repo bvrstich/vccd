@@ -54,72 +54,139 @@ namespace btas {
 
       //first calculate the new quantumnumbers and dimensions of C
       TinyVector<Qshapes,3> qa = A.qshape();
-      TinyVector<Dshapes,3> da = A.dshape();
       TinyVector<Qshapes,3> qb = B.qshape();
-      TinyVector<Dshapes,3> db = B.dshape();
 
       TinyVector<Qshapes,3> qc(qa);
+
+      TinyVector<Dshapes,3> da = A.dshape();
+      TinyVector<Dshapes,3> db = B.dshape();
+
       TinyVector<Dshapes,3> dc(da);
 
       //first 0 index
       Qshapes::iterator jt = qb[0].begin();
+      Dshapes::iterator lt = db[0].begin();
 
       Dshapes::iterator kt = dc[0].begin();
-      Dshapes::iterator lt = db[0].begin();
+
+      int i = 0;
 
       for(Qshapes::iterator it = qc[0].begin();it != qc[0].end();++it){
 
-         while( (*jt) < (*it) && jt != qb[0].end() ){
+         while( (*jt) < (*it) ){
 
             qc[0].insert(it,*jt);
             dc[0].insert(kt,*lt);
 
+            //ridiculous but I need a new iterator
+            ++i;
+
+            it = qc[0].begin() + i;
+            kt = dc[0].begin() + i;
+
+            if(it == qc[0].end())
+               break;
+
             ++jt;
             ++lt;
 
-         }
-
-         if( (*jt) == (*it) && jt != qb[0].end()  ){
-
-            *kt += *lt;
-
-            ++jt;
-            ++lt;
+            if(jt == qb[0].end())
+               break;
 
          }
 
+         if(it != qc[0].end() && jt != qb[0].end() ){
+
+            if( (*jt) == (*it) ){
+
+               *kt += *lt;
+
+               ++jt;
+               ++lt;
+
+            }
+
+         }
+
+         if(jt == qb[0].end())
+            break;
+
+         ++i;
          ++kt;
 
       }
 
-      //then 2 index
+      //now add stuff to the end
+      while(jt != qb[0].end()){
+
+         qc[0].push_back(*jt);
+         dc[0].push_back(*lt);
+
+         ++jt;
+         ++lt;
+
+      }
+
+      //then 2 index: this runs from high to low
       jt = qb[2].begin();
+      lt = db[2].begin();
 
       kt = dc[2].begin();
-      lt = db[2].begin();
+
+      i = 0;
 
       for(Qshapes::iterator it = qc[2].begin();it != qc[2].end();++it){
 
-         while( (*jt) < (*it) && jt != qb[2].end() ){
+         while( (*jt) > (*it) ){
 
             qc[2].insert(it,*jt);
             dc[2].insert(kt,*lt);
 
-            ++lt;
+            //ridiculous but I need a new iterator
+            ++i;
+
+            it = qc[2].begin() + i;
+            kt = dc[2].begin() + i;
+
+            if(it == qc[2].end())
+               break;
+
             ++jt;
+
+            if(jt == qb[2].end())
+               break;
 
          }
 
-         if( (*jt) == (*it) && jt != qb[2].end()  ){
+         if( it != qc[2].end() && jt != qb[2].end() ){
 
-            *kt += *lt;
+            if( (*jt) == (*it) ){
 
-            ++jt;
-            ++lt;
+               *kt += *lt;
+
+               ++lt;
+               ++jt;
+
+            }
 
          }
 
+         if(jt == qb[2].end())
+            break;
+
+         ++i;
          ++kt;
+
+      }
+
+      //now add stuff to the end
+      while(jt != qb[2].end()){
+
+         qc[2].push_back(*jt);
+         dc[2].push_back(*lt);
+
+         ++jt;
+         ++lt;
 
       }
 
@@ -129,7 +196,7 @@ namespace btas {
 
       for(SDArray<3>::const_iterator itc = C.begin();itc != C.end();++itc){
 
-         //put the non-zero index to quantum 
+         //put the non-zero index to quantum numbers
          qindex(C,itc->first,qindc);
 
          //check if the same numbers are present in A
@@ -180,8 +247,14 @@ namespace btas {
                Dcopy(*(A_loc->second),*(itc->second));
 
          }
-         else//copy B to C
-            Dcopy(*(B_loc->second),*(itc->second));
+         else{//if quantumnumber is not present in A
+
+            if(flag_B == 1)//but it is in B: copy B to C
+               Dcopy(*(B_loc->second),*(itc->second));
+            else//this block is not present in both A and B: set to zero
+               *(itc->second) = 0.0;
+
+         }
 
       }
 
