@@ -23,12 +23,18 @@ int main(void){
    //physical dimension
    int d = 2;
 
-   MPS A = create(L,Quantum(2),10);
+   MPS A = create(L,Quantum(2),20);
    MPS B = create(L,Quantum(2),20);
 
-   MPS AB = axpy(1.0,A,B);
+   compress(A,true,100);
+   compress(B,true,100);
 
-   print(AB);
+   QSDArray<3> tmp;
+
+   for(int i = 0;i < L;++i)
+      QSDjoin(A[i],B[i],tmp);
+
+ //  print(AB);
 
    return 0;
 
