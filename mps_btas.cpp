@@ -23,15 +23,20 @@ int main(void){
    //physical dimension
    int d = 2;
 
-   MPS A = create(L,Quantum(2),20);
-   MPS B = create(L,Quantum(2),20);
+   MPS A = create(L,Quantum(0),20);
+   MPS B = create(L,Quantum(0),20);
 
-   compress(A,true,50);
-   compress(B,true,50);
+   compress(A,true,40);
+   compress(B,true,40);
+
+   MPS C = create(L,Quantum(0),20);
+
+   compress(C,true,40);
 
    MPS AB = add(A,B);
 
-   print(AB);
+   cout << dot(C,A) + dot(C,B) << endl;
+   cout << dot(C,AB) << endl;
 
    return 0;
 

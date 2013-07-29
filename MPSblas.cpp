@@ -221,10 +221,11 @@ namespace btas {
     */
    void print(const MPS &mps_p){
 
-      for(MPS::const_iterator it = mps_p.begin();it != mps_p.end();++it){
+      for(int i = 0;i < mps_p.size();++i){
 
+         cout << "tensor on site " << i << endl;
          cout << endl;
-         cout << *it << endl;
+         cout << mps_p[i] << endl;
          cout << endl;
 
       }
@@ -428,8 +429,12 @@ namespace btas {
 
       MPS XY(L);
 
-      for(int i = 0;i < L;++i)
+      QSDjoin_ledge(X[0],Y[0],XY[0]);
+
+      for(int i = 1;i < L - 1;++i)
          QSDjoin(X[i],Y[i],XY[i]);
+
+      QSDjoin_redge(X[L-1],Y[L-1],XY[L-1]);
 
       return XY;
 
