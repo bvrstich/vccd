@@ -26,16 +26,15 @@ int main(void){
    MPS A = create(L,Quantum(0),20);
    MPS B = create(L,Quantum(0),20);
 
-   compress(A,true,40);
-   compress(B,true,40);
+   compress(A,true,20);
+   compress(B,true,20);
 
    MPS C = create(L,Quantum(0),20);
-
-   compress(C,true,40);
+   compress(C,true,20);
 
    MPS AB = add(A,B);
 
-   cout << dot(C,A) + dot(C,B) << endl;
+   cout << dot(C,A)+ dot(C,B) << endl;
    cout << dot(C,AB) << endl;
 
    return 0;

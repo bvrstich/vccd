@@ -381,6 +381,7 @@ namespace btas {
                break;
 
             ++jt;
+            ++lt;
 
             if(jt == qb[2].end())
                break;

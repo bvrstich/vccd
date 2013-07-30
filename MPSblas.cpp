@@ -286,7 +286,7 @@ namespace btas {
 
             //paste S and V together
             SDdidm(S,V);
-
+ 
             //and multiply with mps on the next site
             U = mps[i + 1];
 
@@ -379,7 +379,7 @@ namespace btas {
 
          //clear structure of E
          E.clear();
-
+         
          //construct E for site i by contracting I with mps_Y
          QSDcontract(1.0,I,shape(0,1),mps_Y[i].conjugate(),shape(0,1),0.0,E);
 

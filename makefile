@@ -28,7 +28,7 @@ BOOSTINC=-I/usr/include/boost
 BOOSTLIB=-L$(BOOSTDIR)/lib -lboost_serialization
 
 BTASINC=-I/usr/include/btas
-BTASLIB= /usr/lib
+BTASLIB=/usr/lib
 
 INCLUDE = ./include $(BOOSTINC) $(BLITZINC) $(BTASINC)
 
