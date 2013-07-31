@@ -269,20 +269,19 @@ namespace btas {
     *          if == 0  all the states are kept
     *          if < 0 all singular values > 10^-D are kept
     */
-   /*
    void compress(MPS &mps,bool left,int D){
 
       int L = mps.size();
 
       if(left) {
 
-         DiagonalQSDArray<1> S;//singular values
+         SDArray<1> S;//singular values
          QSDArray<2> V;//V^T
          QSDArray<3> U;//U --> unitary left normalized matrix
 
          for(int i = 0;i < L - 1;++i){
 
-            QSDgesvd(btas::LeftCanonical,mps[i],S,U,V,D);
+            QSDgesvd(RightArrow,mps[i],S,U,V,D);
 
             //copy unitary to mps
             QSDcopy(U,mps[i]);
@@ -310,13 +309,13 @@ namespace btas {
       }
       else{//right
 
-         DiagonalQSDArray<1> S;//singular values
+         SDArray<1> S;//singular values
          QSDArray<3> V;//V^T --> unitary right normalized matrix
          QSDArray<2> U;//U
 
          for(int i = L - 1;i > 0;--i){
 
-            QSDgesvd(btas::LeftCanonical,mps[i],S,U,V,D);
+            QSDgesvd(RightArrow,mps[i],S,U,V,D);
 
             //copy unitary to mps
             QSDcopy(V,mps[i]);
@@ -343,7 +342,7 @@ namespace btas {
       }
 
    }
-*/
+
    /**
     * simple random number generator
     */
@@ -418,7 +417,6 @@ namespace btas {
     * @param Y input MPS
     * @return the MPS result
     */
-    /*
    MPS add(const MPS &X,const MPS &Y){
 
       //first check if we can sum these two:
@@ -442,5 +440,5 @@ namespace btas {
       return XY;
 
    }
-*/
+
 }

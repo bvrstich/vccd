@@ -29,6 +29,8 @@ int main(void){
 
    MPS mps = create(L,Quantum::zero(),20);
 
+   compress(mps,true,0);
+
    return 0;
 
 }
