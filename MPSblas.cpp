@@ -19,7 +19,7 @@ namespace btas {
    MPS create(int L,const Quantum &qt,int D){ 
 
       //physical index
-      Qshapes qp;
+      Qshapes<Quantum> qp;
 
       qp.push_back(Quantum(-1));
       qp.push_back(Quantum(1));
@@ -30,7 +30,7 @@ namespace btas {
       dp.push_back(1);
       dp.push_back(1);
 
-      std::vector<Qshapes> qr(L);
+      std::vector< Qshapes<Quantum> > qr(L);
       std::vector<Dshapes> dr(L);
 
       qr[0] = qp;
@@ -81,10 +81,10 @@ namespace btas {
 
       }
 
-      qr[L-1] = Qshapes(1,qt);
+      qr[L-1] = Qshapes<Quantum>(1,qt);
       dr[L-1] = Dshapes(1,1);
 
-      Qshapes tmpq;
+      Qshapes<Quantum> tmpq;
       Dshapes tmpd;
 
       int i = L-2;
@@ -183,20 +183,21 @@ namespace btas {
       }
 
       //now allocate the tensors!
-      blitz::TinyVector<Qshapes,3> qshape;
-      blitz::TinyVector<Dshapes,3> dshape;
+      TVector<Qshapes<Quantum>,3> qshape;
+      TVector<Dshapes,3> dshape;
 
       //first 0
-      Qshapes ql(1,Quantum::zero());
+      Qshapes<Quantum> ql(1,Quantum::zero());
       Dshapes dl(ql.size(),1);
 
-      qshape = blitz::TinyVector<Qshapes,3>(ql,qp,-qr[0]);
-      dshape = blitz::TinyVector<Dshapes,3>(dl,dp,dr[0]);
+      qshape = make_array(ql,qp,-qr[0]);
+      dshape = make_array(dl,dp,dr[0]);
 
       //construct an MPS
       MPS mps(L);
 
-      mps[0].resize(Quantum::zero(),qshape,dshape,rgen);
+      mps[0].resize(Quantum::zero(),qshape,dshape);
+      mps[0].generate(rgen);
 
       //then the  middle ones
       for(int i = 1;i < L;++i){
@@ -204,10 +205,11 @@ namespace btas {
          ql = qr[i - 1];
          dl = dr[i - 1];
 
-         qshape = blitz::TinyVector<Qshapes,3>(ql,qp,-qr[i]);
-         dshape = blitz::TinyVector<Dshapes,3>(dl,dp,dr[i]);
+         qshape = make_array(ql,qp,-qr[i]);
+         dshape = make_array(dl,dp,dr[i]);
 
-         mps[i].resize(Quantum::zero(),qshape,dshape,rgen);
+         mps[i].resize(Quantum::zero(),qshape,dshape);
+         mps[i].generate(rgen);
 
       }
 
@@ -267,6 +269,7 @@ namespace btas {
     *          if == 0  all the states are kept
     *          if < 0 all singular values > 10^-D are kept
     */
+   /*
    void compress(MPS &mps,bool left,int D){
 
       int L = mps.size();
@@ -340,7 +343,7 @@ namespace btas {
       }
 
    }
-
+*/
    /**
     * simple random number generator
     */
@@ -410,12 +413,12 @@ namespace btas {
    }
 
    /**
-    * construct new MPS XY that is sum of Y + alpha * X: this is done by making a larger MPS object containing X and alpha Y as blocks
-    * @param alpha scaling factor
+    * construct new MPS XY that is sum of Y + X: this is done by making a larger MPS object containing X and alpha Y as blocks
     * @param X input MPS
     * @param Y input MPS
     * @return the MPS result
     */
+    /*
    MPS add(const MPS &X,const MPS &Y){
 
       //first check if we can sum these two:
@@ -439,5 +442,5 @@ namespace btas {
       return XY;
 
    }
-
+*/
 }

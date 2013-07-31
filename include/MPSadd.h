@@ -13,11 +13,11 @@ using std::ostream;
 #include "SpinQuantum.h"
 namespace btas { typedef SpinQuantum Quantum; };
 
-#include "btas/QSDArray.h"
+#include "btas/QSPARSE/QSDArray.h"
 
 namespace btas{
 
-   void qindex(const QSDArray<3> &,int,Qshapes &);
+   void qindex(const QSDArray<3> &,int,Qshapes<Quantum> &);
 
    void Djoin(const DArray<3> &,const DArray<3> &,DArray<3> &);
 

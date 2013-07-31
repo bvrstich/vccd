@@ -19,25 +19,26 @@ namespace btas {
     */
    void Djoin(const DArray<3> &A,const DArray<3> &B,DArray<3> &C){
 
-      TinyVector<int,3> ashape = A.shape();
-      TinyVector<int,3> bshape = B.shape();
+      IVector<3> ashape = A.shape();
+      IVector<3> bshape = B.shape();
 
-      int d = ashape(1);
+      int d = ashape[1];
 
-      TinyVector<int,3> cshape(ashape(0) + bshape(0),d,ashape(2) + bshape(2));
+      IVector<3> cshape = make_array(ashape[0] + bshape[0],d,ashape[2] + bshape[2]);
+
       C.resize(cshape);
-      
+  
       C = 0.0;
 
       for(int s = 0;s < d;++s){
 
-         for(int i = 0;i < ashape(0);++i)
-            for(int j = 0;j < ashape(2);++j)
+         for(int i = 0;i < ashape[0];++i)
+            for(int j = 0;j < ashape[2];++j)
                C(i,s,j) = A(i,s,j);
 
-         for(int i = ashape(0);i < cshape(0);++i)
-            for(int j = ashape(2);j < cshape(2);++j)
-               C(i,s,j) = B(i - ashape(0),s,j - ashape(2));
+         for(int i = ashape[0];i < cshape[0];++i)
+            for(int j = ashape[2];j < cshape[2];++j)
+               C(i,s,j) = B(i - ashape[0],s,j - ashape[2]);
       }
 
    }
@@ -51,17 +52,17 @@ namespace btas {
     */
    void Djoin_upper(const DArray<3> &A,DArray<3> &C){
 
-      TinyVector<int,3> ashape = A.shape();
+      IVector<3> ashape = A.shape();
 
-      int d = ashape(1);
+      int d = ashape[1];
 
-      TinyVector<int,3> cshape = C.shape();
+      IVector<3> cshape = C.shape();
       
       C = 0.0;
 
       for(int s = 0;s < d;++s)
-         for(int i = 0;i < ashape(0);++i)
-            for(int j = 0;j < ashape(2);++j)
+         for(int i = 0;i < ashape[0];++i)
+            for(int j = 0;j < ashape[2];++j)
                C(i,s,j) = A(i,s,j);
 
    }
@@ -75,18 +76,18 @@ namespace btas {
     */
    void Djoin_lower(const DArray<3> &B,DArray<3> &C){
 
-      TinyVector<int,3> bshape = B.shape();
+      IVector<3> bshape = B.shape();
 
-      int d = bshape(1);
+      int d = bshape[1];
 
-      TinyVector<int,3> cshape = C.shape();
+      IVector<3> cshape = C.shape();
       
       C = 0.0;
 
       for(int s = 0;s < d;++s)
-         for(int i = 0;i < bshape(0);++i)
-            for(int j = 0;j < bshape(2);++j)
-               C(cshape(0) - bshape(0) + i,s,cshape(2) - bshape(2) + j) = B(i,s,j);
+         for(int i = 0;i < bshape[0];++i)
+            for(int j = 0;j < bshape[2];++j)
+               C(cshape[0] - bshape[0] + i,s,cshape[2] - bshape[2] + j) = B(i,s,j);
 
    }
 
@@ -100,29 +101,29 @@ namespace btas {
     */
    void Djoin_ledge(const DArray<3> &A,const DArray<3> &B,DArray<3> &C){
 
-      TinyVector<int,3> ashape = A.shape();
-      TinyVector<int,3> bshape = B.shape();
+      IVector<3> ashape = A.shape();
+      IVector<3> bshape = B.shape();
 
-      if(ashape(0) != 1)
+      if(ashape[0] != 1)
          cout << "No left edge!" << endl;
 
-      if(bshape(0) != 1)
+      if(bshape[0] != 1)
          cout << "No left edge!" << endl;
 
-      int d = ashape(1);
+      int d = ashape[1];
 
-      TinyVector<int,3> cshape(1,d,ashape(2) + bshape(2));
+      IVector<3> cshape = make_array(1,d,ashape[2] + bshape[2]);
       C.resize(cshape);
 
       C = 0.0;
 
       for(int s = 0;s < d;++s){
 
-         for(int j = 0;j < ashape(2);++j)
+         for(int j = 0;j < ashape[2];++j)
             C(0,s,j) = A(0,s,j);
 
-         for(int j = ashape(2);j < cshape(2);++j)
-            C(0,s,j) = B(0,s,j - ashape(2));
+         for(int j = ashape[2];j < cshape[2];++j)
+            C(0,s,j) = B(0,s,j - ashape[2]);
 
       }
 
@@ -139,29 +140,29 @@ namespace btas {
     */
    void Djoin_redge(const DArray<3> &A,const DArray<3> &B,DArray<3> &C){
 
-      TinyVector<int,3> ashape = A.shape();
-      TinyVector<int,3> bshape = B.shape();
+      IVector<3> ashape = A.shape();
+      IVector<3> bshape = B.shape();
 
-      if(ashape(2) != 1)
+      if(ashape[2] != 1)
          cout << "No right edge!" << endl;
 
-      if(bshape(2) != 1)
+      if(bshape[2] != 1)
          cout << "No right edge!" << endl;
 
-      int d = ashape(1);
+      int d = ashape[1];
 
-      TinyVector<int,3> cshape(ashape(0) + bshape(0),d,1);
+      IVector<3> cshape = make_array(ashape[0] + bshape[0],d,1);
       C.resize(cshape);
 
       C = 0.0;
 
       for(int s = 0;s < d;++s){
 
-         for(int i = 0;i < ashape(0);++i)
+         for(int i = 0;i < ashape[0];++i)
             C(i,s,0) = A(i,s,0);
 
-         for(int i = ashape(0);i < cshape(0);++i)
-            C(i,s,0) = B(i - ashape(0),s,0);
+         for(int i = ashape[0];i < cshape[0];++i)
+            C(i,s,0) = B(i - ashape[0],s,0);
 
       }
 
@@ -177,27 +178,27 @@ namespace btas {
     */
    void Djoin_ledge_no_reshape(const DArray<3> &A,const DArray<3> &B,DArray<3> &C){
 
-      TinyVector<int,3> ashape = A.shape();
-      TinyVector<int,3> bshape = B.shape();
-      TinyVector<int,3> cshape = C.shape();
+      IVector<3> ashape = A.shape();
+      IVector<3> bshape = B.shape();
+      IVector<3> cshape = C.shape();
 
-      if(ashape(0) != 1)
+      if(ashape[0] != 1)
          cout << "No left edge!" << endl;
 
-      if(bshape(0) != 1)
+      if(bshape[0] != 1)
          cout << "No left edge!" << endl;
 
-      int d = ashape(1);
+      int d = ashape[1];
 
       C = 0.0;
 
       for(int s = 0;s < d;++s){
 
-         for(int j = 0;j < ashape(2);++j)
+         for(int j = 0;j < ashape[2];++j)
             C(0,s,j) = A(0,s,j);
 
-         for(int j = ashape(2);j < cshape(2);++j)
-            C(0,s,j) = B(0,s,j - ashape(2));
+         for(int j = ashape[2];j < cshape[2];++j)
+            C(0,s,j) = B(0,s,j - ashape[2]);
 
       }
 
@@ -214,27 +215,27 @@ namespace btas {
     */
    void Djoin_redge_no_reshape(const DArray<3> &A,const DArray<3> &B,DArray<3> &C){
 
-      TinyVector<int,3> ashape = A.shape();
-      TinyVector<int,3> bshape = B.shape();
-      TinyVector<int,3> cshape = C.shape();
+      IVector<3> ashape = A.shape();
+      IVector<3> bshape = B.shape();
+      IVector<3> cshape = C.shape();
 
-      if(ashape(2) != 1)
+      if(ashape[2] != 1)
          cout << "No right edge!" << endl;
 
-      if(bshape(2) != 1)
+      if(bshape[2] != 1)
          cout << "No right edge!" << endl;
 
-      int d = ashape(1);
+      int d = ashape[1];
 
       C = 0.0;
 
       for(int s = 0;s < d;++s){
 
-         for(int i = 0;i < ashape(0);++i)
+         for(int i = 0;i < ashape[0];++i)
             C(i,s,0) = A(i,s,0);
 
-         for(int i = ashape(0);i < cshape(0);++i)
-            C(i,s,0) = B(i - ashape(0),s,0);
+         for(int i = ashape[0];i < cshape[0];++i)
+            C(i,s,0) = B(i - ashape[0],s,0);
 
       }
 
@@ -250,23 +251,24 @@ namespace btas {
     */
    void Djoin_no_reshape(const DArray<3> &A,const DArray<3> &B,DArray<3> &C){
 
-      TinyVector<int,3> ashape = A.shape();
-      TinyVector<int,3> bshape = B.shape();
-      TinyVector<int,3> cshape = C.shape();
+      IVector<3> ashape = A.shape();
+      IVector<3> bshape = B.shape();
+      IVector<3> cshape = C.shape();
 
-      int d = ashape(1);
+      int d = ashape[1];
 
       C = 0.0;
 
       for(int s = 0;s < d;++s){
 
-         for(int i = 0;i < ashape(0);++i)
-            for(int j = 0;j < ashape(2);++j)
+         for(int i = 0;i < ashape[0];++i)
+            for(int j = 0;j < ashape[2];++j)
                C(i,s,j) = A(i,s,j);
 
-         for(int i = ashape(0);i < cshape(0);++i)
-            for(int j = ashape(2);j < cshape(2);++j)
-               C(i,s,j) = B(i - ashape(0),s,j - ashape(2));
+         for(int i = ashape[0];i < cshape[0];++i)
+            for(int j = ashape[2];j < cshape[2];++j)
+               C(i,s,j) = B(i - ashape[0],s,j - ashape[2]);
+
       }
 
    }
@@ -282,25 +284,25 @@ namespace btas {
    void QSDjoin(const QSDArray<3> &A,const QSDArray<3> &B,QSDArray<3> &C){
 
       //first calculate the new quantumnumbers and dimensions of C
-      TinyVector<Qshapes,3> qa = A.qshape();
-      TinyVector<Qshapes,3> qb = B.qshape();
+      TVector<Qshapes<Quantum>,3> qa = A.qshape();
+      TVector<Qshapes<Quantum>,3> qb = B.qshape();
 
-      TinyVector<Qshapes,3> qc(qa);
+      TVector<Qshapes<Quantum>,3> qc(qa);
 
-      TinyVector<Dshapes,3> da = A.dshape();
-      TinyVector<Dshapes,3> db = B.dshape();
+      TVector<Dshapes,3> da = A.dshape();
+      TVector<Dshapes,3> db = B.dshape();
 
-      TinyVector<Dshapes,3> dc(da);
+      TVector<Dshapes,3> dc(da);
 
       //first 0 index
-      Qshapes::iterator jt = qb[0].begin();
+      Qshapes<Quantum>::iterator jt = qb[0].begin();
       Dshapes::iterator lt = db[0].begin();
 
       Dshapes::iterator kt = dc[0].begin();
 
       int i = 0;
 
-      for(Qshapes::iterator it = qc[0].begin();it != qc[0].end();++it){
+      for(Qshapes<Quantum>::iterator it = qc[0].begin();it != qc[0].end();++it){
 
          while( (*jt) < (*it) ){
 
@@ -364,7 +366,7 @@ namespace btas {
 
       i = 0;
 
-      for(Qshapes::iterator it = qc[2].begin();it != qc[2].end();++it){
+      for(Qshapes<Quantum>::iterator it = qc[2].begin();it != qc[2].end();++it){
 
          while( (*jt) > (*it) ){
 
@@ -422,7 +424,7 @@ namespace btas {
 
       C.resize(Quantum::zero(),qc,dc);
 
-      Qshapes qindc(3);
+      Qshapes<Quantum> qindc(3);
 
       for(SDArray<3>::const_iterator itc = C.begin();itc != C.end();++itc){
 
@@ -430,7 +432,7 @@ namespace btas {
          qindex(C,itc->first,qindc);
 
          //check if the same numbers are present in A
-         Qshapes qinda(3);
+         Qshapes<Quantum> qinda(3);
 
          int flag_A = 0;
 
@@ -450,7 +452,7 @@ namespace btas {
          }
 
          //check if the same numbers are present in B
-         Qshapes qindb(3);
+         Qshapes<Quantum> qindb(3);
 
          int flag_B = 0;
 
@@ -487,7 +489,7 @@ namespace btas {
          }
 
       }
-
+     
    }
 
    /**
@@ -501,25 +503,25 @@ namespace btas {
    void QSDjoin_ledge(const QSDArray<3> &A,const QSDArray<3> &B,QSDArray<3> &C){
 
       //first calculate the new quantumnumbers and dimensions of C
-      TinyVector<Qshapes,3> qa = A.qshape();
-      TinyVector<Qshapes,3> qb = B.qshape();
+      TVector<Qshapes<Quantum>,3> qa = A.qshape();
+      TVector<Qshapes<Quantum>,3> qb = B.qshape();
 
-      TinyVector<Qshapes,3> qc(qa);
+      TVector<Qshapes<Quantum>,3> qc(qa);
 
-      TinyVector<Dshapes,3> da = A.dshape();
-      TinyVector<Dshapes,3> db = B.dshape();
+      TVector<Dshapes,3> da = A.dshape();
+      TVector<Dshapes,3> db = B.dshape();
 
-      TinyVector<Dshapes,3> dc(da);
+      TVector<Dshapes,3> dc(da);
 
       //only 2 index: this runs from high to low
-      Qshapes::const_iterator jt = qb[2].begin();
+      Qshapes<Quantum>::const_iterator jt = qb[2].begin();
       Dshapes::const_iterator lt = db[2].begin();
 
       Dshapes::iterator kt = dc[2].begin();
 
       int i = 0;
 
-      for(Qshapes::iterator it = qc[2].begin();it != qc[2].end();++it){
+      for(Qshapes<Quantum>::iterator it = qc[2].begin();it != qc[2].end();++it){
 
          while( (*jt) > (*it) ){
 
@@ -576,7 +578,7 @@ namespace btas {
 
       C.resize(Quantum::zero(),qc,dc);
 
-      Qshapes qindc(3);
+      Qshapes<Quantum> qindc(3);
 
       for(SDArray<3>::const_iterator itc = C.begin();itc != C.end();++itc){
 
@@ -584,7 +586,7 @@ namespace btas {
          qindex(C,itc->first,qindc);
 
          //check if the same numbers are present in A
-         Qshapes qinda(3);
+         Qshapes<Quantum> qinda(3);
 
          int flag_A = 0;
 
@@ -604,7 +606,7 @@ namespace btas {
          }
 
          //check if the same numbers are present in B
-         Qshapes qindb(3);
+         Qshapes<Quantum> qindb(3);
 
          int flag_B = 0;
 
@@ -655,25 +657,25 @@ namespace btas {
    void QSDjoin_redge(const QSDArray<3> &A,const QSDArray<3> &B,QSDArray<3> &C){
 
       //first calculate the new quantumnumbers and dimensions of C
-      TinyVector<Qshapes,3> qa = A.qshape();
-      TinyVector<Qshapes,3> qb = B.qshape();
+      TVector<Qshapes<Quantum>,3> qa = A.qshape();
+      TVector<Qshapes<Quantum>,3> qb = B.qshape();
 
-      TinyVector<Qshapes,3> qc(qa);
+      TVector<Qshapes<Quantum>,3> qc(qa);
 
-      TinyVector<Dshapes,3> da = A.dshape();
-      TinyVector<Dshapes,3> db = B.dshape();
+      TVector<Dshapes,3> da = A.dshape();
+      TVector<Dshapes,3> db = B.dshape();
 
-      TinyVector<Dshapes,3> dc(da);
+      TVector<Dshapes,3> dc(da);
 
       //first 0 index
-      Qshapes::iterator jt = qb[0].begin();
+      Qshapes<Quantum>::iterator jt = qb[0].begin();
       Dshapes::iterator lt = db[0].begin();
 
       Dshapes::iterator kt = dc[0].begin();
 
       int i = 0;
 
-      for(Qshapes::iterator it = qc[0].begin();it != qc[0].end();++it){
+      for(Qshapes<Quantum>::iterator it = qc[0].begin();it != qc[0].end();++it){
 
          while( (*jt) < (*it) ){
 
@@ -731,7 +733,7 @@ namespace btas {
 
       C.resize(Quantum::zero(),qc,dc);
 
-      Qshapes qindc(3);
+      Qshapes<Quantum> qindc(3);
 
       for(SDArray<3>::const_iterator itc = C.begin();itc != C.end();++itc){
 
@@ -739,7 +741,7 @@ namespace btas {
          qindex(C,itc->first,qindc);
 
          //check if the same numbers are present in A
-         Qshapes qinda(3);
+         Qshapes<Quantum> qinda(3);
 
          int flag_A = 0;
 
@@ -759,7 +761,7 @@ namespace btas {
          }
 
          //check if the same numbers are present in B
-         Qshapes qindb(3);
+         Qshapes<Quantum> qindb(3);
 
          int flag_B = 0;
 
@@ -799,7 +801,6 @@ namespace btas {
 
    }
 
-
    /** 
     * given a block_tag from the SDArray::iterator
     * @param A input QSDArray object
@@ -807,9 +808,9 @@ namespace btas {
     * @param q Qshapes of length 3 will contain the 3 indices at exit
     * @return the Quantumnumbers belonging to the non-zero block 
     */
-   void qindex(const QSDArray<3> &A,int block_tag,Qshapes &q){
+   void qindex(const QSDArray<3> &A,int block_tag,Qshapes<Quantum> &q){
 
-      TinyVector<int,3> ind = A.index(block_tag);
+      IVector<3> ind = A.index(block_tag);
 
       for(int i = 0;i < 3;++i)
          q[i] = A.qshape(i)[ind[i]];

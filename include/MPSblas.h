@@ -11,7 +11,7 @@ using std::ostream;
 #include "SpinQuantum.h"
 namespace btas { typedef SpinQuantum Quantum; };
 
-#include "btas/QSDArray.h"
+#include "btas/QSPARSE/QSDArray.h"
 
 namespace btas{
 

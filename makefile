@@ -21,18 +21,14 @@ OBJ	= $(CPPSRC:.cpp=.o)
 
 BRIGHT_ROOT= .
 
-BLITZINC=`pkg-config --cflags blitz`
-BLITZLIB=`pkg-config --libs blitz`
+BOOSTLIB= -lboost_serialization
 
-BOOSTINC=-I/usr/include/boost
-BOOSTLIB=-L$(BOOSTDIR)/lib -lboost_serialization
+BTASINC=-I/home/bright/bestanden/programmas/btas-c++11/btas/c++11/include
+BTASLIB= /home/bright/bestanden/programmas/btas-c++11/btas/c++11/lib
 
-BTASINC=-I/usr/include/btas
-BTASLIB=/usr/lib
+INCLUDE = ./include $(BTASINC)
 
-INCLUDE = ./include $(BOOSTINC) $(BLITZINC) $(BTASINC)
-
-LIBS= -llapack -lblas $(BOOSTLIB) $(BLITZLIB) $(BTASLIB)/libbtas.a
+LIBS= -lpthread -lmkl_intel_lp64 -lmkl_sequential -lmkl_core $(BOOSTLIB) $(BTASLIB)/libbtas.a 
 
 CC	= gcc
 CXX	= g++
@@ -40,8 +36,8 @@ CXX	= g++
 # -----------------------------------------------------------------------------
 #   Compiler & Linker flags
 # -----------------------------------------------------------------------------
-CFLAGS	= -I$(INCLUDE) -g -flto
-LDFLAGS	= -g -flto
+CFLAGS	= -I$(INCLUDE) -g -std=c++11 -D_HAS_CBLAS -D_HAS_INTEL_MKL
+LDFLAGS	= -g
 
 # =============================================================================
 #   Targets & Rules

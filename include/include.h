@@ -1,16 +1,17 @@
 //nog enkele definities:
-
 #include "SpinQuantum.h"
 namespace btas { typedef SpinQuantum Quantum; };
 
-#include "btas/QSDArray.h"
-#include "btas/TVector.h"
-#include "btas/DiagonalQSDArray.h"
-#include "btas/Dpermute.h"
-#include "btas/QSDblas.h"
-#include "btas/QSDlapack.h"
-#include "btas/QSDcontract.h"
-#include "btas/QSDpermute.h"
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
-#include "MPSadd.h"
+#include <btas/blas_cxx_interface.h>
+
+#include <btas/TVector.h>
+
+#include <btas/DENSE/DArray.h>
+#include <btas/QSPARSE/QSDArray.h>
+#include <btas/QSPARSE/QSDcontract.h>
+
 #include "MPSblas.h"
+#include "MPSadd.h"
