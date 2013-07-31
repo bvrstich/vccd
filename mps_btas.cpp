@@ -24,18 +24,18 @@ int main(void){
    int d = 2;
 
    MPS A = create(L,Quantum(0),20);
-   MPS B = create(L,Quantum(0),20);
 
    compress(A,true,20);
-   compress(B,true,20);
 
-   MPS C = create(L,Quantum(0),20);
-   compress(C,true,20);
+   for(int i = 1;i < L;++i){
 
-   MPS AB = add(A,B);
-
-   cout << dot(C,A)+ dot(C,B) << endl;
-   cout << dot(C,AB) << endl;
+      if(A[i-1].dshape(2) != A[i].dshape(0)){
+         cout << A[i-1].qshape() << endl;
+         cout << A[i-1].dshape() << endl;
+         cout << A[i].qshape() << endl;
+         cout << A[i].dshape() << endl;
+      }
+   }
 
    return 0;
 
