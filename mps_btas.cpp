@@ -27,9 +27,14 @@ int main(void){
    //physical dimension
    int d = 2;
 
-   MPS mps = create(L,Quantum::zero(),20);
+   Quantum qt(2);
 
-   compress(mps,true,0);
+   MPS A = create(L,qt,20);
+   MPS B = create(L,qt,20);
+
+   MPS AB = add(A,B);
+
+   print(AB);
 
    return 0;
 
