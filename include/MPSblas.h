@@ -18,12 +18,17 @@ namespace btas{
    //!typedefine MPS as an std::vector< QSDArray<3> > 
    typedef std::vector< QSDArray<3> > MPS;
 
+   //!typedefine MPO as an std::vector< QSDArray<4> > 
+   typedef std::vector< QSDArray<4> > MPO;
+
    //some function definitions on MPS's
    MPS create(int,const Quantum &qt,int);
 
    double rgen();
 
    void print(const MPS &);
+
+   void print(const MPO &);
 
    void copy(const MPS &,MPS &);
 

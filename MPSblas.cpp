@@ -235,6 +235,23 @@ namespace btas {
    }
 
    /**
+    * prints all the operators in mpo_p
+    * @param mpo_p input MPO
+    */
+   void print(const MPO &mpo_p){
+
+      for(int i = 0;i < mpo_p.size();++i){
+
+         cout << "operator on site " << i << endl;
+         cout << endl;
+         cout << mpo_p[i] << endl;
+         cout << endl;
+
+      }
+
+   }
+
+   /**
     * will copy mps to mps_copy
     * @param mps the MPS to be copied
     * @param mps_copy the MPS into which will be copied

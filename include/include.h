@@ -15,3 +15,5 @@ namespace btas { typedef SpinQuantum Quantum; };
 
 #include "MPSblas.h"
 #include "MPSadd.h"
+
+#include "Hamiltonian.h"

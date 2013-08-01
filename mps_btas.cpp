@@ -27,14 +27,9 @@ int main(void){
    //physical dimension
    int d = 2;
 
-   Quantum qt(2);
+   MPO C = ising(L,d,-1.0,1.0);
 
-   MPS A = create(L,qt,20);
-   MPS B = create(L,qt,20);
-
-   MPS AB = add(A,B);
-
-   print(AB);
+   print(C);
 
    return 0;
 
