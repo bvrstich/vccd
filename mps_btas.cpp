@@ -27,9 +27,14 @@ int main(void){
    //physical dimension
    int d = 2;
 
-   MPO C = ising(L,d,-1.0,1.0);
+   Quantum qt(4);
 
-   print(C);
+   MPS A = create(L,qt,d);
+   MPS B = create(L,qt,d);
+
+   MPO O = ising(L,d,-1.0,1.0);
+
+   cout << dot(A,B) << "\t" << inprod(A,O,B) << endl;
 
    return 0;
 

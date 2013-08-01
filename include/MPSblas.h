@@ -44,6 +44,8 @@ namespace btas{
 
    double dist(const MPS &,const MPS &);
 
+   double inprod(const MPS &,const MPO &,const MPS &);
+
 }
 
 #endif 

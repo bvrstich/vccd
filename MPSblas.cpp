@@ -458,4 +458,69 @@ namespace btas {
 
    }
 
+   /**
+    * @param A input MPS
+    * @param O input MPO
+    * @param B input MPS
+    * @return the number containing < A | O | B >
+    */
+    double inprod(const MPS &A,const MPO &O,const MPS &B){
+
+       //first check if we can sum these two:
+       if(A.size() != B.size() || A.size() != O.size())
+         BTAS_THROW(false, "Error: input objects do not have the same length!");
+
+       int L = A.size();
+
+       //from left to right
+       QSDArray<5> loc;
+
+       QSDcontract(1.0,O[0],shape(2),A[0],shape(1),0.0,loc);
+
+       //merge 2 columns together
+       TVector<Qshapes<Quantum>,2> qmerge;
+       TVector<Dshapes,2> dmerge;
+
+       for(int i = 0;i < 2;++i){
+
+          qmerge[i] = loc.qshape(3 + i);
+          dmerge[i] = loc.dshape(3 + i);
+
+       }
+
+       QSTmergeInfo<2> info(qmerge,dmerge);
+
+       QSDArray<4> tmp;
+       QSTmerge(loc,info,tmp);
+
+       //this will contain the right going part
+       QSDArray<3> EO;
+
+       QSDcontract(1.0,B[0].conjugate(),shape(0,1),tmp,shape(0,1),0.0,EO);
+
+       QSDArray<4> I1;
+       QSDArray<4> I2;
+
+       for(int i = 1;i < L;++i){
+
+          enum {j,k,l,m,n,o};
+
+          I1.clear();
+
+          QSDindexed_contract(1.0,EO,shape(j,k,l),A[i],shape(l,m,n),0.0,I1,shape(j,k,m,n));
+
+          I2.clear();
+
+          QSDindexed_contract(1.0,I1,shape(j,k,m,n),O[i],shape(k,o,m,l),0.0,I2,shape(j,o,l,n));
+
+          EO.clear();
+
+          QSDindexed_contract(1.0,I2,shape(j,o,l,n),B[i].conjugate(),shape(j,o,k),0.0,EO,shape(k,l,n));
+
+       }
+
+       return (*(EO.begin()->second))(0,0,0);
+
+    }
+
 }
