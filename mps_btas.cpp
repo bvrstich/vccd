@@ -27,14 +27,10 @@ int main(void){
    //physical dimension
    int d = 2;
 
-   Quantum qt(4);
+   MPO O1 = ising(L,d,-1.0,1.0);
+   MPO O2 = ising(L,d,-1.0,1.0);
 
-   MPS A = create(L,qt,d);
-   MPS B = create(L,qt,d);
-
-   MPO O = ising(L,d,-1.0,1.0);
-
-   cout << dot(A,B) << "\t" << inprod(A,O,B) << endl;
+   MPO O3 = gemm(O1,O2); 
 
    return 0;
 

@@ -523,4 +523,132 @@ namespace btas {
 
     }
 
+    /**
+     * MPO/S equivalent of a matrix vector multiplication. Let an MPO act on an MPS and return the new MPS
+     * @param O input MPO
+     * @param A input MPS
+     * @return the new MPS object created by the multiplication
+     */
+    MPS gemv(const MPO &O,const MPS &A){
+
+       //first check if we can sum these two:
+       if(O.size() != A.size())
+         BTAS_THROW(false, "Error: input objects do not have the same length!");
+
+       int L = A.size();
+
+       MPS mps(L);
+
+       enum {j,k,l,m,n,o};
+
+       QSDArray<5> tmp;
+       QSDArray<4> mrows;
+
+       for(int i = 0;i < L;++i){
+
+          //clear the tmp object first
+          tmp.clear();
+
+          QSDindexed_contract(1.0,O[i],shape(j,k,l,m),A[i],shape(n,l,o),0.0,tmp,shape(n,j,k,m,o));
+
+          //merge 2 rows together
+          TVector<Qshapes<Quantum>,2> qmerge;
+          TVector<Dshapes,2> dmerge;
+
+          for(int r = 0;r < 2;++r){
+
+             qmerge[r] = tmp.qshape(r);
+             dmerge[r] = tmp.dshape(r);
+
+          }
+
+          QSTmergeInfo<2> info(qmerge,dmerge);
+
+          //clear the mrows object first
+          mrows.clear();
+
+          //then merge
+          QSTmerge(info,tmp,mrows);
+
+          //merge 2 columns together
+          for(int r = 2;r < 4;++r){
+
+             qmerge[r - 2] = mrows.qshape(r);
+             dmerge[r - 2] = mrows.dshape(r);
+
+          }
+
+          info.reset(qmerge,dmerge);
+          QSTmerge(mrows,info,mps[i]);
+
+       }
+
+       return mps;
+
+    }
+
+    /**
+     * MPO equivalent of a matrix matrix multiplication. MPO action on MPO gives new MPO:
+     * @param O1 input MPO
+     * @param O2 input MPO
+     * @return the new MPO object created by the multiplication
+     */
+    MPO gemm(const MPO &O1,const MPO &O2){
+
+       //first check if we can sum these two:
+       if(O1.size() != O2.size())
+         BTAS_THROW(false, "Error: input objects do not have the same length!");
+
+       int L = O1.size();
+
+       MPO mpo(L);
+
+       enum {j,k,l,m,n,o,p};
+
+       QSDArray<6> tmp;
+       QSDArray<5> mrows;
+
+       for(int i = 0;i < L;++i){
+
+          //clear the tmp object first
+          tmp.clear();
+
+          QSDindexed_contract(1.0,O1[i],shape(n,o,k,p),O2[i],shape(j,k,l,m),0.0,tmp,shape(n,j,o,l,p,m));
+
+          //merge 2 rows together
+          TVector<Qshapes<Quantum>,2> qmerge;
+          TVector<Dshapes,2> dmerge;
+
+          for(int r = 0;r < 2;++r){
+
+             qmerge[r] = tmp.qshape(r);
+             dmerge[r] = tmp.dshape(r);
+
+          }
+
+          QSTmergeInfo<2> info(qmerge,dmerge);
+
+          //clear the mrows object first
+          mrows.clear();
+
+          //then merge
+          QSTmerge(info,tmp,mrows);
+
+          //merge 2 columns together
+          for(int r = 3;r < 5;++r){
+
+             qmerge[r - 3] = mrows.qshape(r);
+             dmerge[r - 3] = mrows.dshape(r);
+
+          }
+
+          info.reset(qmerge,dmerge);
+          QSTmerge(mrows,info,mpo[i]);
+
+       }
+
+       return mpo;
+
+    }
+
 }

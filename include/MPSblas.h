@@ -46,6 +46,10 @@ namespace btas{
 
    double inprod(const MPS &,const MPO &,const MPS &);
 
+   MPS gemv(const MPO &,const MPS &);
+
+   MPO gemm(const MPO &,const MPO &);
+
 }
 
 #endif 
