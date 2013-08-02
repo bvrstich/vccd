@@ -27,8 +27,16 @@ int main(void){
    //physical dimension
    int d = 2;
 
-   MPO O = Sz(L,d);
+   MPO O = ising(L,d,1.0,1.0);
 
+   print(O);
+/*
+   MPS A = create(L,d,Quantum::zero(),10);
+
+   MPS OA = gemv(O,A);
+
+   print(OA);
+*/
    return 0;
 
 }

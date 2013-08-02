@@ -28,17 +28,20 @@ namespace btas {
       physical(d,qp);
 
       Qshapes<Quantum> qz;
-      qz.push_back(Quantum::zero());//Sz has spin 0
+      qz.push_back(Quantum::zero());
+
+      Qshapes<Quantum> qt;
+      qt.push_back(Quantum(2));
 
       //incoming
       Qshapes<Quantum> qi;
-      qi.push_back(Quantum::zero());//Sz has spin 0
       qi.push_back(Quantum::zero());//I has spin 0
+      qi.push_back(Quantum(2));//S+ has spin 2
 
       //outgoing
       Qshapes<Quantum> qo;
-      qo.push_back(Quantum::zero());//Sz has spin 0
       qo.push_back(Quantum::zero());//I has spin 0
+      qo.push_back(Quantum(-2));//S+ has spin 2
 
       TVector<Qshapes<Quantum>,4> qshape = make_array(qz,qp,-qp,qo);
 
@@ -50,10 +53,11 @@ namespace btas {
       for(int i = 1;i < L-1;++i)
          mpo[i].resize(Quantum::zero(),qshape);
 
-      qshape = make_array(qi,qp,-qp,qz);
+      qshape = make_array(qi,qp,-qp,-qt);
 
       mpo[L-1].resize(Quantum::zero(),qshape);
 
+      //first the identity
       double mz = -sz;
 
       for(int m = 0;m < d;++m){
@@ -62,24 +66,39 @@ namespace btas {
          DArray<4> I_op(1, 1, 1, 1);//identity
          I_op = 1.0;
 
-         DArray<4> B_op(1, 1, 1, 1);//magnetic fieldstrength
-         B_op = Bz * mz;
-
          mpo[0].insert(shape(0,m,m,0),I_op);
-         mpo[0].insert(shape(0,m,m,1),B_op);
 
          for(int i = 1;i < L - 1;++i){
 
             mpo[i].insert(shape(0,m,m,0),I_op);
-            mpo[i].insert(shape(0,m,m,1),B_op);
             mpo[i].insert(shape(1,m,m,1),I_op);
 
          }
 
-         mpo[L-1].insert(shape(0,m,m,0),B_op);
          mpo[L-1].insert(shape(1,m,m,0),I_op);
 
          mz += 1.0;
+
+      }
+
+      //then the raising operator
+      mz = -sz;
+
+      for(int m = 0; m < d - 1; ++m) {
+
+         // set block elements
+         DArray<4> Sp(1, 1, 1, 1);
+         Sp = std::sqrt( (sz - mz) * (sz + mz + 1.0) );
+
+         // insert blocks
+         mpo[0].insert(shape(0,m,m+1,1),Sp);
+
+         for(int i = 1; i < L-1; ++i) 
+            mpo[i].insert(shape(0,m,m+1,1),Sp);
+
+         mpo[L-1].insert(shape(0,m,m+1,0),Sp);
+
+         mz  += 1.0;
 
       }
 
@@ -88,7 +107,7 @@ namespace btas {
    }
 
    /**
-    * initialize the MPO to represent a nearest-neighbour ising Hamiltonian on a lattice of size L and with coupling constant J
+    * initialize the MPO to represent a Sz operator
     * @param L length of the chain
     * @param d local dimension: i.e. defines the size of the local spins
     */

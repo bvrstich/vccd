@@ -16,13 +16,12 @@ namespace btas {
     * @param D maximal dimension of the quantum blocks
     * @return the MPS chain randomly filled and with correct quantumnumbers and dimensions
     */
-   MPS create(int L,const Quantum &qt,int D){ 
+   MPS create(int L,int d,const Quantum &qt,int D){ 
 
       //physical index
       Qshapes<Quantum> qp;
 
-      qp.push_back(Quantum(-1));
-      qp.push_back(Quantum(1));
+      physical(d,qp);
 
       //shape of the physical index
       Dshapes dp;

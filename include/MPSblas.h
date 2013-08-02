@@ -22,7 +22,7 @@ namespace btas{
    typedef std::vector< QSDArray<4> > MPO;
 
    //some function definitions on MPS's
-   MPS create(int,const Quantum &qt,int);
+   MPS create(int,int,const Quantum &qt,int);
 
    double rgen();
 
