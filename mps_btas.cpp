@@ -22,15 +22,12 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 20;
+   int L = 4;
 
    //physical dimension
    int d = 2;
 
-   MPO O1 = ising(L,d,-1.0,1.0);
-   MPO O2 = ising(L,d,-1.0,1.0);
-
-   MPO O3 = gemm(O1,O2); 
+   MPO O = Sz(L,d);
 
    return 0;
 
