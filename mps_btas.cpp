@@ -27,16 +27,20 @@ int main(void){
    //physical dimension
    int d = 2;
 
+   //MPO O = Sz(L,d);
    MPO O = ising(L,d,1.0,1.0);
 
-   print(O);
-/*
    MPS A = create(L,d,Quantum::zero(),10);
 
    MPS OA = gemv(O,A);
 
-   print(OA);
-*/
+   for(int i = 0;i < L;++i){
+
+      cout << OA[i].qshape() << endl;
+      cout << OA[i].dshape() << endl;
+
+   }
+
    return 0;
 
 }

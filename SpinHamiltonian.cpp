@@ -91,12 +91,12 @@ namespace btas {
          Sp = std::sqrt( (sz - mz) * (sz + mz + 1.0) );
 
          // insert blocks
-         mpo[0].insert(shape(0,m,m+1,1),Sp);
+         mpo[0].insert(shape(0,m+1,m,1),Sp);
 
          for(int i = 1; i < L-1; ++i) 
-            mpo[i].insert(shape(0,m,m+1,1),Sp);
+            mpo[i].insert(shape(0,m+1,m,1),Sp);
 
-         mpo[L-1].insert(shape(0,m,m+1,0),Sp);
+         mpo[L-1].insert(shape(0,m+1,m,0),Sp);
 
          mz  += 1.0;
 

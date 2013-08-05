@@ -543,6 +543,8 @@ namespace btas {
        QSDArray<5> tmp;
        QSDArray<4> mrows;
 
+       int i = 0;
+
        for(int i = 0;i < L;++i){
 
           //clear the tmp object first
@@ -576,8 +578,9 @@ namespace btas {
              dmerge[r - 2] = mrows.dshape(r);
 
           }
-
+         
           info.reset(qmerge,dmerge);
+
           QSTmerge(mrows,info,mps[i]);
 
        }
