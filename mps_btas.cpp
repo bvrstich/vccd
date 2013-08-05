@@ -27,20 +27,46 @@ int main(void){
    //physical dimension
    int d = 2;
 
+   SDArray<3> tmp;
+
+   TVector<Dshapes,3> dshape;
+
+   dshape[0].push_back(1);
+   dshape[0].push_back(2);
+   dshape[0].push_back(1);
+
+   dshape[1].push_back(1);
+   dshape[1].push_back(1);
+   dshape[1].push_back(1);
+
+   dshape[2].push_back(2);
+   dshape[2].push_back(3);
+
+   tmp.resize(dshape);
+
+   tmp.generate(rgen);
+
+   cout << tmp << endl;
+
+   SDArray<3> tmp2;
+
+   tmp.remove_index(tmp2,0,0);
+
+   cout << tmp2 << endl;
+
+/*
    //MPO O = Sz(L,d);
    MPO O = ising(L,d,1.0,1.0);
 
    MPS A = create(L,d,Quantum::zero(),10);
 
+   cout << A[0] << endl;
+   cout << O[0] << endl;
+
    MPS OA = gemv(O,A);
 
-   for(int i = 0;i < L;++i){
-
-      cout << OA[i].qshape() << endl;
-      cout << OA[i].dshape() << endl;
-
-   }
-
+   cout << OA[0] << endl;
+*/
    return 0;
 
 }

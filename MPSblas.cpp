@@ -653,4 +653,49 @@ namespace btas {
 
     }
 
+    /**
+     * clean up the MPS, i.e. make sure the right quantumblocks are connected, remove unnecessary quantumnumbers and blocks
+     * @param mps input MPS, will be changed 'cleaned' on exit
+     */
+      void clean(MPS &mps){
+
+         Dshapes dl = mps[0].dshape(0);
+         Qshapes<Quantum> ql = mps[0].qshape(0);
+
+         Dshapes dr = mps[0].dshape(2);
+         Qshapes<Quantum> qr = mps[0].qshape(2);
+
+         for(int i = 0;i < ql.size();++i){
+
+            if(dl[i] == 0){
+
+               dl.erase(dl.begin() + i);
+               ql.erase(ql.begin() + i);
+
+            }
+
+         }
+
+         for(int i = 0;i < qr.size();++i){
+
+            if(dr[i] == 0){
+
+               dr.erase(dr.begin() + i);
+               qr.erase(qr.begin() + i);
+
+            }
+
+         }
+
+         TVector<Qshapes<Quantum>,3> qshape = make_array(qr,mps[0].qshape(1),ql);
+         TVector<Dshapes,3> dshape = make_array(dr,mps[0].dshape(1),dl);
+
+         QSDArray<3> A(Quantum::zero(),qshape);
+
+         QSDcopy(mps[0],A);
+
+         cout << A << endl;
+
+      }
+
 }

@@ -50,6 +50,8 @@ namespace btas{
 
    MPO gemm(const MPO &,const MPO &);
 
+   void clean(MPS &);
+
 }
 
 #endif 
