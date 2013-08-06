@@ -590,7 +590,7 @@ namespace btas {
     }
 
     /**
-     * MPO equivalent of a matrix matrix multiplication. MPO action on MPO gives new MPO:
+     * MPO equivalent of a matrix matrix multiplication. MPO action on MPO gives new MPO: O1-O2|MPS>
      * @param O1 input MPO
      * @param O2 input MPO
      * @return the new MPO object created by the multiplication
@@ -659,43 +659,80 @@ namespace btas {
      */
       void clean(MPS &mps){
 
-         Dshapes dl = mps[0].dshape(0);
-         Qshapes<Quantum> ql = mps[0].qshape(0);
+         Dshapes dr;
 
-         Dshapes dr = mps[0].dshape(2);
-         Qshapes<Quantum> qr = mps[0].qshape(2);
+         //from left to right
+         for(int i = 0;i < mps.size() - 1;++i){
 
-         for(int i = 0;i < ql.size();++i){
+            dr = mps[i].dshape()[2];
 
-            if(dl[i] == 0){
+            int index = -1;
 
-               dl.erase(dl.begin() + i);
-               ql.erase(ql.begin() + i);
+            for(int j = 0;j < dr.size();++j){
+
+               if(dr[j] == 0)
+                  index = j;
+
+            }
+
+            if(index != -1){//remove the corresponding blocks on the 0 leg of the next site
+
+               Quantum qrem = -mps[i].qshape()[2][index];
+
+               Qshapes<Quantum> ql = mps[i + 1].qshape()[0];
+
+               int rem_index = -1;
+
+               for(int j = 0;j < ql.size();++j)
+                  if(ql[j] == qrem)
+                     rem_index = j;
+
+               if(rem_index == -1)
+                  cout << "clean error: quantum number not present on site " << i + 1 << endl;
+               else
+                  mps[i + 1].remove(0,rem_index);
 
             }
 
          }
 
-         for(int i = 0;i < qr.size();++i){
+         //and back from right to left
+         for(int i = mps.size() - 1;i > 0;--i){
 
-            if(dr[i] == 0){
+            dr = mps[i].dshape()[0];//actually dl now
 
-               dr.erase(dr.begin() + i);
-               qr.erase(qr.begin() + i);
+            int index = -1;
+
+            for(int j = 0;j < dr.size();++j){
+
+               if(dr[j] == 0)
+                  index = j;
+
+            }
+
+            if(index != -1){//remove the corresponding blocks on the 2 leg of the next site
+
+               Quantum qrem = -mps[i].qshape()[0][index];
+
+               Qshapes<Quantum> qr = mps[i - 1].qshape()[2];
+
+               int rem_index = -1;
+
+               for(int j = 0;j < qr.size();++j)
+                  if(qr[j] == qrem)
+                     rem_index = j;
+
+               if(rem_index == -1)
+                  cout << "clean error: quantum number not present on site " << i << endl;
+               else
+                  mps[i - 1].remove(2,rem_index);
 
             }
 
          }
-
-         TVector<Qshapes<Quantum>,3> qshape = make_array(qr,mps[0].qshape(1),ql);
-         TVector<Dshapes,3> dshape = make_array(dr,mps[0].dshape(1),dl);
-
-         QSDArray<3> A(Quantum::zero(),qshape);
-
-         QSDcopy(mps[0],A);
-
-         cout << A << endl;
 
       }
+
+
 
 }

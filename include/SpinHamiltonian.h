@@ -13,6 +13,8 @@ namespace btas{
 
    MPO ising(int,int,double,double);
 
+   MPO raise(int,int);
+
    MPO Sz(int,int);
 
    /**
