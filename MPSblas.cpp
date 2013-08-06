@@ -301,7 +301,7 @@ namespace btas {
 
             //paste S and V together
             SDdidm(S,V);
- 
+
             //and multiply with mps on the next site
             U = mps[i + 1];
 
@@ -394,7 +394,7 @@ namespace btas {
 
          //clear structure of E
          E.clear();
-         
+
          //construct E for site i by contracting I with mps_Y
          QSDcontract(1.0,I,shape(0,1),mps_Y[i].conjugate(),shape(0,1),0.0,E);
 
@@ -460,340 +460,280 @@ namespace btas {
     * @param B input MPS
     * @return the number containing < A | O | B >
     */
-    double inprod(const MPS &A,const MPO &O,const MPS &B){
+   double inprod(const MPS &A,const MPO &O,const MPS &B){
 
-       //first check if we can sum these two:
-       if(A.size() != B.size() || A.size() != O.size())
+      //first check if we can sum these two:
+      if(A.size() != B.size() || A.size() != O.size())
          BTAS_THROW(false, "Error: input objects do not have the same length!");
 
-       int L = A.size();
+      int L = A.size();
 
-       //from left to right
-       QSDArray<5> loc;
+      //from left to right
+      QSDArray<5> loc;
 
-       QSDcontract(1.0,O[0],shape(2),A[0],shape(1),0.0,loc);
+      QSDcontract(1.0,O[0],shape(2),A[0],shape(1),0.0,loc);
 
-       //merge 2 columns together
-       TVector<Qshapes<Quantum>,2> qmerge;
-       TVector<Dshapes,2> dmerge;
+      //merge 2 columns together
+      TVector<Qshapes<Quantum>,2> qmerge;
+      TVector<Dshapes,2> dmerge;
 
-       for(int i = 0;i < 2;++i){
+      for(int i = 0;i < 2;++i){
 
-          qmerge[i] = loc.qshape(3 + i);
-          dmerge[i] = loc.dshape(3 + i);
-
-       }
-
-       QSTmergeInfo<2> info(qmerge,dmerge);
-
-       QSDArray<4> tmp;
-       QSTmerge(loc,info,tmp);
-
-       //this will contain the right going part
-       QSDArray<3> EO;
-
-       QSDcontract(1.0,B[0].conjugate(),shape(0,1),tmp,shape(0,1),0.0,EO);
-
-       QSDArray<4> I1;
-       QSDArray<4> I2;
-
-       for(int i = 1;i < L;++i){
-
-          enum {j,k,l,m,n,o};
-
-          I1.clear();
-
-          QSDindexed_contract(1.0,EO,shape(j,k,l),A[i],shape(l,m,n),0.0,I1,shape(j,k,m,n));
-
-          I2.clear();
-
-          QSDindexed_contract(1.0,I1,shape(j,k,m,n),O[i],shape(k,o,m,l),0.0,I2,shape(j,o,l,n));
-
-          EO.clear();
-
-          QSDindexed_contract(1.0,I2,shape(j,o,l,n),B[i].conjugate(),shape(j,o,k),0.0,EO,shape(k,l,n));
-
-       }
-
-       return (*(EO.begin()->second))(0,0,0);
-
-    }
-
-    /**
-     * MPO/S equivalent of a matrix vector multiplication. Let an MPO act on an MPS and return the new MPS
-     * @param O input MPO
-     * @param A input MPS
-     * @return the new MPS object created by the multiplication
-     */
-    MPS gemv(const MPO &O,const MPS &A){
-
-       //first check if we can sum these two:
-       if(O.size() != A.size())
-         BTAS_THROW(false, "Error: input objects do not have the same length!");
-
-       int L = A.size();
-
-       MPS mps(L);
-
-       enum {j,k,l,m,n,o};
-
-       QSDArray<5> tmp;
-       QSDArray<4> mrows;
-
-       for(int i = 0;i < L;++i){
-
-          //clear the tmp object first
-          tmp.clear();
-
-          QSDindexed_contract(1.0,O[i],shape(j,k,l,m),A[i],shape(n,l,o),0.0,tmp,shape(n,j,k,m,o));
-
-          //merge 2 rows together
-          TVector<Qshapes<Quantum>,2> qmerge;
-          TVector<Dshapes,2> dmerge;
-
-          for(int r = 0;r < 2;++r){
-
-             qmerge[r] = tmp.qshape(r);
-             dmerge[r] = tmp.dshape(r);
-
-          }
-
-          QSTmergeInfo<2> info(qmerge,dmerge);
-
-          //clear the mrows object first
-          mrows.clear();
-
-          //then merge
-          QSTmerge(info,tmp,mrows);
-
-          //merge 2 columns together
-          for(int r = 2;r < 4;++r){
-
-             qmerge[r - 2] = mrows.qshape(r);
-             dmerge[r - 2] = mrows.dshape(r);
-
-          }
-         
-          info.reset(qmerge,dmerge);
-
-          QSTmerge(mrows,info,mps[i]);
-
-       }
-
-       return mps;
-
-    }
-
-    /**
-     * MPO equivalent of a matrix matrix multiplication. MPO action on MPO gives new MPO: O1-O2|MPS>
-     * @param O1 input MPO
-     * @param O2 input MPO
-     * @return the new MPO object created by the multiplication
-     */
-    MPO gemm(const MPO &O1,const MPO &O2){
-
-       //first check if we can sum these two:
-       if(O1.size() != O2.size())
-         BTAS_THROW(false, "Error: input objects do not have the same length!");
-
-       int L = O1.size();
-
-       MPO mpo(L);
-
-       enum {j,k,l,m,n,o,p};
-
-       QSDArray<6> tmp;
-       QSDArray<5> mrows;
-
-       for(int i = 0;i < L;++i){
-
-          //clear the tmp object first
-          tmp.clear();
-
-          QSDindexed_contract(1.0,O1[i],shape(n,o,k,p),O2[i],shape(j,k,l,m),0.0,tmp,shape(n,j,o,l,p,m));
-
-          //merge 2 rows together
-          TVector<Qshapes<Quantum>,2> qmerge;
-          TVector<Dshapes,2> dmerge;
-
-          for(int r = 0;r < 2;++r){
-
-             qmerge[r] = tmp.qshape(r);
-             dmerge[r] = tmp.dshape(r);
-
-          }
-
-          QSTmergeInfo<2> info(qmerge,dmerge);
-
-          //clear the mrows object first
-          mrows.clear();
-
-          //then merge
-          QSTmerge(info,tmp,mrows);
-
-          //merge 2 columns together
-          for(int r = 3;r < 5;++r){
-
-             qmerge[r - 3] = mrows.qshape(r);
-             dmerge[r - 3] = mrows.dshape(r);
-
-          }
-
-          info.reset(qmerge,dmerge);
-          QSTmerge(mrows,info,mpo[i]);
-
-       }
-
-       return mpo;
-
-    }
-
-    /**
-     * clean up the MPS, i.e. make sure the right quantumblocks are connected, remove unnecessary quantumnumbers and blocks
-     * @param mps input MPS, will be changed 'cleaned' on exit
-     */
-      void clean(MPS &mps){
-
-         Dshapes dr;
-
-         //from left to right
-         for(int i = 0;i < mps.size() - 1;++i){
-
-            dr = mps[i].dshape()[2];
-
-            int index = -1;
-
-            for(int j = 0;j < dr.size();++j){
-
-               if(dr[j] == 0)
-                  index = j;
-
-            }
-
-            if(index != -1){//remove the corresponding blocks on the 0 leg of the next site
-
-               Quantum qrem = -mps[i].qshape()[2][index];
-
-               Qshapes<Quantum> ql = mps[i + 1].qshape()[0];
-
-               int rem_index = -1;
-
-               for(int j = 0;j < ql.size();++j)
-                  if(ql[j] == qrem)
-                     rem_index = j;
-
-               if(rem_index == -1)
-                  cout << "clean error: quantum number not present on site " << i + 1 << endl;
-               else
-                  mps[i + 1].remove(0,rem_index);
-
-            }
-
-         }
-
-         //and back from right to left
-         for(int i = mps.size() - 1;i > 0;--i){
-
-            dr = mps[i].dshape()[0];//actually dl now
-
-            int index = -1;
-
-            for(int j = 0;j < dr.size();++j){
-
-               if(dr[j] == 0)
-                  index = j;
-
-            }
-
-            if(index != -1){//remove the corresponding blocks on the 2 leg of the next site
-
-               Quantum qrem = -mps[i].qshape()[0][index];
-
-               Qshapes<Quantum> qr = mps[i - 1].qshape()[2];
-
-               int rem_index = -1;
-
-               for(int j = 0;j < qr.size();++j)
-                  if(qr[j] == qrem)
-                     rem_index = j;
-
-               if(rem_index == -1)
-                  cout << "clean error: quantum number not present on site " << i << endl;
-               else
-                  mps[i - 1].remove(2,rem_index);
-
-            }
-
-         }
+         qmerge[i] = loc.qshape(3 + i);
+         dmerge[i] = loc.dshape(3 + i);
 
       }
 
-      MPS gemv2(const MPO &O,const MPS &A){
+      QSTmergeInfo<2> info(qmerge,dmerge);
 
-         //first check if we can sum these two:
-         if(O.size() != A.size())
-            BTAS_THROW(false, "Error: input objects do not have the same length!");
+      QSDArray<4> tmp;
+      QSTmerge(loc,info,tmp);
 
-         int L = A.size();
+      //this will contain the right going part
+      QSDArray<3> EO;
 
-         MPS mps(L);
+      QSDcontract(1.0,B[0].conjugate(),shape(0,1),tmp,shape(0,1),0.0,EO);
+
+      QSDArray<4> I1;
+      QSDArray<4> I2;
+
+      for(int i = 1;i < L;++i){
 
          enum {j,k,l,m,n,o};
 
-         QSDArray<5> tmp;
-         QSDArray<4> mrows;
+         I1.clear();
 
-         int i = 1;
+         QSDindexed_contract(1.0,EO,shape(j,k,l),A[i],shape(l,m,n),0.0,I1,shape(j,k,m,n));
 
-         //for(int i = 0;i < L;++i){
+         I2.clear();
 
-            //clear the tmp object first
-            tmp.clear();
+         QSDindexed_contract(1.0,I1,shape(j,k,m,n),O[i],shape(k,o,m,l),0.0,I2,shape(j,o,l,n));
 
-            QSDindexed_contract(1.0,O[i],shape(j,k,l,m),A[i],shape(n,l,o),0.0,tmp,shape(n,j,k,m,o));
+         EO.clear();
 
-            //merge 2 rows together
-            TVector<Qshapes<Quantum>,2> qmerge;
-            TVector<Dshapes,2> dmerge;
-
-            for(int r = 0;r < 2;++r){
-
-               qmerge[r] = tmp.qshape(r);
-               dmerge[r] = tmp.dshape(r);
-
-            }
-
-            QSTmergeInfo<2> info(qmerge,dmerge);
-
-            //clear the mrows object first
-            mrows.clear();
-
-            //then merge
-            QSTmerge(info,tmp,mrows);
-
-            cout << mrows.qshape() << endl;
-            cout << mrows.dshape() << endl;
-
-            //merge 2 columns together
-            for(int r = 2;r < 4;++r){
-
-               qmerge[r - 2] = mrows.qshape(r);
-               dmerge[r - 2] = mrows.dshape(r);
-
-            }
-
-            info.reset(qmerge,dmerge);
-
-            mps[i].clear();
-
-            QSTmerge(mrows,info,mps[i]);
-
-         //}
-
-         return mps;
+         QSDindexed_contract(1.0,I2,shape(j,o,l,n),B[i].conjugate(),shape(j,o,k),0.0,EO,shape(k,l,n));
 
       }
 
+      return (*(EO.begin()->second))(0,0,0);
 
+   }
+
+   /**
+    * MPO/S equivalent of a matrix vector multiplication. Let an MPO act on an MPS and return the new MPS
+    * @param O input MPO
+    * @param A input MPS
+    * @return the new MPS object created by the multiplication
+    */
+   MPS gemv(const MPO &O,const MPS &A){
+
+      //first check if we can sum these two:
+      if(O.size() != A.size())
+         BTAS_THROW(false, "Error: input objects do not have the same length!");
+
+      int L = A.size();
+
+      MPS mps(L);
+
+      enum {j,k,l,m,n,o};
+
+      QSDArray<5> tmp;
+      QSDArray<4> mrows;
+
+      for(int i = 0;i < L;++i){
+
+         //clear the tmp object first
+         tmp.clear();
+
+         QSDindexed_contract(1.0,O[i],shape(j,k,l,m),A[i],shape(n,l,o),0.0,tmp,shape(n,j,k,m,o));
+
+         //merge 2 rows together
+         TVector<Qshapes<Quantum>,2> qmerge;
+         TVector<Dshapes,2> dmerge;
+
+         for(int r = 0;r < 2;++r){
+
+            qmerge[r] = tmp.qshape(r);
+            dmerge[r] = tmp.dshape(r);
+
+         }
+
+         QSTmergeInfo<2> info(qmerge,dmerge);
+
+         //clear the mrows object first
+         mrows.clear();
+
+         //then merge
+         QSTmerge(info,tmp,mrows);
+
+         //merge 2 columns together
+         for(int r = 2;r < 4;++r){
+
+            qmerge[r - 2] = mrows.qshape(r);
+            dmerge[r - 2] = mrows.dshape(r);
+
+         }
+
+         info.reset(qmerge,dmerge);
+
+         QSTmerge(mrows,info,mps[i]);
+
+      }
+
+      return mps;
+
+   }
+
+   /**
+    * MPO equivalent of a matrix matrix multiplication. MPO action on MPO gives new MPO: O1-O2|MPS>
+    * @param O1 input MPO
+    * @param O2 input MPO
+    * @return the new MPO object created by the multiplication
+    */
+   MPO gemm(const MPO &O1,const MPO &O2){
+
+      //first check if we can sum these two:
+      if(O1.size() != O2.size())
+         BTAS_THROW(false, "Error: input objects do not have the same length!");
+
+      int L = O1.size();
+
+      MPO mpo(L);
+
+      enum {j,k,l,m,n,o,p};
+
+      QSDArray<6> tmp;
+      QSDArray<5> mrows;
+
+      for(int i = 0;i < L;++i){
+
+         //clear the tmp object first
+         tmp.clear();
+
+         QSDindexed_contract(1.0,O1[i],shape(n,o,k,p),O2[i],shape(j,k,l,m),0.0,tmp,shape(n,j,o,l,p,m));
+
+         //merge 2 rows together
+         TVector<Qshapes<Quantum>,2> qmerge;
+         TVector<Dshapes,2> dmerge;
+
+         for(int r = 0;r < 2;++r){
+
+            qmerge[r] = tmp.qshape(r);
+            dmerge[r] = tmp.dshape(r);
+
+         }
+
+         QSTmergeInfo<2> info(qmerge,dmerge);
+
+         //clear the mrows object first
+         mrows.clear();
+
+         //then merge
+         QSTmerge(info,tmp,mrows);
+
+         //merge 2 columns together
+         for(int r = 3;r < 5;++r){
+
+            qmerge[r - 3] = mrows.qshape(r);
+            dmerge[r - 3] = mrows.dshape(r);
+
+         }
+
+         info.reset(qmerge,dmerge);
+         QSTmerge(mrows,info,mpo[i]);
+
+      }
+
+      return mpo;
+
+   }
+
+   /**
+    * clean up the MPS, i.e. make sure the right quantumblocks are connected, remove unnecessary quantumnumbers and blocks
+    * @param mps input MPS, will be changed 'cleaned' on exit
+    */
+   void clean(MPS &mps){
+
+      Dshapes dr;
+
+      //from left to right
+      for(int i = 0;i < mps.size() - 1;++i){
+
+         dr = mps[i].dshape()[2];
+
+         int index = -1;
+
+         for(int j = 0;j < dr.size();++j){
+
+            if(dr[j] == 0){//erase the zero blocks
+
+               index = j;
+               mps[i].erase(2,j);
+
+            }
+
+         }
+
+         if(index != -1){//remove the corresponding blocks on the 0 leg of the next site
+
+            Quantum qrem = -mps[i].qshape()[2][index];
+
+            Qshapes<Quantum> ql = mps[i + 1].qshape()[0];
+
+            int rem_index = -1;
+
+            for(int j = 0;j < ql.size();++j)
+               if(ql[j] == qrem)
+                  rem_index = j;
+
+            if(rem_index == -1)
+               cout << "clean error: quantum number not present on site " << i + 1 << endl;
+            else
+               mps[i + 1].erase(0,rem_index);
+
+         }
+
+      }
+
+      //and back from right to left
+      for(int i = mps.size() - 1;i > 0;--i){
+
+         dr = mps[i].dshape()[0];//actually dl now
+
+         int index = -1;
+
+         for(int j = 0;j < dr.size();++j){
+
+            if(dr[j] == 0){//erase the zero blocks
+
+               mps[i].erase(0,j);
+               index = j;
+
+            }
+
+         }
+
+         if(index != -1){//remove the corresponding blocks on the 2 leg of the next site
+
+            Quantum qrem = -mps[i].qshape()[0][index];
+
+            Qshapes<Quantum> qr = mps[i - 1].qshape()[2];
+
+            int rem_index = -1;
+
+            for(int j = 0;j < qr.size();++j)
+               if(qr[j] == qrem)
+                  rem_index = j;
+
+            if(rem_index == -1)
+               cout << "clean error: quantum number not present on site " << i << endl;
+            else
+               mps[i - 1].erase(2,rem_index);
+
+         }
+
+      }
+
+   }
 
 }
