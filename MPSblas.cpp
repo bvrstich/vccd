@@ -24,10 +24,7 @@ namespace btas {
       physical(d,qp);
 
       //shape of the physical index
-      Dshapes dp;
-
-      dp.push_back(1);
-      dp.push_back(1);
+      Dshapes dp(qp.size(),1);
 
       std::vector< Qshapes<Quantum> > qr(L);
       std::vector<Dshapes> dr(L);
@@ -543,8 +540,6 @@ namespace btas {
        QSDArray<5> tmp;
        QSDArray<4> mrows;
 
-       int i = 0;
-
        for(int i = 0;i < L;++i){
 
           //clear the tmp object first
@@ -730,6 +725,72 @@ namespace btas {
             }
 
          }
+
+      }
+
+      MPS gemv2(const MPO &O,const MPS &A){
+
+         //first check if we can sum these two:
+         if(O.size() != A.size())
+            BTAS_THROW(false, "Error: input objects do not have the same length!");
+
+         int L = A.size();
+
+         MPS mps(L);
+
+         enum {j,k,l,m,n,o};
+
+         QSDArray<5> tmp;
+         QSDArray<4> mrows;
+
+         int i = 1;
+
+         //for(int i = 0;i < L;++i){
+
+            //clear the tmp object first
+            tmp.clear();
+
+            QSDindexed_contract(1.0,O[i],shape(j,k,l,m),A[i],shape(n,l,o),0.0,tmp,shape(n,j,k,m,o));
+
+            //merge 2 rows together
+            TVector<Qshapes<Quantum>,2> qmerge;
+            TVector<Dshapes,2> dmerge;
+
+            for(int r = 0;r < 2;++r){
+
+               qmerge[r] = tmp.qshape(r);
+               dmerge[r] = tmp.dshape(r);
+
+            }
+
+            QSTmergeInfo<2> info(qmerge,dmerge);
+
+            //clear the mrows object first
+            mrows.clear();
+
+            //then merge
+            QSTmerge(info,tmp,mrows);
+
+            cout << mrows.qshape() << endl;
+            cout << mrows.dshape() << endl;
+
+            //merge 2 columns together
+            for(int r = 2;r < 4;++r){
+
+               qmerge[r - 2] = mrows.qshape(r);
+               dmerge[r - 2] = mrows.dshape(r);
+
+            }
+
+            info.reset(qmerge,dmerge);
+
+            mps[i].clear();
+
+            QSTmerge(mrows,info,mps[i]);
+
+         //}
+
+         return mps;
 
       }
 

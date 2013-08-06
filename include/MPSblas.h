@@ -48,6 +48,8 @@ namespace btas{
 
    MPS gemv(const MPO &,const MPS &);
 
+   MPS gemv2(const MPO &,const MPS &);
+
    MPO gemm(const MPO &,const MPO &);
 
    void clean(MPS &);

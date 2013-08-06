@@ -22,15 +22,27 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 4;
+   int L = 100;
 
    //physical dimension
-   int d = 2;
+   int d = 3;
 
-   MPO O_Sp = raise(L,d);
-   MPO O_Sz = Sz(L,d);
+   MPS A = create(L,d,Quantum::zero(),10);
+   compress(A,true,100);
 
-   MPO O = gemm(O_Sp,O_Sz);
+   clean(A);
+
+   compress(A,false,0);
+
+   for(int i = 0;i < L;++i){
+
+      cout << A[i].qshape() << endl;
+      cout << A[i].dshape() << endl;
+
+   }
+
+
+      
 
    return 0;
 
