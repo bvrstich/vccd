@@ -656,40 +656,43 @@ namespace btas {
 
       Dshapes dr;
 
+      int i = 0;
+
       //from left to right
       for(int i = 0;i < mps.size() - 1;++i){
 
          dr = mps[i].dshape()[2];
 
-         int index = -1;
+         std::vector<Quantum> qrem;
 
-         for(int j = 0;j < dr.size();++j){
+         for(int j = 0;j < dr.size();++j)
+            if(dr[j] == 0)
+               qrem.push_back(mps[i].qshape()[2][j]);//what is the quantumnumber with 0 dimension?
 
-            if(dr[j] == 0){//erase the zero blocks
+         if(qrem.size() != 0){
 
-               index = j;
-               mps[i].erase(2,j);
+            //remove the zero blocks from site i
+            for(int j = 0;j < qrem.size();++j){
+
+               //find the index corresponding to quantumnumber qrem[j]
+               Qshapes<Quantum> qr = mps[i].qshape()[2];
+
+               for(int k = 0;k < qr.size();++k)
+                  if(qr[k] == qrem[j])
+                     mps[i].erase(2,k);
 
             }
 
-         }
+            for(int j = 0;j < qrem.size();++j){
 
-         if(index != -1){//remove the corresponding blocks on the 0 leg of the next site
+               //remove the corresponding blocks on the 0 leg of the next site
+               Qshapes<Quantum> ql = mps[i + 1].qshape()[0];
 
-            Quantum qrem = -mps[i].qshape()[2][index];
+               for(int k = 0;k < ql.size();++k)
+                  if(ql[k] == -qrem[j])
+                     mps[i + 1].erase(0,k);
 
-            Qshapes<Quantum> ql = mps[i + 1].qshape()[0];
-
-            int rem_index = -1;
-
-            for(int j = 0;j < ql.size();++j)
-               if(ql[j] == qrem)
-                  rem_index = j;
-
-            if(rem_index == -1)
-               cout << "clean error: quantum number not present on site " << i + 1 << endl;
-            else
-               mps[i + 1].erase(0,rem_index);
+            }
 
          }
 
@@ -700,35 +703,36 @@ namespace btas {
 
          dr = mps[i].dshape()[0];//actually dl now
 
-         int index = -1;
+         std::vector<Quantum> qrem;
 
-         for(int j = 0;j < dr.size();++j){
+         for(int j = 0;j < dr.size();++j)
+            if(dr[j] == 0)
+               qrem.push_back(mps[i].qshape()[0][j]);//what is the quantumnumber with 0 dimension?
 
-            if(dr[j] == 0){//erase the zero blocks
+         if(qrem.size() != 0){
 
-               mps[i].erase(0,j);
-               index = j;
+            //remove the zero blocks from site i
+            for(int j = 0;j < qrem.size();++j){
+
+               //find the index corresponding to quantumnumber qrem[j]
+               Qshapes<Quantum> qr = mps[i].qshape()[0];
+
+               for(int k = 0;k < qr.size();++k)
+                  if(qr[k] == qrem[j])
+                     mps[i].erase(0,k);
 
             }
 
-         }
+            for(int j = 0;j < qrem.size();++j){
 
-         if(index != -1){//remove the corresponding blocks on the 2 leg of the next site
+               //remove the corresponding blocks on the 0 leg of the next site
+               Qshapes<Quantum> ql = mps[i - 1].qshape()[2];
 
-            Quantum qrem = -mps[i].qshape()[0][index];
+               for(int k = 0;k < ql.size();++k)
+                  if(ql[k] == -qrem[j])
+                     mps[i - 1].erase(2,k);
 
-            Qshapes<Quantum> qr = mps[i - 1].qshape()[2];
-
-            int rem_index = -1;
-
-            for(int j = 0;j < qr.size();++j)
-               if(qr[j] == qrem)
-                  rem_index = j;
-
-            if(rem_index == -1)
-               cout << "clean error: quantum number not present on site " << i << endl;
-            else
-               mps[i - 1].erase(2,rem_index);
+            }
 
          }
 

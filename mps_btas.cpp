@@ -22,39 +22,29 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 4;
+   int L = 10;
 
    //physical dimension
    int d = 2;
 
    MPS A = create(L,d,Quantum::zero(),20);
 
+   MPS B = A;
+
    MPO O = raise(L,d);
+   MPO O2 = gemm(O,O);
 
    MPS OA = gemv(O,A);
 
-   for(int i = 0;i < L;++i){
-
-      cout << endl;
-      cout << OA[i].qshape() << endl;
-      cout << OA[i].dshape() << endl;
-      cout << endl;
-
-   }
-
    clean(OA);
 
-   cout << "CLEANED" << endl;
+   A = gemv(O,OA);
 
-   for(int i = 0;i < L;++i){
+   clean(A);
+   
+   MPS OB = gemv(O2,B);
 
-      cout << endl;
-      cout << OA[i].qshape() << endl;
-      cout << OA[i].dshape() << endl;
-      cout << endl;
-
-   }
-
+   clean(OB);
 
    return 0;
 
