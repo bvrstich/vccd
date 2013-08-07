@@ -12,8 +12,8 @@ namespace btas { typedef SpinQuantum Quantum; };
 #include <btas/DENSE/DArray.h>
 #include <btas/QSPARSE/QSDArray.h>
 #include <btas/QSPARSE/QSDcontract.h>
+#include <btas/QSPARSE/QSDadd.h>
 
 #include "MPSblas.h"
-#include "MPSadd.h"
 
 #include "SpinHamiltonian.h"

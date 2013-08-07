@@ -37,8 +37,6 @@ namespace btas {
       int ald = qa[0].size();
       int ard = qa[2].size();
 
-      int d = qa[1].size();
-
       //add A
       IVector<3> block_index;
 

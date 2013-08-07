@@ -10,7 +10,6 @@
 BINNAME = mps_btas
 CPPSRC	= mps_btas.cpp\
            MPSblas.cpp\
-           MPSadd.cpp\
            SpinHamiltonian.cpp
 
 

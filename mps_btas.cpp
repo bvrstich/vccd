@@ -27,10 +27,6 @@ int main(void){
    //physical dimension
    int d = 2;
 
-   MPS A = create(L,d,Quantum::zero(),10);
-
-   print(A);
-
    return 0;
 
 }

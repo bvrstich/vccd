@@ -481,6 +481,40 @@ namespace btas {
    }
 
    /**
+    * construct new MPO XY that is sum of Y + X: this is done by making a larger MPO object containing X and alpha Y as blocks
+    * @param X input MPO
+    * @param Y input MPO
+    * @return the MPO result
+    */
+   MPO add(const MPO &X,const MPO &Y){
+
+      //first check if we can sum these two:
+      if(X.size() != Y.size())
+         BTAS_THROW(false, "Error: input MPS objects do not have the same length!");
+
+      int L = X.size();
+
+      if(X[X.size()-1].qshape(2) != Y[Y.size()-1].qshape(2))
+         BTAS_THROW(false,"Error: input MPS objects do not have the same total quantumnumbers!");
+
+      if(X[0].qshape(1) != Y[0].qshape(1))
+         BTAS_THROW(false,"Error: input MPS objects do not have the same total dimension!");
+
+      MPO XY(L);
+
+      QSDjoin_ledge(X[0],Y[0],XY[0]);
+
+      for(int i = 1;i < L - 1;++i)
+         QSDjoin(X[i],Y[i],XY[i]);
+
+      QSDjoin_redge(X[L-1],Y[L-1],XY[L-1]);
+
+      return XY;
+
+   }
+
+
+   /**
     * @param A input MPS
     * @param O input MPO
     * @param B input MPS
