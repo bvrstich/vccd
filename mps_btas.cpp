@@ -22,26 +22,14 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 20;
+   int L = 10;
 
    //physical dimension
    int d = 2;
 
-   MPS A = create(L,d,Quantum::zero(),20);
-   MPS B = create(L,d,Quantum::zero(),20);
+   MPS A = create(L,d,Quantum::zero(),10);
 
-   //after compressing: clean!
-   compress(A,true,100);
-   clean(A);
-
-   compress(B,true,100);
-   clean(B);
-
-   MPS AB = add(A,B);
-
-   MPS C = create(L,d,Quantum::zero(),20);
-
-   cout << dot(AB,C) << "\t" << dot(A,C) + dot(B,C) << endl;
+   print(A);
 
    return 0;
 

@@ -32,11 +32,17 @@ namespace btas{
 
    void copy(const MPS &,MPS &);
 
+   void copy(const MPO &,MPO &);
+
    void scal(double,MPS &);
+
+   void scal(double,MPO &);
 
    void compress(MPS &,bool,int);
 
    MPS add(const MPS &,const MPS &);
+
+   MPO add(const MPO &,const MPO &);
 
    double dot(const MPS &,const MPS &);
 

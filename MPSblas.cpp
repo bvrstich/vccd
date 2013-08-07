@@ -262,6 +262,20 @@ namespace btas {
    }
 
    /**
+    * will copy mps to mps_copy
+    * @param mps the MPS to be copied
+    * @param mps_copy the MPS into which will be copied
+    */
+   void copy(const MPO &mpo,MPO &mpo_copy){
+
+      mpo_copy.resize(mpo.size());
+
+      for(unsigned int i = 0;i < mpo.size();++i)
+         QSDcopy(mpo[i],mpo_copy[i]);
+
+   }
+
+   /**
     * scale the MPS with a constant factor
     * @param alpha scalingfactor
     * @param mps the MPS to be scaled
@@ -273,6 +287,17 @@ namespace btas {
 
    }
 
+   /**
+    * scale the MPO with a constant factor
+    * @param alpha scalingfactor
+    * @param mpo the MPO to be scaled
+    */
+   void scal(double alpha,MPO &mpo){
+
+      for(unsigned int i = 0;i < mpo.size();++i)
+         QSDscal(alpha,mpo[i]);
+
+   }
 
    /**
     * Compress an MPS object by performing an SVD
@@ -308,12 +333,11 @@ namespace btas {
             //when compressing dimensions will change, so reset:
             mps[i + 1].clear();
 
-            QSDcontract(1.0,V,shape(2),U,shape(0),0.0,mps[i + 1]);
+            QSDcontract(1.0,V,shape(1),U,shape(0),0.0,mps[i + 1]);
 
          }
 
          //now normalize the last tensor
-
          double norm = QSDdotc(mps[L - 1],mps[L - 1]);
 
          QSDscal(1.0/sqrt(norm),mps[L - 1]);
@@ -347,7 +371,6 @@ namespace btas {
          }
 
          //now normalize the last tensor
-
          double norm = QSDdotc(mps[0],mps[0]);
 
          QSDscal(1.0/sqrt(norm),mps[0]);
