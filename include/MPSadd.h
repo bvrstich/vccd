@@ -23,14 +23,6 @@ namespace btas{
 
    void QSDjoin_redge(const QSDArray<3> &,const QSDArray<3> &,QSDArray<3> &);
 
-   void QSDjoin(const QSDArray<4> &,const QSDArray<4> &,QSDArray<4> &);
-
-   void QSDjoin_ledge(const QSDArray<4> &,const QSDArray<4> &,QSDArray<4> &);
-
-   void QSDjoin_redge(const QSDArray<4> &,const QSDArray<4> &,QSDArray<4> &);
-
-
-
 }
 
 #endif 
