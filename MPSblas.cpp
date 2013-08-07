@@ -441,6 +441,9 @@ namespace btas {
       if(X[X.size()-1].qshape(2) != Y[Y.size()-1].qshape(2))
          BTAS_THROW(false,"Error: input MPS objects do not have the same total quantumnumbers!");
 
+      if(X[0].qshape(1) != Y[0].qshape(1))
+         BTAS_THROW(false,"Error: input MPS objects do not have the same total dimension!");
+
       MPS XY(L);
 
       QSDjoin_ledge(X[0],Y[0],XY[0]);

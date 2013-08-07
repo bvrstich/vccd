@@ -17,24 +17,6 @@ namespace btas { typedef SpinQuantum Quantum; };
 
 namespace btas{
 
-   void qindex(const QSDArray<3> &,int,Qshapes<Quantum> &);
-
-   void Djoin(const DArray<3> &,const DArray<3> &,DArray<3> &);
-
-   void Djoin_upper(const DArray<3> &,DArray<3> &);
-
-   void Djoin_lower(const DArray<3> &,DArray<3> &);
-
-   void Djoin_ledge(const DArray<3> &,const DArray<3> &,DArray<3> &);
-
-   void Djoin_redge(const DArray<3> &,const DArray<3> &,DArray<3> &);
-
-   void Djoin_ledge_no_reshape(const DArray<3> &,const DArray<3> &,DArray<3> &);
-
-   void Djoin_redge_no_reshape(const DArray<3> &,const DArray<3> &,DArray<3> &);
-
-   void Djoin_no_reshape(const DArray<3> &,const DArray<3> &,DArray<3> &);
-
    void QSDjoin(const QSDArray<3> &,const QSDArray<3> &,QSDArray<3> &);
 
    void QSDjoin_ledge(const QSDArray<3> &,const QSDArray<3> &,QSDArray<3> &);
