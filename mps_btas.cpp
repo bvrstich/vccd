@@ -29,7 +29,10 @@ int main(void){
 
    MPO O = XY(L,d,1.0,1.0);
 
-   compress(O,false,0);
+   MPS A = create(L,d,Quantum::zero(),10);
+   MPS B = create(L,d,Quantum::zero(),10);
+
+   compress<3>(A,true,0,true);
 
    return 0;
 

@@ -109,9 +109,113 @@ namespace btas{
 
       }
 
-   void compress(MPS &,bool,int);
+   /**
+    * Compress an MP object by performing an SVD
+    * @param mpx is the input MPX, will be lost/overwritten by the compressed MPX
+    * @param left if true left canonicalize, if false right
+    * @param D if > 0   this specifies the number of states to be kept
+    *          if == 0  all the states are kept
+    *          if < 0 all singular values > 10^-D are kept
+    */
+   template<size_t N,class MPX>
+      void compress(MPX &mpx,bool left,int D,bool norm){
 
-   void compress(MPO &,bool,int);
+         int L = mpx.size();//length of the chain
+
+         if(left) {
+
+            SDArray<1> S;//singular values
+            QSDArray<2> V;//V^T
+            QSDArray<N> U;//U --> unitary left normalized matrix
+
+            for(int i = 0;i < L - 1;++i){
+
+               QSDgesvd(RightArrow,mpx[i],S,U,V,D);
+
+               //copy unitary to mps
+               QSDcopy(U,mpx[i]);
+
+               //paste S and V together
+               SDdidm(S,V);
+
+               //and multiply with mps on the next site
+               U = mpx[i + 1];
+
+               //when compressing dimensions will change, so reset:
+               mpx[i + 1].clear();
+
+               QSDcontract(1.0,V,shape(1),U,shape(0),0.0,mpx[i + 1]);
+
+            }
+
+            //now normalize the last tensor
+            if(norm){
+
+               double nrm = QSDdotc(mpx[L - 1],mpx[L - 1]);
+
+               QSDscal(1.0/sqrt(nrm),mpx[L - 1]);
+
+            }
+            else{
+
+               //redistribute the norm over the chain
+               double nrm = sqrt(QSDdotc(mpx[L-1],mpx[L-1]));
+
+               QSDscal(1.0/nrm,mpx[L-1]);
+
+               scal(nrm,mpx);
+
+            }
+
+         }
+         else{//right
+
+            SDArray<1> S;//singular values
+            QSDArray<N> V;//V^T --> unitary right normalized matrix
+            QSDArray<2> U;//U
+
+            for(int i = L - 1;i > 0;--i){
+
+               QSDgesvd(RightArrow,mpx[i],S,U,V,D);
+
+               //copy unitary to mps
+               QSDcopy(V,mpx[i]);
+
+               //paste U and S together
+               SDdimd(U,S);
+
+               //and multiply with mps on the next site
+               V = mpx[i - 1];
+
+               //when compressing dimensions will change, so reset:
+               mpx[i - 1].clear();
+
+               QSDcontract(1.0,V,shape(N-1),U,shape(0),0.0,mpx[i - 1]);
+
+            }
+
+            //now normalize the last tensor
+            if(norm){
+
+               double nrm = QSDdotc(mpx[0],mpx[0]);
+
+               QSDscal(1.0/sqrt(nrm),mpx[0]);
+
+            }
+            else{
+
+               //redistribute the norm over the chain
+               double nrm = sqrt(QSDdotc(mpx[0],mpx[0]));
+
+               QSDscal(1.0/nrm,mpx[0]);
+
+               scal(nrm,mpx);
+
+            }
+
+         }
+
+      }
 
    double dot(const MPS &,const MPS &);
 
