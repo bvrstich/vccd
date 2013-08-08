@@ -294,6 +294,89 @@ namespace btas {
    }
 
    /**
+    * Compress an MPS object by performing an SVD
+    * @param mps is the input MPS, will be lost/overwritten by the compressed MPS
+    * @param left if true left canonicalize, if false right
+    * @param D if > 0   this specifies the number of states to be kept
+    *          if == 0  all the states are kept
+    *          if < 0 all singular values > 10^-D are kept
+    */
+   void compress(MPO &mpo,bool left,int D){
+
+      int L = mpo.size();
+
+      if(left) {
+
+         SDArray<1> S;//singular values
+         QSDArray<2> V;//V^T
+         QSDArray<4> U;//U --> unitary left normalized matrix
+
+         for(int i = 0;i < L - 1;++i){
+
+            QSDgesvd(RightArrow,mpo[i],S,U,V,D);
+
+            //copy unitary to mps
+            QSDcopy(U,mpo[i]);
+
+            //paste S and V together
+            SDdidm(S,V);
+
+            //and multiply with mps on the next site
+            U = mpo[i + 1];
+
+            //when compressing dimensions will change, so reset:
+            mpo[i + 1].clear();
+
+            QSDcontract(1.0,V,shape(1),U,shape(0),0.0,mpo[i + 1]);
+
+         }
+
+         //now normalize the last tensor
+         double norm = sqrt(QSDdotc(mpo[L-1],mpo[L-1]));
+
+         QSDscal(1.0/norm,mpo[L-1]);
+
+         scal(norm,mpo);
+
+      }
+      else{//right
+
+         SDArray<1> S;//singular values
+         QSDArray<4> V;//V^T --> unitary right normalized matrix
+         QSDArray<2> U;//U
+
+         for(int i = L - 1;i > 0;--i){
+
+            QSDgesvd(RightArrow,mpo[i],S,U,V,D);
+
+            //copy unitary to mps
+            QSDcopy(V,mpo[i]);
+
+            //paste U and S together
+            SDdimd(U,S);
+
+            //and multiply with mps on the next site
+            V = mpo[i - 1];
+
+            //when compressing dimensions will change, so reset:
+            mpo[i - 1].clear();
+
+            QSDcontract(1.0,V,shape(3),U,shape(0),0.0,mpo[i - 1]);
+
+         }
+
+         //now normalize the last tensor
+         double norm = sqrt(QSDdotc(mpo[0],mpo[0]));
+
+         QSDscal(1.0/norm,mpo[0]);
+
+         scal(norm,mpo);
+
+      }
+
+   }
+
+   /**
     * simple random number generator
     */
    double rgen() { 

@@ -27,12 +27,9 @@ int main(void){
    //physical dimension
    int d = 2;
 
-   MPS A = create(L,d,Quantum::zero(),10);
-   MPS B = create(L,d,Quantum::zero(),10);
+   MPO O = XY(L,d,1.0,1.0);
 
-   MPS AB = add(A,B);
-
-   print(AB);
+   compress(O,false,0);
 
    return 0;
 

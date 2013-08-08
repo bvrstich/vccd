@@ -68,6 +68,10 @@ namespace btas{
    template<class MPX>
       void scal(double alpha,MPX &mpx){
 
+         int L = mpx.size();
+
+         alpha = pow(alpha,1.0/(double)L);
+
          for(unsigned int i = 0;i < mpx.size();++i)
             QSDscal(alpha,mpx[i]);
 
@@ -106,6 +110,8 @@ namespace btas{
       }
 
    void compress(MPS &,bool,int);
+
+   void compress(MPO &,bool,int);
 
    double dot(const MPS &,const MPS &);
 
