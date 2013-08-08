@@ -82,15 +82,18 @@ namespace btas {
       Qshapes<Quantum> tmpq;
       Dshapes tmpd;
 
-      int i = L-2;
+      for(int i = L - 2;i >= 0;--i){
 
-      for(int i = L - 2;i > 0;--i){
+         tmpq.clear();
 
-         tmpq = qr[i+1] * qp;
+         for(int j = 0;j < qr[i+1].size();++j)
+            for(int k = qp.size() - 1;k >= 0;--k)
+               tmpq.push_back(qr[i + 1][j] * (-qp[k]));
+
          tmpd.clear();
 
-         for(unsigned int j = 0;j < dr[i+1].size();++j)
-            for(unsigned int k = 0;k < dp.size();++k)
+         for(int j = 0;j < dr[i+1].size();++j)
+            for(int k = dp.size() - 1;k >= 0;--k)
                tmpd.push_back(dr[i+1][j]*dp[k]);
 
          int j = 0;

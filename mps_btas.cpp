@@ -22,10 +22,17 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 20;
+   int L = 4;
 
    //physical dimension
    int d = 2;
+
+   //number of particles
+   int N = 4;
+
+   MPS A = create(L,d,Quantum(N),10);
+
+   print(A);
 
    return 0;
 
