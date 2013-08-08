@@ -15,6 +15,8 @@ namespace btas{
 
    MPO XY(int,int,double,double);
 
+   MPO heisenberg(int,int,double,double,double);
+
    MPO raise(int,int);
 
    MPO lower(int,int);

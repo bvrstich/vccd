@@ -650,4 +650,198 @@ namespace btas {
 
    }
 
+   /**
+    * initialize the MPO to represent a nearest-neighbour anisotropic Heisenberg Hamiltonian on a lattice of size L and with coupling constant Jz for the z spins and Jxy for XY
+    * inside a magnetic field B which defines the z direction. nearest neighbour interaction is repulsive, i.e. Jz and Jxy > 0.0!
+    * @param L length of the chain
+    * @param d local dimension: i.e. defines the size of the local spins
+    * @param Jz coupling constant > 0 
+    * @param Jxy coupling constant > 0
+    * @param B magnetic fieldstrength
+    */
+   MPO heisenberg(int L,int d,double Jz,double Jxy,double B){
+
+      double sz = 0.5 * (d - 1.0);//size of local spin
+
+      MPO mpo(L);
+
+      //physical indices
+      Qshapes<Quantum> qp;
+
+      physical(d,qp);
+
+      Qshapes<Quantum> qz;
+      qz.push_back(Quantum::zero());
+
+      //incoming
+      Qshapes<Quantum> qi;
+      qi.push_back(Quantum::zero());//I has spin 0
+      qi.push_back(Quantum(2));//S- has spin -2
+      qi.push_back(Quantum(-2));//S+ has spin +2
+      qi.push_back(Quantum::zero());//Sz has spin 0
+      qi.push_back(Quantum::zero());//B has spin 0
+
+      //outgoing
+      Qshapes<Quantum> qo;
+      qo.push_back(Quantum::zero());//I has spin 0
+      qo.push_back(Quantum(-2));//S+ has spin 2
+      qo.push_back(Quantum(2));//S- has spin 2
+      qo.push_back(Quantum::zero());//Sz has spin 0
+      qo.push_back(Quantum::zero());//B has spin 0
+
+      TVector<Qshapes<Quantum>,4> qshape = make_array(qz,qp,-qp,qo);
+
+      //initialize the quantumnumbers of the MPO
+      mpo[0].resize(Quantum::zero(),qshape);
+
+      qshape = make_array(qi,qp,-qp,qo);
+
+      for(int i = 1;i < L-1;++i)
+         mpo[i].resize(Quantum::zero(),qshape);
+
+      qshape = make_array(qi,qp,-qp,-qz);
+
+      mpo[L-1].resize(Quantum::zero(),qshape);
+
+      //first the elements diagonal in the physical indices (B,Sz,I)
+      double mz = -sz;
+
+      for(int m = 0;m < d;++m){
+
+         // set block elements
+         DArray<4> I_op(1, 1, 1, 1);//identity
+         I_op = 1.0;
+
+         DArray<4> Sz_op(1, 1, 1, 1);//identity
+         Sz_op = std::sqrt(Jz) * mz;
+
+         DArray<4> B_op(1, 1, 1, 1);//identity
+         B_op = -B*mz;
+
+         mpo[0].insert(shape(0,m,m,0),I_op);
+         mpo[0].insert(shape(0,m,m,3),Sz_op);
+         mpo[0].insert(shape(0,m,m,4),B_op);
+
+         for(int i = 1;i < L - 1;++i){
+
+            mpo[i].insert(shape(0,m,m,0),I_op);
+            mpo[i].insert(shape(0,m,m,3),Sz_op);
+            mpo[i].insert(shape(0,m,m,4),B_op);
+            mpo[i].insert(shape(3,m,m,4),Sz_op);
+            mpo[i].insert(shape(4,m,m,4),I_op);
+
+         }
+
+         mpo[L-1].insert(shape(0,m,m,0),B_op);
+         mpo[L-1].insert(shape(3,m,m,0),Sz_op);
+         mpo[L-1].insert(shape(4,m,m,0),I_op);
+
+         mz += 1.0;
+
+      }
+
+      //then the raising operator
+      mz = -sz;
+
+      for(int m = 0; m < d - 1; ++m) {
+
+         // set block elements
+         DArray<4> Sp(1, 1, 1, 1);
+         Sp = std::sqrt( Jxy * (sz - mz) * (sz + mz + 1.0) );
+
+         // insert blocks
+         mpo[0].insert(shape(0,m+1,m,1),Sp);
+
+         for(int i = 1;i < L - 1;++i){
+
+            mpo[i].insert(shape(0,m+1,m,1),Sp);
+            mpo[i].insert(shape(2,m+1,m,4),Sp);
+
+         }
+
+         mpo[L-1].insert(shape(2,m+1,m,0),Sp);
+
+         mz  += 1.0;
+
+      }
+
+      //finally the lowering operator
+      mz = sz;
+
+      for(int m = d - 1;m > 0;--m) {
+
+         // set block elements
+         DArray<4> Sm(1, 1, 1, 1);
+         Sm = std::sqrt( Jxy * (sz + mz) * (sz - mz + 1.0) );
+
+         // insert blocks
+         mpo[0].insert(shape(0,m-1,m,2),Sm);
+
+         for(int i = 1;i < L - 1;++i){
+
+            mpo[i].insert(shape(0,m-1,m,2),Sm);
+            mpo[i].insert(shape(1,m-1,m,4),Sm);
+
+         }
+
+         mpo[L-1].insert(shape(1,m-1,m,0),Sm);
+
+         mz -= 1.0;
+
+      }
+
+      //merge everything together
+      TVector<Qshapes<Quantum>,1> qmerge;
+      TVector<Dshapes,1> dmerge;
+
+      qmerge[0] = mpo[0].qshape(3);
+      dmerge[0] = mpo[0].dshape(3);
+
+      QSTmergeInfo<1> info(qmerge,dmerge);
+
+      QSDArray<4> tmp;
+      QSTmerge(mpo[0],info,tmp);
+
+      mpo[0] = tmp;
+
+      for(int i = 1;i < L - 1;++i){
+
+         //first merge the row
+         qmerge[0] = mpo[i].qshape(0);
+         dmerge[0] = mpo[i].dshape(0);
+
+         info.reset(qmerge,dmerge);
+
+         tmp.clear();
+
+         QSTmerge(info,mpo[i],tmp);
+
+         //then merge the column
+         qmerge[0] = tmp.qshape(3);
+         dmerge[0] = tmp.dshape(3);
+
+         info.reset(qmerge,dmerge);
+
+         mpo[i].clear();
+
+         QSTmerge(tmp,info,mpo[i]);
+
+      }
+
+      //only merge row for i = L - 1
+      qmerge[0] = mpo[L - 1].qshape(0);
+      dmerge[0] = mpo[L - 1].dshape(0);
+
+      info.reset(qmerge,dmerge);
+
+      tmp.clear();
+
+      QSTmerge(info,mpo[L - 1],tmp);
+
+      mpo[L - 1] = tmp;
+
+      return mpo;
+
+   }
+
 }
