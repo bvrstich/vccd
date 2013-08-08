@@ -8,8 +8,8 @@ using std::cout;
 using std::endl;
 using std::ostream;
 
-#include "SpinQuantum.h"
-namespace btas { typedef SpinQuantum Quantum; };
+#include "FermiQuantum.h"
+namespace btas { typedef FermiQuantum Quantum; };
 
 #include "btas/QSPARSE/QSDArray.h"
 

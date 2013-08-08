@@ -1,6 +1,6 @@
 //nog enkele definities:
-#include "SpinQuantum.h"
-namespace btas { typedef SpinQuantum Quantum; };
+#include "FermiQuantum.h"
+namespace btas { typedef FermiQuantum Quantum; };
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -14,5 +14,3 @@ namespace btas { typedef SpinQuantum Quantum; };
 #include <btas/QSPARSE/QSDcontract.h>
 
 #include "MPSblas.h"
-
-#include "SpinHamiltonian.h"
