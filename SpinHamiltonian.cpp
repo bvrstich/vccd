@@ -76,7 +76,7 @@ namespace btas {
 
          mpo[0].insert(shape(0,m,m,0),I_op);
          mpo[0].insert(shape(0,m,m,1),Sz_op);
-         mpo[0].insert(shape(0,m,m,1),B_op);
+         mpo[0].insert(shape(0,m,m,2),B_op);
 
          for(int i = 1;i < L - 1;++i){
 

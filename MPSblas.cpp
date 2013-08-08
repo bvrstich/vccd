@@ -371,7 +371,7 @@ namespace btas {
          //clear the tmp object first
          tmp.clear();
 
-         QSDindexed_contract(1.0,O[i],shape(j,k,l,m),A[i],shape(n,l,o),0.0,tmp,shape(n,j,k,m,o));
+         QSDindexed_contract(1.0,O[i],shape(j,k,l,m),A[i],shape(n,l,o),0.0,tmp,shape(n,j,k,o,m));
 
          //merge 2 rows together
          TVector<Qshapes<Quantum>,2> qmerge;
@@ -471,78 +471,6 @@ namespace btas {
       }
 
       return mpo;
-
-   }
-
-   MPS add(const MPS &A,const MPS& B){
-
-      //first check if we can sum these two:
-      if(A.size() != B.size())
-         BTAS_THROW(false, "Error: input MP objects do not have the same length!");
-
-      int L = A.size();
-
-      if(A[0].qshape(1) != B[0].qshape(1))
-         BTAS_THROW(false,"Error: input MP objects do not have the same physical dimension!");
-
-      MPS AB(L);
-
-      QSDArray<3> tmp;
-
-      //first left 
-      QSDdsum(A[0],B[0],shape(0,1),tmp);
-
-      //merge the column quantumnumbers together
-      TVector<Qshapes<Quantum>,1> qmerge;
-      TVector<Dshapes,1> dmerge;
-
-      qmerge[0] = tmp.qshape(2);
-      dmerge[0] = tmp.dshape(2);
-
-      QSTmergeInfo<1> info(qmerge,dmerge);
-
-      //then merge
-      QSTmerge(tmp,info,AB[0]);
-
-      //row and column addition in the middle of the chain
-      for(int i = 1;i < L - 1;++i){
-
-         QSDdsum(A[i],B[i],shape(1),AB[i]);
-
-         //merge the row quantumnumbers together
-         qmerge[0] = AB[i].qshape(0);
-         dmerge[0] = AB[i].dshape(0);
-
-         info.reset(qmerge,dmerge);
-
-         //then merge
-         QSTmerge(info,AB[i],tmp);
-
-         //column quantumnumbers
-         qmerge[0] = tmp.qshape(2);
-         dmerge[0] = tmp.dshape(2);
-
-         info.reset(qmerge,dmerge);
-
-         //then merge
-         QSTmerge(tmp,info,AB[i]);
-
-      }
-
-      //finally the right
-      tmp.clear();
-      QSDdsum(A[L-1],B[L-1],shape(1,2),tmp);
-
-      //merge the row quantumnumbers together
-      qmerge[0] = tmp.qshape(0);
-      dmerge[0] = tmp.dshape(0);
-
-      info.reset(qmerge,dmerge);
-
-      //then merge
-      QSTmerge(info,tmp,AB[L-1]);
-
-      return AB;
 
    }
 

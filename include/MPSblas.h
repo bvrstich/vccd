@@ -84,8 +84,7 @@ namespace btas{
     * @param B input MPX
     * @return the MPX result
     */
-    /*
-   template<typename MPX>
+   template<size_t N,typename MPX>
       MPX add(const MPX &A,const MPX &B){
 
          //first check if we can sum these two:
@@ -94,23 +93,82 @@ namespace btas{
 
          int L = A.size();
 
-         if(A[0].qshape(1) != B[0].qshape(1))
-            BTAS_THROW(false,"Error: input MP objects do not have the same physical dimension!");
-
          MPX AB(L);
 
-         QSDjoin_ledge(A[0],B[0],AB[0]);
+         QSDArray<N> tmp;
 
-         for(int i = 1;i < L - 1;++i)
-            QSDjoin(A[i],B[i],AB[i]);
+         IVector<N-1> left;
 
-         QSDjoin_redge(A[L-1],B[L-1],AB[L-1]);
+         for(int i = 0;i < N-1;++i)
+            left[i] = i;
+
+         //first left 
+         QSDdsum(A[0],B[0],left,tmp);
+
+         //merge the column quantumnumbers together
+         TVector<Qshapes<Quantum>,1> qmerge;
+         TVector<Dshapes,1> dmerge;
+
+         qmerge[0] = tmp.qshape(N-1);
+         dmerge[0] = tmp.dshape(N-1);
+
+         QSTmergeInfo<1> info(qmerge,dmerge);
+
+         //then merge
+         QSTmerge(tmp,info,AB[0]);
+
+         IVector<N-2> middle;
+
+         for(int i = 1;i < N-1;++i)
+            middle[i - 1] = i;
+
+         //row and column addition in the middle of the chain
+         for(int i = 1;i < L - 1;++i){
+
+            QSDdsum(A[i],B[i],middle,AB[i]);
+
+            //merge the row quantumnumbers together
+            qmerge[0] = AB[i].qshape(0);
+            dmerge[0] = AB[i].dshape(0);
+
+            info.reset(qmerge,dmerge);
+
+            //then merge
+            QSTmerge(info,AB[i],tmp);
+
+            //column quantumnumbers
+            qmerge[0] = tmp.qshape(N-1);
+            dmerge[0] = tmp.dshape(N-1);
+
+            info.reset(qmerge,dmerge);
+
+            //then merge
+            QSTmerge(tmp,info,AB[i]);
+
+         }
+
+         IVector<N-1> right;
+
+         for(int i = 0;i < N-1;++i)
+            right[i] = i + 1;
+
+         //finally the right
+         tmp.clear();
+         QSDdsum(A[L-1],B[L-1],right,tmp);
+
+         //merge the row quantumnumbers together
+         qmerge[0] = tmp.qshape(0);
+         dmerge[0] = tmp.dshape(0);
+
+         info.reset(qmerge,dmerge);
+
+         //then merge
+         QSTmerge(info,tmp,AB[L-1]);
 
          return AB;
 
       }
-*/
-   MPS add(const MPS &A,const MPS &B);
+
    /**
     * Compress an MP object by performing an SVD
     * @param mpx is the input MPX, will be lost/overwritten by the compressed MPX
