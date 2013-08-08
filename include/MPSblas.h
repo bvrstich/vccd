@@ -84,6 +84,7 @@ namespace btas{
     * @param B input MPX
     * @return the MPX result
     */
+    /*
    template<typename MPX>
       MPX add(const MPX &A,const MPX &B){
 
@@ -108,7 +109,8 @@ namespace btas{
          return AB;
 
       }
-
+*/
+   MPS add(const MPS &A,const MPS &B);
    /**
     * Compress an MP object by performing an SVD
     * @param mpx is the input MPX, will be lost/overwritten by the compressed MPX
