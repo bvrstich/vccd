@@ -30,7 +30,7 @@ namespace btas{
     * prints all the operators in mpo_p
     * @param mpo_p input MPO
     */
-   template<class MPX>
+   template<typename MPX>
       void print(const MPX &mpx_p){
 
          for(int i = 0;i < mpx_p.size();++i){
@@ -49,7 +49,7 @@ namespace btas{
     * @param mpx the MPX to be copied
     * @param mpx_copy the MPX into which will be copied
     */
-   template<class MPX>
+   template<typename MPX>
       void copy(const MPX &mpx,MPX &mpx_copy){
 
          mpx_copy.resize(mpx.size());
@@ -65,7 +65,7 @@ namespace btas{
     * @param alpha scalingfactor
     * @param mpx the MPX to be scaled
     */
-   template<class MPX>
+   template<typename MPX>
       void scal(double alpha,MPX &mpx){
 
          int L = mpx.size();
@@ -84,7 +84,7 @@ namespace btas{
     * @param B input MPX
     * @return the MPX result
     */
-   template<class MPX>
+   template<typename MPX>
       MPX add(const MPX &A,const MPX &B){
 
          //first check if we can sum these two:
@@ -117,7 +117,7 @@ namespace btas{
     *          if == 0  all the states are kept
     *          if < 0 all singular values > 10^-D are kept
     */
-   template<size_t N,class MPX>
+   template<size_t N,typename MPX>
       void compress(MPX &mpx,bool left,int D,bool norm){
 
          int L = mpx.size();//length of the chain
@@ -132,13 +132,13 @@ namespace btas{
 
                QSDgesvd(RightArrow,mpx[i],S,U,V,D);
 
-               //copy unitary to mps
+               //copy unitary to mpx
                QSDcopy(U,mpx[i]);
 
                //paste S and V together
                SDdidm(S,V);
 
-               //and multiply with mps on the next site
+               //and multiply with mpx on the next site
                U = mpx[i + 1];
 
                //when compressing dimensions will change, so reset:
@@ -178,13 +178,13 @@ namespace btas{
 
                QSDgesvd(RightArrow,mpx[i],S,U,V,D);
 
-               //copy unitary to mps
+               //copy unitary to mpx
                QSDcopy(V,mpx[i]);
 
                //paste U and S together
                SDdimd(U,S);
 
-               //and multiply with mps on the next site
+               //and multiply with mpx on the next site
                V = mpx[i - 1];
 
                //when compressing dimensions will change, so reset:
@@ -217,6 +217,101 @@ namespace btas{
 
       }
 
+   /**
+    * clean up the MPX, i.e. make sure the right quantumblocks are connected, remove unnecessary quantumnumbers and blocks
+    * @param mpx input MPX, will be changed 'cleaned' on exit
+    */
+   template<typename MPX>
+      void clean(MPX &mpx){
+
+         int nlegs = mpx[0].qshape().size();
+
+         Dshapes dr;
+
+         int i = 0;
+
+         //from left to right
+         for(int i = 0;i < mpx.size() - 1;++i){
+
+            dr = mpx[i].dshape()[nlegs - 1];
+
+            std::vector<Quantum> qrem;
+
+            for(int j = 0;j < dr.size();++j)
+               if(dr[j] == 0)
+                  qrem.push_back(mpx[i].qshape()[nlegs - 1][j]);//what is the quantumnumber with 0 dimension?
+
+            if(qrem.size() != 0){
+
+               //remove the zero blocks from site i
+               for(int j = 0;j < qrem.size();++j){
+
+                  //find the index corresponding to quantumnumber qrem[j]
+                  Qshapes<Quantum> qr = mpx[i].qshape()[nlegs - 1];
+
+                  for(int k = 0;k < qr.size();++k)
+                     if(qr[k] == qrem[j])
+                        mpx[i].erase(nlegs - 1,k);
+
+               }
+
+               for(int j = 0;j < qrem.size();++j){
+
+                  //remove the corresponding blocks on the 0 leg of the next site
+                  Qshapes<Quantum> ql = mpx[i + 1].qshape()[0];
+
+                  for(int k = 0;k < ql.size();++k)
+                     if(ql[k] == -qrem[j])
+                        mpx[i + 1].erase(0,k);
+
+               }
+
+            }
+
+         }
+
+         //and back from right to left
+         for(int i = mpx.size() - 1;i > 0;--i){
+
+            dr = mpx[i].dshape()[0];//actually dl now
+
+            std::vector<Quantum> qrem;
+
+            for(int j = 0;j < dr.size();++j)
+               if(dr[j] == 0)
+                  qrem.push_back(mpx[i].qshape()[0][j]);//what is the quantumnumber with 0 dimension?
+
+            if(qrem.size() != 0){
+
+               //remove the zero blocks from site i
+               for(int j = 0;j < qrem.size();++j){
+
+                  //find the index corresponding to quantumnumber qrem[j]
+                  Qshapes<Quantum> qr = mpx[i].qshape()[0];
+
+                  for(int k = 0;k < qr.size();++k)
+                     if(qr[k] == qrem[j])
+                        mpx[i].erase(0,k);
+
+               }
+
+               for(int j = 0;j < qrem.size();++j){
+
+                  //remove the corresponding blocks on the (nlegs-1) leg of the previous site
+                  Qshapes<Quantum> ql = mpx[i - 1].qshape()[nlegs-1];
+
+                  for(int k = 0;k < ql.size();++k)
+                     if(ql[k] == -qrem[j])
+                        mpx[i - 1].erase(nlegs-1,k);
+
+               }
+
+            }
+
+         }
+
+      }
+
    double dot(const MPS &,const MPS &);
 
    double nrm2(const MPS &);
@@ -227,11 +322,7 @@ namespace btas{
 
    MPS gemv(const MPO &,const MPS &);
 
-   MPS gemv2(const MPO &,const MPS &);
-
    MPO gemm(const MPO &,const MPO &);
-
-   void clean(MPS &);
 
 }
 

@@ -22,17 +22,16 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 10;
+   int L = 20;
 
    //physical dimension
    int d = 2;
 
    MPO O = XY(L,d,1.0,1.0);
-
    MPS A = create(L,d,Quantum::zero(),10);
-   MPS B = create(L,d,Quantum::zero(),10);
 
-   compress<3>(A,true,0,true);
+   compress<3>(A,true,10,true);
+   clean(A);
 
    return 0;
 
