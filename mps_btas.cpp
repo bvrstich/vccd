@@ -22,42 +22,86 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 4;
+   int L = 20;
 
    //physical dimension
    int d = 2;
 
    //number of particles
-   int N = 2;
+   int N = 11;
 
-   MPS A = create(L,d,Quantum(N),10);
+   MPS A = create(L,d,Quantum(N),20);
+   compress<3>(A,true,100,true);
+   clean(A);
 
-   MPO sum = n_loc(L,d,0); 
+   MPS B = create(L,d,Quantum(N),20);
+   compress<3>(B,true,100,true);
+   clean(B);
 
-   for(int i = 1;i < L;++i){
+   MPO O = hopping(L,d);
 
-      MPO tmp = add<4>(n_loc(L,d,i),sum);
+   MPS OA = gemv(O,A);
+   compress<3>(OA,true,0,false);
+   clean(OA);
 
-      sum = tmp;
+   cout << dot(OA,B) << endl;
+
+   MPO O_cr = creator(L,d,0);
+   MPO O_an = annihilator(L,d,1);
+   MPO sum1 = gemm(O_cr,O_an);
+   MPO tmp,tmp2;
+
+   for(int i = 1;i < L - 1;++i){
+
+      O_cr = creator(L,d,i);
+      O_an = annihilator(L,d,i + 1);
+
+      tmp = gemm(O_cr,O_an);
+
+      tmp2 = add<4>(tmp,sum1);
+
+      sum1 = tmp2;
 
    }
 
-   print(sum);
-   
-   cout << inprod(A,sum,A)/nrm2(A) << endl;
+   O_cr = creator(L,d,1);
+   O_an = annihilator(L,d,0);
+   MPO sum2 = gemm(O_cr,O_an);
 
-   double ward = 0.0;
+   for(int i = 1;i < L - 1;++i){
+
+      O_cr = creator(L,d,i + 1);
+      O_an = annihilator(L,d,i);
+
+      tmp = gemm(O_cr,O_an);
+
+      tmp2 = add<4>(tmp,sum2);
+
+      sum2 = tmp2;
+
+   }
+   
+   MPO sum = add<4>(sum1,sum2);
+   clean(sum);
+   compress<4>(sum,true,100,false);
+   clean(sum);
+   compress<4>(sum,false,100,false);
+   clean(sum);
+
+   cout << inprod(A,sum,B) << endl;
 
    for(int i = 0;i < L;++i){
 
-      MPO O = n_loc(L,d,i);
-
-      ward += inprod(A,O,A)/nrm2(A);
+      cout << endl;
+      cout << "site " << i << endl;
+      cout << endl;
+      cout << O[i].qshape() << endl;
+      cout << O[i].dshape() << endl;
+      cout << sum[i].qshape() << endl;
+      cout << sum[i].dshape() << endl;
+      cout << endl;
 
    }
-
-   cout << ward << endl;
-
    return 0;
 
 }
