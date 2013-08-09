@@ -4,7 +4,7 @@
 #include <iostream>
 #include <iomanip>
 
-template <class Q>
+template<class Q>
 class Qshapes;
 
 //some functions which initialize an MPO to a certian Hamiltonian
@@ -30,6 +30,13 @@ namespace btas{
          }
 
       }
+
+   /**
+    * create a particle at site 'site'
+    */
+   MPO creator(int L,int d,int site);
+
+   MPO annihilator(int L,int d,int site);
 
 }
 

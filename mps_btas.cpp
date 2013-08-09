@@ -28,12 +28,32 @@ int main(void){
    int d = 2;
 
    //number of particles
-   int N = 4;
+   int N = 2;
 
    MPS A = create(L,d,Quantum(N),10);
 
-   print(A);
+   MPO O_cr = creator(L,d,2);
+   MPO O_an = annihilator(L,d,1);
 
+   MPS OA = gemv(O_an,A);
+   clean(OA);
+
+   print(OA);
+
+/*
+   MPS OA2 = gemv(O_an,OA);
+   clean(OA2);
+   for(int i = 0;i < L;++i){
+
+      cout << endl;
+      cout << "site " << i << endl;
+      cout << OA[i].qshape() << endl;
+      cout << OA[i].dshape() << endl;
+      cout << endl;
+
+   }
+
+*/
    return 0;
 
 }
