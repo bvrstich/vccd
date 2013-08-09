@@ -37,6 +37,8 @@ namespace btas{
 
    MPO n_loc(int L,int d,int site);
 
+   MPO N_tot(int L,int d,int site);
+
 }
 
 #endif

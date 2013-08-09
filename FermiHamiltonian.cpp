@@ -167,4 +167,54 @@ namespace btas {
 
    }
 
+   /**
+    * @return MPO which returns the total particle number operator \sum_i a^+_i a_i
+    */
+   MPO N_tot(int L,int d,int site){
+
+      MPO mpo(L);
+
+      //first set the quantumnumbers, before
+      Qshapes<Quantum> qp;
+      physical(d,qp);
+
+      Qshapes<Quantum> qz; // 0 quantum number
+      qz.push_back(Quantum(0));
+
+      //resize & set to 0
+      for(int i = 0; i < L; ++i)
+         mpo[i].resize(Quantum::zero(),make_array(qz,qp,-qp,qz));
+
+      DArray<4> I(1,1,1,1);
+      I = 1;
+
+      //left
+      mpo[0].insert(shape(0,0,0,0),I);
+      mpo[0].insert(shape(0,1,1,0),I);
+
+      mpo[0].insert(shape(0,1,1,1),I);
+
+      //middle
+      for(int i = 1;i < L-1;++i){
+
+         mpo[i].insert(shape(0,0,0,0),I);
+         mpo[i].insert(shape(0,1,1,0),I);
+
+         mpo[i].insert(shape(0,1,1,1),I);
+
+         mpo[i].insert(shape(1,0,0,1),I);
+         mpo[i].insert(shape(1,1,1,1),I);
+
+      }
+
+      //right
+      mpo[L-1].insert(shape(0,1,1,0),I);
+
+      mpo[L-1].insert(shape(1,0,0,1),I);
+      mpo[L-1].insert(shape(1,1,1,1),I);
+
+      return mpo;
+
+   }
+
 }

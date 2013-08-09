@@ -32,27 +32,32 @@ int main(void){
 
    MPS A = create(L,d,Quantum(N),10);
 
-   MPO O = n_loc(L,d,2);
+   MPO sum = n_loc(L,d,0); 
 
-   MPS OA = gemv(O,A);
-   clean(OA);
+   for(int i = 1;i < L;++i){
 
-   print(OA);
+      MPO tmp = add<4>(n_loc(L,d,i),sum);
 
-/*
-   MPS OA2 = gemv(O_an,OA);
-   clean(OA2);
-   for(int i = 0;i < L;++i){
-
-      cout << endl;
-      cout << "site " << i << endl;
-      cout << OA[i].qshape() << endl;
-      cout << OA[i].dshape() << endl;
-      cout << endl;
+      sum = tmp;
 
    }
 
-*/
+   print(sum);
+   
+   cout << inprod(A,sum,A)/nrm2(A) << endl;
+
+   double ward = 0.0;
+
+   for(int i = 0;i < L;++i){
+
+      MPO O = n_loc(L,d,i);
+
+      ward += inprod(A,O,A)/nrm2(A);
+
+   }
+
+   cout << ward << endl;
+
    return 0;
 
 }
