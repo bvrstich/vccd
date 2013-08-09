@@ -38,7 +38,7 @@ int main(void){
    MPS OA = gemv(O_an,A);
    clean(OA);
 
-   print(OA);
+   cout << OA[1] << endl;
 
 /*
    MPS OA2 = gemv(O_an,OA);
