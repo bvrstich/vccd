@@ -369,16 +369,12 @@ namespace btas {
       QSDArray<5> tmp;
       QSDArray<4> mrows;
 
-      //for(int i = 0;i < L;++i){
-         int i = 1;
+      for(int i = 0;i < L;++i){
 
          //clear the tmp object first
          tmp.clear();
 
          QSDindexed_contract(1.0,O[i],shape(j,k,l,m),A[i],shape(n,l,o),0.0,tmp,shape(n,j,k,o,m));
-
-         cout << tmp.dshape() << endl;
-         cout << tmp << endl;
 
          //merge 2 rows together
          TVector<Qshapes<Quantum>,2> qmerge;
@@ -399,9 +395,6 @@ namespace btas {
          //then merge
          QSTmerge(info,tmp,mrows);
 
-         cout << mrows.dshape() << endl;
-         cout << mrows << endl;
-
          //merge 2 columns together
          for(int r = 2;r < 4;++r){
 
@@ -414,7 +407,7 @@ namespace btas {
 
          QSTmerge(mrows,info,mps[i]);
 
-      //}
+      }
 
       return mps;
 

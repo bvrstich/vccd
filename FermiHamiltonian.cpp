@@ -62,56 +62,6 @@ namespace btas {
 
       }
 
-      //merge everything together
-      TVector<Qshapes<Quantum>,1> qmerge;
-      TVector<Dshapes,1> dmerge;
-
-      qmerge[0] = mpo[0].qshape(3);
-      dmerge[0] = mpo[0].dshape(3);
-
-      QSTmergeInfo<1> info(qmerge,dmerge);
-
-      QSDArray<4> tmp;
-      QSTmerge(mpo[0],info,tmp);
-
-      mpo[0] = tmp;
-
-      for(int i = 1;i < L - 1;++i){
-
-         //first merge the row
-         qmerge[0] = mpo[i].qshape(0);
-         dmerge[0] = mpo[i].dshape(0);
-
-         info.reset(qmerge,dmerge);
-
-         tmp.clear();
-
-         QSTmerge(info,mpo[i],tmp);
-
-         //then merge the column
-         qmerge[0] = tmp.qshape(3);
-         dmerge[0] = tmp.dshape(3);
-
-         info.reset(qmerge,dmerge);
-
-         mpo[i].clear();
-
-         QSTmerge(tmp,info,mpo[i]);
-
-      }
-
-      //only merge row for i = L - 1
-      qmerge[0] = mpo[L - 1].qshape(0);
-      dmerge[0] = mpo[L - 1].dshape(0);
-
-      info.reset(qmerge,dmerge);
-
-      tmp.clear();
-
-      QSTmerge(info,mpo[L - 1],tmp);
-
-      mpo[L - 1] = tmp;
-
       return mpo;
 
    }
@@ -169,55 +119,49 @@ namespace btas {
 
       }
 
-      //merge everything together
-      TVector<Qshapes<Quantum>,1> qmerge;
-      TVector<Dshapes,1> dmerge;
+      return mpo;
 
-      qmerge[0] = mpo[0].qshape(3);
-      dmerge[0] = mpo[0].dshape(3);
+   }
 
-      QSTmergeInfo<1> info(qmerge,dmerge);
+   /**
+    * construct an MPO which returns the local particle number operator a^+_i a_i
+    */
+   MPO n_loc(int L,int d,int site){
 
-      QSDArray<4> tmp;
-      QSTmerge(mpo[0],info,tmp);
+      MPO mpo(L);
 
-      mpo[0] = tmp;
+      //first set the quantumnumbers, before
+      Qshapes<Quantum> qp;
+      physical(d,qp);
 
-      for(int i = 1;i < L - 1;++i){
+      Qshapes<Quantum> qz; // 0 quantum number
+      qz.push_back(Quantum(0));
 
-         //first merge the row
-         qmerge[0] = mpo[i].qshape(0);
-         dmerge[0] = mpo[i].dshape(0);
+      //resize & set to 0
+      for(int i = 0; i < L; ++i)
+         mpo[i].resize(Quantum::zero(),make_array(qz,qp,-qp,qz));
 
-         info.reset(qmerge,dmerge);
+      DArray<4> I(1,1,1,1);
+      I = 1;
 
-         tmp.clear();
+      //fill it up before
+      for(int i = 0;i < site;++i){
 
-         QSTmerge(info,mpo[i],tmp);
-
-         //then merge the column
-         qmerge[0] = tmp.qshape(3);
-         dmerge[0] = tmp.dshape(3);
-
-         info.reset(qmerge,dmerge);
-
-         mpo[i].clear();
-
-         QSTmerge(tmp,info,mpo[i]);
+         mpo[i].insert(shape(0,0,0,0),I);
+         mpo[i].insert(shape(0,1,1,0),I);
 
       }
 
-      //only merge row for i = L - 1
-      qmerge[0] = mpo[L - 1].qshape(0);
-      dmerge[0] = mpo[L - 1].dshape(0);
+      //on
+      mpo[site].insert(shape(0,1,1,0),I);
 
-      info.reset(qmerge,dmerge);
+      //after the operator
+      for(int i = site + 1;i < L;++i){
 
-      tmp.clear();
+         mpo[i].insert(shape(0,0,0,0),I);
+         mpo[i].insert(shape(0,1,1,0),I);
 
-      QSTmerge(info,mpo[L - 1],tmp);
-
-      mpo[L - 1] = tmp;
+      }
 
       return mpo;
 

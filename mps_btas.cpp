@@ -32,13 +32,12 @@ int main(void){
 
    MPS A = create(L,d,Quantum(N),10);
 
-   MPO O_cr = creator(L,d,2);
-   MPO O_an = annihilator(L,d,1);
+   MPO O = n_loc(L,d,2);
 
-   MPS OA = gemv(O_an,A);
+   MPS OA = gemv(O,A);
    clean(OA);
 
-   cout << OA[1] << endl;
+   print(OA);
 
 /*
    MPS OA2 = gemv(O_an,OA);

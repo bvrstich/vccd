@@ -31,12 +31,11 @@ namespace btas{
 
       }
 
-   /**
-    * create a particle at site 'site'
-    */
    MPO creator(int L,int d,int site);
 
    MPO annihilator(int L,int d,int site);
+
+   MPO n_loc(int L,int d,int site);
 
 }
 
