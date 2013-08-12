@@ -38,70 +38,35 @@ int main(void){
    compress<3>(B,true,100,true);
    clean(B);
 
-   MPO O = hopping(L,d);
+   MPO O = nnn_hopping(L,d,0.5);
 
    MPS OA = gemv(O,A);
-   compress<3>(OA,true,0,false);
-   clean(OA);
-
-   cout << dot(OA,B) << endl;
-
-   MPO O_cr = creator(L,d,0);
-   MPO O_an = annihilator(L,d,1);
-   MPO sum1 = gemm(O_cr,O_an);
-   MPO tmp,tmp2;
-
-   for(int i = 1;i < L - 1;++i){
-
-      O_cr = creator(L,d,i);
-      O_an = annihilator(L,d,i + 1);
-
-      tmp = gemm(O_cr,O_an);
-
-      tmp2 = add<4>(tmp,sum1);
-
-      sum1 = tmp2;
-
-   }
-
-   O_cr = creator(L,d,1);
-   O_an = annihilator(L,d,0);
-   MPO sum2 = gemm(O_cr,O_an);
-
-   for(int i = 1;i < L - 1;++i){
-
-      O_cr = creator(L,d,i + 1);
-      O_an = annihilator(L,d,i);
-
-      tmp = gemm(O_cr,O_an);
-
-      tmp2 = add<4>(tmp,sum2);
-
-      sum2 = tmp2;
-
-   }
-   
-   MPO sum = add<4>(sum1,sum2);
-   clean(sum);
-   compress<4>(sum,true,100,false);
-   clean(sum);
-   compress<4>(sum,false,100,false);
-   clean(sum);
-
-   cout << inprod(A,sum,B) << endl;
 
    for(int i = 0;i < L;++i){
 
-      cout << endl;
       cout << "site " << i << endl;
       cout << endl;
-      cout << O[i].qshape() << endl;
-      cout << O[i].dshape() << endl;
-      cout << sum[i].qshape() << endl;
-      cout << sum[i].dshape() << endl;
+      cout << OA[i].qshape() << endl;
+      cout << OA[i].dshape() << endl;
       cout << endl;
 
    }
+
+   clean(OA);
+   compress<3>(OA,true,0,false);
+   clean(OA);
+   compress<3>(OA,false,0,false);
+
+   for(int i = 0;i < L;++i){
+
+      cout << "site " << i << endl;
+      cout << endl;
+      cout << OA[i].qshape() << endl;
+      cout << OA[i].dshape() << endl;
+      cout << endl;
+
+   }
+
    return 0;
 
 }

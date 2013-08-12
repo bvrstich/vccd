@@ -41,6 +41,8 @@ namespace btas{
    
    MPO hopping(int L,int d);
 
+   MPO nnn_hopping(int L,int d,double);
+
 }
 
 #endif
