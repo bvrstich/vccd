@@ -43,6 +43,8 @@ namespace btas{
 
    MPO nnn_hopping(int L,int d,double);
 
+   MPO one_body(int L,int d,const DArray<2> &);
+
 }
 
 #endif

@@ -38,34 +38,19 @@ int main(void){
    compress<3>(B,true,100,true);
    clean(B);
 
-   MPO O = nnn_hopping(L,d,0.5);
+   DArray<2> T(shape(L,L));
+   T.generate(rgen);
+
+
+   MPO O = one_body(L,d,T);
+
+   clean(O);
+   compress<4>(O,true,0,false);
+   clean(O);
+   compress<4>(O,false,0,false);
+   clean(O);
 
    MPS OA = gemv(O,A);
-
-   for(int i = 0;i < L;++i){
-
-      cout << "site " << i << endl;
-      cout << endl;
-      cout << OA[i].qshape() << endl;
-      cout << OA[i].dshape() << endl;
-      cout << endl;
-
-   }
-
-   clean(OA);
-   compress<3>(OA,true,0,false);
-   clean(OA);
-   compress<3>(OA,false,0,false);
-
-   for(int i = 0;i < L;++i){
-
-      cout << "site " << i << endl;
-      cout << endl;
-      cout << OA[i].qshape() << endl;
-      cout << OA[i].dshape() << endl;
-      cout << endl;
-
-   }
 
    return 0;
 
