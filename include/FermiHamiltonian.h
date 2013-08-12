@@ -12,25 +12,20 @@ class Qshapes;
 namespace btas{
 
    /**
-    * @param d local dimension: number of particles on local site
     * @param qp Qshapes object containing the local quantumnumbers on output, input is destroyed
     */
    template<class Q>
-      void physical(int d,Qshapes<Q> &qp){
+      void physical(Qshapes<Q> &qp){
 
          qp.clear();
 
-         int n = 0;
-
-         while(n < d){
-
-            qp.push_back(Q(n));
-            n++;
-
-         }
+         qp.push_back(Quantum(0,0));
+         qp.push_back(Quantum(0,1));
+         qp.push_back(Quantum(1,0));
+         qp.push_back(Quantum(1,1));
 
       }
-
+/*
    MPO creator(int L,int d,int site);
 
    MPO annihilator(int L,int d,int site);
@@ -44,7 +39,7 @@ namespace btas{
    MPO nnn_hopping(int L,int d,double);
 
    MPO one_body(int L,int d,const DArray<2> &);
-
+*/
 }
 
 #endif

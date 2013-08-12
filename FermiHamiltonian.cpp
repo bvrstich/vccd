@@ -12,6 +12,7 @@ namespace btas {
    /**
     * construct an MPO which creates a fermion at site 'site'
     */
+    /*
    MPO creator(int L,int d,int site){
 
       MPO mpo(L);
@@ -65,10 +66,12 @@ namespace btas {
       return mpo;
 
    }
+   */
 
    /**
     * construct an MPO which annihilates a fermion at site 'site'
     */
+    /*
    MPO annihilator(int L,int d,int site){
 
       MPO mpo(L);
@@ -122,10 +125,11 @@ namespace btas {
       return mpo;
 
    }
-
+*/
    /**
     * construct an MPO which returns the local particle number operator a^+_i a_i
     */
+    /*
    MPO n_loc(int L,int d,int site){
 
       MPO mpo(L);
@@ -166,10 +170,11 @@ namespace btas {
       return mpo;
 
    }
-
+*/
    /**
     * @return MPO which returns the total particle number operator \sum_i a^+_i a_i
     */
+    /*
    MPO N_tot(int L,int d){
 
       MPO mpo(L);
@@ -278,11 +283,12 @@ namespace btas {
       return mpo;
 
    }
-
+*/
 
    /**
     * @return MPO which contains the nearest neighbour hopping operator
     */
+    /*
    MPO hopping(int L,int d){
 
       MPO mpo(L);
@@ -408,11 +414,12 @@ namespace btas {
       return mpo;
 
    }
-
+*/
    /**
     * @return MPO which contains the next to nearest neighbour hopping operator where the nnn-sites are coupled with a factor t_nn
     * i.e. H= -\sum_{i=1}^{L-1} ( a^\dagger_i a_{i+1} +  a^\dagger_{i+1} a_i ) + -t_nn \sum_{i = 1}^{L-2} ( a^\dagger_i a_{i + 2} a^\dagger_{i + 2} a_i )
     */
+    /*
    MPO nnn_hopping(int L,int d,double t_nn){
 
       MPO mpo(L);
@@ -574,11 +581,12 @@ namespace btas {
       return mpo;
 
    }
-
+*/
    /**
     * @return MPO which contains/describes the general one-body operator t_{ij} a^\dagger_i a_j
     * @param t the L x L DArray<2> containing the one-body operator
     */
+    /*
    MPO one_body(int L,int d,const DArray<2> &t){
 
       MPO mpo(L);
@@ -788,5 +796,5 @@ namespace btas {
       return mpo;
 
    }
-
+*/
 }

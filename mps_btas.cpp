@@ -22,35 +22,15 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 20;
-
-   //physical dimension
-   int d = 2;
+   int L = 4;
 
    //number of particles
-   int N = 11;
+   int n_u = 2;
+   int n_d = 2;
 
-   MPS A = create(L,d,Quantum(N),20);
-   compress<3>(A,true,100,true);
-   clean(A);
+   MPS mps = create(L,Quantum(n_u,n_d),10);
 
-   MPS B = create(L,d,Quantum(N),20);
-   compress<3>(B,true,100,true);
-   clean(B);
-
-   DArray<2> T(shape(L,L));
-   T.generate(rgen);
-
-
-   MPO O = one_body(L,d,T);
-
-   clean(O);
-   compress<4>(O,true,0,false);
-   clean(O);
-   compress<4>(O,false,0,false);
-   clean(O);
-
-   MPS OA = gemv(O,A);
+   print(mps);
 
    return 0;
 

@@ -16,12 +16,12 @@ namespace btas {
     * @param D maximal dimension of the quantum blocks
     * @return the MPS chain randomly filled and with correct quantumnumbers and dimensions
     */
-   MPS create(int L,int d,const Quantum &qt,int D){ 
+   MPS create(int L,const Quantum &qt,int D){ 
 
       //physical index
       Qshapes<Quantum> qp;
 
-      physical(d,qp);
+      physical(qp);
 
       //shape of the physical index
       Dshapes dp(qp.size(),1);
@@ -40,6 +40,7 @@ namespace btas {
             for(unsigned int k = 0;k < dp.size();++k)
                dr[i].push_back(dr[i-1][j]*dp[k]);
 
+         //remove quantumnumbers that occur multiple times
          int j = 0;
 
          while(j < qr[i].size()){
@@ -74,10 +75,36 @@ namespace btas {
 
          }
 
+         //sort the list of quantumnumbers
+         Quantum srtq;
+         int srtd;
+
+         for(int j = 0;j < qr[i].size();++j){
+
+            for(int k = j + 1;k < qr[i].size();++k){
+
+               if(qr[i][k] < qr[i][j]){
+
+                  srtq = qr[i][j];
+                  srtd = dr[i][j];
+
+                  qr[i][j] = qr[i][k];
+                  dr[i][j] = dr[i][k];
+
+                  qr[i][k] = srtq;
+                  dr[i][k] = srtd;
+
+               }
+
+            }
+
+         }
+
       }
 
       qr[L-1] = Qshapes<Quantum>(1,qt);
       dr[L-1] = Dshapes(1,1);
+
 
       Qshapes<Quantum> tmpq;
       Dshapes tmpd;
@@ -95,6 +122,31 @@ namespace btas {
          for(int j = 0;j < dr[i+1].size();++j)
             for(int k = dp.size() - 1;k >= 0;--k)
                tmpd.push_back(dr[i+1][j]*dp[k]);
+
+         //sort the list of temporary quantumnumbers
+         Quantum srtq;
+         int srtd;
+
+         for(int j = 0;j < tmpq.size();++j){
+
+            for(int k = j + 1;k < tmpq.size();++k){
+
+               if(tmpq[k] < tmpq[j]){
+
+                  srtq = tmpq[j];
+                  srtd = tmpd[j];
+
+                  tmpq[j] = tmpq[k];
+                  tmpd[j] = tmpd[k];
+
+                  tmpq[k] = srtq;
+                  tmpd[k] = srtd;
+
+               }
+
+            }
+
+         }
 
          int j = 0;
 

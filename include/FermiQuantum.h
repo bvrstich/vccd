@@ -1,11 +1,11 @@
-#ifndef SPINQUANTUM_H
-#define SPINQUANTUM_H
+#ifndef FERMIQUANTUM_H
+#define FERMIQUANTUM_H
 
 #include <iostream>
 #include <iomanip>
 
 /**
- * class which defines the quantumnumbers of the system, this is the case of spinless fermions
+ * class which defines the quantumnumbers of the system, this is the case of spin-1/2 fermions
  */
 class FermiQuantum
 {
@@ -17,17 +17,19 @@ class FermiQuantum
        */
       FermiQuantum(){
 
-         N = 0;
+         n_up = 0;
+         n_down = 0;
 
       }
 
       /**
        * constructor with input, set particle number
-       * @param N_i input quantumnumber
+       * @param n_i input quantumnumber
        */
-      FermiQuantum(int N_i){
+      FermiQuantum(int n_up_i,int n_down_i){
 
-         N = N_i;
+         n_up = n_up_i;
+         n_down = n_down_i;
 
       }
 
@@ -36,16 +38,26 @@ class FermiQuantum
        */
       FermiQuantum(const FermiQuantum &qn_copy){
 
-         N = qn_copy.gN();
+         n_up = qn_copy.gn_up();
+         n_down = qn_copy.gn_down();
 
       }
 
       /**
-       * @return the quantumnumber
+       * @return the number of spin up particles
        */
-      int gN() const {
+      int gn_up() const {
 
-         return N;
+         return n_up;
+
+      }
+
+      /**
+       * @return the number of spin down particles
+       */
+      int gn_down() const {
+
+         return n_down;
 
       }
 
@@ -56,7 +68,7 @@ class FermiQuantum
        */
       inline bool operator==(const FermiQuantum &qn_i) const { 
 
-         return (N == qn_i.gN());
+         return ( (n_up == qn_i.gn_up()) && (n_down == qn_i.gn_down()) );
 
       }
 
@@ -67,7 +79,7 @@ class FermiQuantum
        */
       inline bool operator!=(const FermiQuantum& qn_i) const {
 
-         return (N != qn_i.gN());
+         return ( (n_up != qn_i.gn_up()) || (n_down != qn_i.gn_down()) );
 
       }
 
@@ -78,7 +90,22 @@ class FermiQuantum
        */
       inline bool operator<(const FermiQuantum& qn_i) const {
 
-         return (N < qn_i.gN());
+         if(n_up < qn_i.gn_up())
+            return true;
+         else{
+
+            if(n_up == qn_i.gn_up()){
+
+               if(n_down < qn_i.gn_down())
+                  return true;
+               else
+                  return false;
+
+            }
+            else
+               return false;
+
+         }
 
       }
 
@@ -89,18 +116,33 @@ class FermiQuantum
        */
       inline bool operator>(const FermiQuantum& qn_i) const { 
 
-         return (N > qn_i.gN());
+         if(n_up > qn_i.gn_up())
+            return true;
+         else{
+
+            if(n_up == qn_i.gn_up()){
+
+               if(n_down > qn_i.gn_down())
+                  return true;
+               else
+                  return false;
+
+            }
+            else
+               return false;
+
+         }
 
       }
 
       /**
        * operator acting on quantumnumbers
        * @param qn_i input
-       * @return new FermiQuantum object with N = *this + input
+       * @return new FermiQuantum object with n = *this + input
        */
       inline FermiQuantum operator*(const FermiQuantum& qn_i) const {
 
-         return FermiQuantum(N + qn_i.gN());
+         return FermiQuantum(n_up + qn_i.gn_up(),n_down + qn_i.gn_down());
 
       }
 
@@ -110,7 +152,7 @@ class FermiQuantum
        */
       friend FermiQuantum operator+ (const FermiQuantum& q) {
 
-         return FermiQuantum(q.gN()); 
+         return FermiQuantum(q.gn_up(),q.gn_down()); 
 
       }
 
@@ -120,42 +162,48 @@ class FermiQuantum
        */
       friend FermiQuantum operator-(const FermiQuantum& q) { 
 
-         return FermiQuantum(-q.gN()); 
+         return FermiQuantum(-q.gn_up(),-q.gn_down()); 
 
       }
 
       /**
-       * overload output stream operator
+       * unused function that has to be defined
+       */
+      inline bool parity() const { 
+
+         return true; 
+         
+      }
+
+
+      /**
+       * output stream operator overloaded
        */
       friend std::ostream& operator<< (std::ostream& ost, const FermiQuantum& q) {
 
-         ost << "(" << std::setw(2) << q.N << ")";
+         ost << "(" << std::setw(2) << q.gn_up() << "," << std::setw(2) << q.gn_down() << ")";
 
          return ost;
 
       }
-
-      inline bool parity() const { 
-
-         return N & 1; 
-         
-      }
-
 
       /**
        * @return a FermiQuantum object initialized on zero
        */
       const static FermiQuantum zero() {
 
-         return FermiQuantum(0); 
+         return FermiQuantum(0,0); 
 
       }
 
    private:
 
-      //! the number of particles
-      int N;
+      //! the number of up-particles
+      int n_up;
+
+      //! the number of down-particles
+      int n_down;
 
 };
 
-#endif // SPINQUANTUM_H
+#endif // 
