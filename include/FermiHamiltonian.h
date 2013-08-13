@@ -25,13 +25,13 @@ namespace btas{
          qp.push_back(Quantum(1,1));
 
       }
+
+   MPO creator(int L,int site,int spin);
+
+   MPO annihilator(int L,int site,int spin);
+
+   MPO n_loc(int L,int site);
 /*
-   MPO creator(int L,int d,int site);
-
-   MPO annihilator(int L,int d,int site);
-
-   MPO n_loc(int L,int d,int site);
-
    MPO N_tot(int L,int d);
    
    MPO hopping(int L,int d);

@@ -10,22 +10,25 @@ using std::ostream;
 namespace btas {
    
    /**
-    * construct an MPO which creates a fermion at site 'site'
+    * construct an MPO of length L which creates a fermion at site 'site' with spin +1/2 if spin == 0 and spin -1/2 if spin == 1
     */
-    /*
-   MPO creator(int L,int d,int site){
+   MPO creator(int L,int site,int spin){
 
       MPO mpo(L);
 
       //first set the quantumnumbers, before
       Qshapes<Quantum> qp;
-      physical(d,qp);
+      physical(qp);
 
       Qshapes<Quantum> qz; // 0 quantum number
-      qz.push_back(Quantum(0));
+      qz.push_back(Quantum(0,0));
 
       Qshapes<Quantum> qt; // total quantum number
-      qt.push_back(Quantum(1));
+
+      if(spin == 0)
+         qt.push_back(Quantum(1,0));
+      else
+         qt.push_back(Quantum(0,1));
 
       //resize & set to 0
       for(int i = 0; i < site; ++i)
@@ -44,47 +47,65 @@ namespace btas {
       DArray<4> Im(1,1,1,1);
       Im = -1;
 
-      //fill it up before
+      //fill it up before: signs
       for(int i = 0;i < site;++i){
 
+         //(-1)^N_site
          mpo[i].insert(shape(0,0,0,0),Ip);
          mpo[i].insert(shape(0,1,1,0),Im);
+         mpo[i].insert(shape(0,2,2,0),Im);
+         mpo[i].insert(shape(0,3,3,0),Ip);
 
       }
 
       //on
-      mpo[site].insert(shape(0,1,0,0),Ip);
+      if(spin == 0){//up particle
 
-      //after the operator
+         mpo[site].insert(shape(0,2,0,0),Ip);
+         mpo[site].insert(shape(0,3,1,0),Ip);
+
+      }
+      else{//down particle: sign issue
+
+         mpo[site].insert(shape(0,1,0,0),Ip);
+         mpo[site].insert(shape(0,3,2,0),Im);
+
+      }
+
+      //after the operator: only identity
       for(int i = site + 1;i < L;++i){
 
          mpo[i].insert(shape(0,0,0,0),Ip);
          mpo[i].insert(shape(0,1,1,0),Ip);
+         mpo[i].insert(shape(0,2,2,0),Ip);
+         mpo[i].insert(shape(0,3,3,0),Ip);
 
       }
 
       return mpo;
 
    }
-   */
 
    /**
-    * construct an MPO which annihilates a fermion at site 'site'
+    * construct an MPO of length L which annihilates a fermion at site 'site' with spin +1/2 if spin == 0 and spin -1/2 if spin == 1
     */
-    /*
-   MPO annihilator(int L,int d,int site){
+   MPO annihilator(int L,int site,int spin){
 
       MPO mpo(L);
 
       //first set the quantumnumbers, before
       Qshapes<Quantum> qp;
-      physical(d,qp);
+      physical(qp);
 
       Qshapes<Quantum> qz; // 0 quantum number
-      qz.push_back(Quantum(0));
+      qz.push_back(Quantum(0,0));
 
       Qshapes<Quantum> qt; // total quantum number
-      qt.push_back(Quantum(-1));
+
+      if(spin == 0)
+         qt.push_back(Quantum(-1,0));
+      else
+         qt.push_back(Quantum(0,-1));
 
       //resize & set to 0
       for(int i = 0; i < site; ++i)
@@ -103,43 +124,59 @@ namespace btas {
       DArray<4> Im(1,1,1,1);
       Im = -1;
 
-      //fill it up before
+      //fill it up before: signs
       for(int i = 0;i < site;++i){
 
+         //(-1)^N_site
          mpo[i].insert(shape(0,0,0,0),Ip);
          mpo[i].insert(shape(0,1,1,0),Im);
+         mpo[i].insert(shape(0,2,2,0),Im);
+         mpo[i].insert(shape(0,3,3,0),Ip);
 
       }
 
       //on
-      mpo[site].insert(shape(0,0,1,0),Ip);
+      if(spin == 0){//up particle
 
-      //after the operator
+         mpo[site].insert(shape(0,0,2,0),Ip);
+         mpo[site].insert(shape(0,1,3,0),Ip);
+
+      }
+      else{//down particle: sign issue
+
+         mpo[site].insert(shape(0,0,1,0),Ip);
+         mpo[site].insert(shape(0,2,3,0),Im);
+
+      }
+
+      //after the operator: only identity
       for(int i = site + 1;i < L;++i){
 
          mpo[i].insert(shape(0,0,0,0),Ip);
          mpo[i].insert(shape(0,1,1,0),Ip);
+         mpo[i].insert(shape(0,2,2,0),Ip);
+         mpo[i].insert(shape(0,3,3,0),Ip);
 
       }
 
       return mpo;
 
    }
-*/
+
+
    /**
     * construct an MPO which returns the local particle number operator a^+_i a_i
     */
-    /*
-   MPO n_loc(int L,int d,int site){
+   MPO n_loc(int L,int site){
 
       MPO mpo(L);
 
       //first set the quantumnumbers, before
       Qshapes<Quantum> qp;
-      physical(d,qp);
+      physical(qp);
 
       Qshapes<Quantum> qz; // 0 quantum number
-      qz.push_back(Quantum(0));
+      qz.push_back(Quantum::zero());
 
       //resize & set to 0
       for(int i = 0; i < L; ++i)
@@ -148,29 +185,38 @@ namespace btas {
       DArray<4> I(1,1,1,1);
       I = 1;
 
-      //fill it up before
+      DArray<4> n(1,1,1,1);
+      n = 2;
+
+      //fill it up before:unit
       for(int i = 0;i < site;++i){
 
          mpo[i].insert(shape(0,0,0,0),I);
          mpo[i].insert(shape(0,1,1,0),I);
+         mpo[i].insert(shape(0,2,2,0),I);
+         mpo[i].insert(shape(0,3,3,0),I);
 
       }
 
       //on
       mpo[site].insert(shape(0,1,1,0),I);
+      mpo[site].insert(shape(0,2,2,0),I);
+      mpo[site].insert(shape(0,3,3,0),n);
 
       //after the operator
       for(int i = site + 1;i < L;++i){
 
          mpo[i].insert(shape(0,0,0,0),I);
          mpo[i].insert(shape(0,1,1,0),I);
+         mpo[i].insert(shape(0,2,2,0),I);
+         mpo[i].insert(shape(0,3,3,0),I);
 
       }
 
       return mpo;
 
    }
-*/
+
    /**
     * @return MPO which returns the total particle number operator \sum_i a^+_i a_i
     */
