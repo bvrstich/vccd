@@ -22,36 +22,23 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 4;
+   int L = 20;
 
    //number of particles
-   int n_u = 2;
-   int n_d = 2;
+   int n_u = 10;
+   int n_d = 9;
 
-   MPS A = create(L,Quantum(n_u,n_d),20);
-   compress<3>(A,true,100,true);
-   clean(A);
+   MPS A = HF(L,Quantum(n_u,n_d));
 
-   MPS B = create(L,Quantum(n_u,n_d),20);
-   compress<3>(B,true,100,true);
-   clean(B);
+   for(int i = 0;i < L;++i){
 
-   MPO O = hubbard(L,1.0);
+      cout << endl;
+      cout << A[i].qshape() << endl;
+      cout << A[i].dshape() << endl;
+      cout << endl;
 
-   MPS OA = gemv(O,A);
+   }
 
-   cout << dot(B,OA) << endl;
-
-   clean(O);
-   compress<4>(O,true,0,false);
-   clean(O);
-   compress<4>(O,false,0,false);
-   clean(O);
-
-   OA = gemv(O,A);
-
-   cout << dot(B,OA) << endl;
-   print(O);
 
    return 0;
 

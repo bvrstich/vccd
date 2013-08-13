@@ -23,6 +23,8 @@ namespace btas{
 
    //some function definitions on MPS's
    MPS create(int,const Quantum &qt,int);
+   
+   MPS HF(int,const Quantum &qt);
 
    double rgen();
 

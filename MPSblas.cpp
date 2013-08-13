@@ -259,6 +259,124 @@ namespace btas {
    }
 
    /**
+    * @param L length of the chain
+    * @param qt total quantumnumber
+    * @return create an MPS chain of length L representing a hartree-fock wavefunction with quantumnumbers qt
+    */
+   MPS HF(int L,const Quantum &qt){ 
+
+      //physical index
+      Qshapes<Quantum> qp;
+      physical(qp);
+
+      //shape of the physical index
+      Dshapes dp(qp.size(),1);
+
+      Qshapes<Quantum> qz;
+      qz.push_back(Quantum::zero());
+
+      //now allocate the tensors!
+      TVector<Qshapes<Quantum>,3> qshape;
+      TVector<Dshapes,3> dshape;
+
+      int n = qt.gn_up();
+
+      int flag = 0;
+
+      if(n > qt.gn_down()){
+
+         n = qt.gn_down();
+         flag = 1;
+
+      }
+
+      MPS mps(L);
+
+      Dshapes di;
+      di.push_back(1);
+
+      //first the doubly occupied
+      for(int i = 0;i < n;++i){
+
+         Qshapes<Quantum> qi;
+         qi.push_back(Quantum(i,i));
+
+         Qshapes<Quantum> qo;
+         qo.push_back(Quantum(i+1,i+1));
+
+         qshape = make_array(qi,qp,-qo);
+         dshape = make_array(di,dp,di);
+
+         mps[i].resize(Quantum::zero(),qshape,dshape);
+         mps[i] = 1.0;
+
+      }
+
+      int n_max;
+
+      //then the leftovers
+      if(flag == 0){//add down
+
+         for(int i = n;i < qt.gn_down();++i){
+
+            Qshapes<Quantum> qi;
+            qi.push_back(Quantum(n,i));
+
+            Qshapes<Quantum> qo;
+            qo.push_back(Quantum(n,i+1));
+
+            qshape = make_array(qi,qp,-qo);
+            dshape = make_array(di,dp,di);
+
+            mps[i].resize(Quantum::zero(),qshape,dshape);
+            mps[i] = 1.0;
+
+         }
+
+         n_max = qt.gn_down();
+
+      }
+      else{//add up
+
+         for(int i = n;i < qt.gn_up();++i){
+
+            Qshapes<Quantum> qi;
+            qi.push_back(Quantum(i,n));
+
+            Qshapes<Quantum> qo;
+            qo.push_back(Quantum(i+1,n));
+
+            qshape = make_array(qi,qp,-qo);
+            dshape = make_array(di,dp,di);
+
+            mps[i].resize(Quantum::zero(),qshape,dshape);
+            mps[i] = 1.0;
+
+         }
+
+         n_max = qt.gn_up();
+
+      }
+
+      //the rest is just identity
+      for(int i = n_max;i < L;++i){
+
+         Qshapes<Quantum> qi;
+         qi.push_back(qt);
+
+         qshape = make_array(qi,qp,-qi);
+         dshape = make_array(di,dp,di);
+
+         mps[i].resize(Quantum::zero(),qshape,dshape);
+         mps[i] = 1.0;
+
+      }
+
+      return mps;
+
+   }
+
+   /**
     * simple random number generator
     */
    double rgen() { 
