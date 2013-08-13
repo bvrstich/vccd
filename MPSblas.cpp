@@ -105,7 +105,6 @@ namespace btas {
       qr[L-1] = Qshapes<Quantum>(1,qt);
       dr[L-1] = Dshapes(1,1);
 
-
       Qshapes<Quantum> tmpq;
       Dshapes tmpd;
 
@@ -182,33 +181,25 @@ namespace btas {
 
          }
 
-         //remove irrelevant quantum blocks from below
-         j = 0;
+         //remove irrelevant quantum blocks from below: i.e. which are not present in both tmpq and qr[i]
+         for(int j = 0;j < qr[i].size();++j){
 
-         int flag_below = 0;
+            int flag = 0;
 
-         while(qr[i][j] < tmpq[0]){
+            //if its present: set flag to 1
+            for(int k = 0;k < tmpq.size();++k)
+               if(qr[i][j] == tmpq[k])
+                  flag = 1;
 
-            qr[i].erase(qr[i].begin() + j);
-            dr[i].erase(dr[i].begin() + j);
+            //if not: erase element
+            if(flag == 0){
 
-            flag_below = 1;
+               qr[i].erase(qr[i].begin() + j);
+               dr[i].erase(dr[i].begin() + j);
 
-         }
+               --j;
 
-         //remove irrelevant quantum blocks from above
-         j = qr[i].size() - 1;
-
-         int flag_above = 0;
-
-         while(qr[i][j] > tmpq[tmpq.size() - 1]){
-
-            qr[i].erase(qr[i].begin() + j);
-            dr[i].erase(dr[i].begin() + j);
-
-            flag_above = 1;
-
-            --j;
+            }
 
          }
 

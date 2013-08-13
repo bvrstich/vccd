@@ -22,15 +22,15 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 4;
+   int L = 20;
 
    //number of particles
-   int n_u = 2;
-   int n_d = 2;
+   int n_u = 10;
+   int n_d = 10;
 
-   MPS mps = create(L,Quantum(n_u,n_d),10);
-
-   print(mps);
+   MPS mps = create(L,Quantum(n_u,n_d),100);
+   compress<3>(mps,true,500,true);
+   clean(mps);
 
    return 0;
 
