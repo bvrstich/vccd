@@ -31,11 +31,15 @@ namespace btas{
    MPO annihilator(int L,int site,int spin);
 
    MPO n_loc(int L,int site);
-/*
-   MPO N_tot(int L,int d);
-   
-   MPO hopping(int L,int d);
 
+   MPO N_tot(int L);
+
+   MPO n_up_tot(int L);
+
+   MPO n_down_tot(int L);
+  
+   MPO hubbard(int L,double U);
+/*
    MPO nnn_hopping(int L,int d,double);
 
    MPO one_body(int L,int d,const DArray<2> &);
