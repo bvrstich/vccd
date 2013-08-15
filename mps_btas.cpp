@@ -42,7 +42,15 @@ int main(void){
    clean(B);
    normalize(B);
 
-   cout << dot(A,A) << "\t" << dot(B,B) << "\t"<< dot(A,B) << endl;
+   MPS AB =add<3>(A,B);
+
+   MPS C = random(L,Quantum(n_u,n_d),qp,20);
+   compress<3>(C,mps::Left,100);
+   clean(C);
+   normalize(C);
+
+   cout << dot(mps::Left,A,C) + dot(mps::Left,B,C) << "\t" << dot(mps::Left,AB,C) << endl;
+   cout << dot(mps::Right,A,C) + dot(mps::Right,B,C) << "\t" << dot(mps::Right,AB,C) << endl;
 
    return 0;
 

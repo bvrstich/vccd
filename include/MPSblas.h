@@ -159,7 +159,7 @@ namespace mps {
     *          if < 0 all singular values > 10^-D are kept
     */
    template<size_t N,typename MPX>
-      void compress(MPX &mpx,MPS_DIRECTION dir,int D){
+      void compress(MPX &mpx,const MPS_DIRECTION &dir,int D){
 
          int L = mpx.size();//length of the chain
 
@@ -329,7 +329,7 @@ namespace mps {
 
       }
 
-   double dot(const MPS &,const MPS &);
+   double dot(const MPS_DIRECTION &,const MPS &,const MPS &);
 
    double nrm2(const MPS &);
 

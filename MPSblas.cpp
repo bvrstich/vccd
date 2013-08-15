@@ -395,56 +395,78 @@ namespace mps {
     * @param X input MPS
     * @param Y input MPS
     */
-   double dot(const MPS &X,const MPS &Y){
+   double dot(const MPS_DIRECTION &dir,const MPS &X,const MPS &Y){
 
-      if(X.size() != Y.size())
+      int L = X.size();
+
+      if(L != Y.size())
          cout << "Error: input MPS objects do not have the same length!" << endl;
 
-      if(X[X.size()-1].qshape(2) != Y[Y.size()-1].qshape(2))
+      if(X[L-1].qshape(2) != Y[L-1].qshape(2))
          cout << "Error: input MPS objects do not have the same total quantumnumbers!" << endl;
 
-      //going from left to right, this will store the already contracted part
       QSDArray<2> E;
 
-      QSDcontract(1.0,X[0],shape(0,1),Y[0].conjugate(),shape(0,1),0.0,E);
+      //going from left to right
+      if(dir == Left){
 
-      //this will contain an intermediate
-      QSDArray<3> I;
+         QSDcontract(1.0,X[0],shape(0,1),Y[0].conjugate(),shape(0,1),0.0,E);
 
-      for(unsigned int i = 1;i < X.size();++i){
+         //this will contain an intermediate
+         QSDArray<3> I;
 
-         //construct intermediate, i.e. past X to E
-         QSDcontract(1.0,E,shape(0),X[i],shape(0),0.0,I);
+         for(unsigned int i = 1;i < L;++i){
 
-         //clear structure of E
-         E.clear();
+            //construct intermediate, i.e. past X to E
+            QSDcontract(1.0,E,shape(0),X[i],shape(0),0.0,I);
 
-         //construct E for site i by contracting I with Y
-         QSDcontract(1.0,I,shape(0,1),Y[i].conjugate(),shape(0,1),0.0,E);
+            //clear structure of E
+            E.clear();
 
-         I.clear();
+            //construct E for site i by contracting I with Y
+            QSDcontract(1.0,I,shape(0,1),Y[i].conjugate(),shape(0,1),0.0,E);
+
+            I.clear();
+
+         }
+
+      }
+      else{ //going from right to left
+
+         enum {j,k,l,m,n,o};
+
+         QSDindexed_contract(1.0,X[L-1],shape(j,k,l),Y[L-1].conjugate(),shape(m,k,l),0.0,E,shape(j,m));
+
+         //this will contain an intermediate
+         QSDArray<3> I;
+
+         for(int i = L - 2;i >= 0;--i){
+
+            //construct intermediate, i.e. paste X to E
+            QSDindexed_contract(1.0,X[i],shape(j,k,l),E,shape(l,m),0.0,I,shape(j,k,m));
+
+            //clear structure of E
+            E.clear();
+
+            //construct E for site i by contracting I with Y
+            QSDindexed_contract(1.0,Y[i].conjugate(),shape(j,k,l),I,shape(m,k,l),0.0,E,shape(m,j));
+
+            I.clear();
+
+         }
 
       }
 
-      //some ugly programming to clean up bug
-      int sum = 0;
-
-      for(int j = 0;j < E.qshape(0).size();++j)
-         sum += E.dshape(0)[j];
-
-      if(sum == 0)
+      //if no blocks remain, return zero
+      if(E.dshape(0)[0] == 0)
          return 0.0;
 
-      sum = 0;
-
-      for(int j = 0;j < E.qshape(1).size();++j)
-         sum += E.dshape(1)[j];
-
-      if(sum == 0)
+      if(E.dshape(1)[0] == 0)
          return 0.0;
 
       return (*(E.find(shape(0,0))->second))(0,0);
 
+   return 0.0;
    }
 
    /**
@@ -452,16 +474,16 @@ namespace mps {
     */
    double nrm2(const MPS &mps){
 
-      return dot(mps,mps);
+      return dot(Left,mps,mps);
 
    }
 
    /**
     * @return the distance between 2 mps's ||X - Y||_2
     */
-   double dist(const MPS  &mps_X,const MPS &mps_Y){
+   double dist(const MPS  &X,const MPS &Y){
 
-      return nrm2(mps_X) + nrm2(mps_Y) - 2.0 * dot(mps_X,mps_Y);
+      return nrm2(X) + nrm2(Y) - 2.0 * dot(Left,X,Y);
 
    }
 
@@ -525,6 +547,16 @@ namespace mps {
          QSDindexed_contract(1.0,I2,shape(j,o,l,n),B[i].conjugate(),shape(j,o,k),0.0,EO,shape(k,l,n));
 
       }
+
+      //if no blocks remain, return zero
+      if(EO.dshape(0)[0] == 0)
+         return 0.0;
+
+      if(EO.dshape(1)[0] == 0)
+         return 0.0;
+
+      if(EO.dshape(2)[0] == 0)
+         return 0.0;
 
       return (*(EO.find(shape(0,0,0))->second))(0,0,0);
 
