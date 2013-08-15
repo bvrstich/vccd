@@ -159,11 +159,11 @@ namespace mps {
     *          if < 0 all singular values > 10^-D are kept
     */
    template<size_t N,typename MPX>
-      void compress(MPX &mpx,bool left,int D,bool norm){
+      void compress(MPX &mpx,MPS_DIRECTION dir,int D){
 
          int L = mpx.size();//length of the chain
 
-         if(left == true) {
+         if(dir == Left) {
 
             SDArray<1> S;//singular values
             QSDArray<2> V;//V^T
@@ -189,24 +189,12 @@ namespace mps {
 
             }
 
-            //now normalize the last tensor
-            if(norm){
+            //redistribute the norm over the chain
+            double nrm = sqrt(QSDdotc(mpx[L-1],mpx[L-1]));
 
-               double nrm = QSDdotc(mpx[L - 1],mpx[L - 1]);
+            QSDscal(1.0/nrm,mpx[L-1]);
 
-               QSDscal(1.0/sqrt(nrm),mpx[L - 1]);
-
-            }
-            else{
-
-               //redistribute the norm over the chain
-               double nrm = sqrt(QSDdotc(mpx[L-1],mpx[L-1]));
-
-               QSDscal(1.0/nrm,mpx[L-1]);
-
-               scal(nrm,mpx);
-
-            }
+            scal(nrm,mpx);
 
          }
          else{//right
@@ -235,24 +223,12 @@ namespace mps {
 
             }
 
-            //now normalize the last tensor
-            if(norm){
+            //redistribute the norm over the chain
+            double nrm = sqrt(QSDdotc(mpx[0],mpx[0]));
 
-               double nrm = QSDdotc(mpx[0],mpx[0]);
+            QSDscal(1.0/nrm,mpx[0]);
 
-               QSDscal(1.0/sqrt(nrm),mpx[0]);
-
-            }
-            else{
-
-               //redistribute the norm over the chain
-               double nrm = sqrt(QSDdotc(mpx[0],mpx[0]));
-
-               QSDscal(1.0/nrm,mpx[0]);
-
-               scal(nrm,mpx);
-
-            }
+            scal(nrm,mpx);
 
          }
 
@@ -364,6 +340,8 @@ namespace mps {
    MPS gemv(const MPO &,const MPS &);
 
    MPO gemm(const MPO &,const MPO &);
+
+   void normalize(MPS &);
 
 }
 

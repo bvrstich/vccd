@@ -33,29 +33,16 @@ int main(void){
    physical(qp);
 
    MPS A = random(L,Quantum(n_u,n_d),qp,20);
-   compress<3>(A,true,20,true);
+   compress<3>(A,mps::Left,100);
+   clean(A);
+   normalize(A);
 
    MPS B = random(L,Quantum(n_u,n_d),qp,20);
-   compress<3>(B,true,20,true);
+   compress<3>(B,mps::Left,100);
+   clean(B);
+   normalize(B);
 
-   MPS AB = add<3>(A,B);
-
-   for(int i = 1;i < L;++i){
-
-      if(AB[i].dshape(0) != AB[i - 1].dshape(2)){
-
-         cout << AB[i].dshape(0) << endl;
-         cout << AB[i - 1].dshape(2) << endl;
-
-      }
-
-   }
-
-
-   MPS C = random(L,Quantum(n_u,n_d),qp,20);
-   compress<3>(B,true,20,true);
-
-   cout << dot(AB,C) << endl;
+   cout << dot(A,A) << endl;
 
    return 0;
 

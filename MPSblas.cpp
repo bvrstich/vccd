@@ -443,7 +443,7 @@ namespace mps {
       if(sum == 0)
          return 0.0;
 
-      return (*(E.begin()->second))(0,0);
+      return (*(E.find(shape(0,0))->second))(0,0);
 
    }
 
@@ -526,7 +526,7 @@ namespace mps {
 
       }
 
-      return (*(EO.begin()->second))(0,0,0);
+      return (*(EO.find(shape(0,0,0))->second))(0,0,0);
 
    }
 
@@ -656,6 +656,17 @@ namespace mps {
       }
 
       return mpo;
+
+   }
+
+   /**
+    * normalize the MPS
+    */
+   void normalize(MPS &mps){
+
+      double nrm = sqrt(nrm2(mps));
+
+      scal(1.0/nrm,mps);
 
    }
 
