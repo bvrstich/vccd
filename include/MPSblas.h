@@ -11,9 +11,11 @@ using std::ostream;
 #include "FermiQuantum.h"
 namespace btas { typedef FermiQuantum Quantum; };
 
+using namespace btas;
+
 #include "btas/QSPARSE/QSDArray.h"
 
-namespace btas{
+namespace mps {
 
    //!typedefine MPS as an std::vector< QSDArray<3> > 
    typedef std::vector< QSDArray<3> > MPS;
@@ -22,7 +24,7 @@ namespace btas{
    typedef std::vector< QSDArray<4> > MPO;
 
    //some function definitions on MPS's
-   MPS create(int,const Quantum &qt,int);
+   MPS random(int,const Quantum &qt,const Qshapes<Quantum> &,int);
    
    MPS HF(int,const Quantum &qt);
 

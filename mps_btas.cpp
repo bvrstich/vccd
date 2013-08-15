@@ -15,6 +15,7 @@ namespace btas { typedef FermiQuantum Quantum; }; // Defined as default quantum 
 #include "include.h"
 
 using namespace btas;
+using namespace mps;
 
 int main(void){
 
@@ -27,6 +28,12 @@ int main(void){
    //number of particles
    int n_u = 10;
    int n_d = 10;
+
+   Qshapes<Quantum> qp;
+   physical(qp);
+
+   MPS A = random(L,Quantum(n_u,n_d),qp,20);
+   print(A);
 
    return 0;
 

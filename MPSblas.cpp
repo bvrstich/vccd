@@ -7,7 +7,9 @@ using std::ostream;
 
 #include "include.h"
 
-namespace btas {
+using namespace btas;
+
+namespace mps {
 
    /**
     * create an MPS chain of length L initialized randomly on total Quantum number qt, with physical quantumnumber qp
@@ -17,7 +19,7 @@ namespace btas {
     * @param D maximal dimension of the quantum blocks
     * @return the MPS chain randomly filled and with correct quantumnumbers and dimensions
     */
-   MPS create(int L,const Quantum &qt,const Qshapes<Quantum> &qp,int D){ 
+   MPS random(int L,const Quantum &qt,const Qshapes<Quantum> &qp,int D){ 
 
       //shape of the physical index
       Dshapes dp(qp.size(),1);
@@ -231,10 +233,10 @@ namespace btas {
       dshape = make_array(dl,dp,dr[0]);
 
       //construct an MPS
-      MPS mps(L);
+      MPS A(L);
 
-      mps[0].resize(Quantum::zero(),qshape,dshape);
-      mps[0].generate(rgen);
+      A[0].resize(Quantum::zero(),qshape,dshape);
+      A[0].generate(rgen);
 
       //then the  middle ones
       for(int i = 1;i < L;++i){
@@ -245,12 +247,12 @@ namespace btas {
          qshape = make_array(ql,qp,-qr[i]);
          dshape = make_array(dl,dp,dr[i]);
 
-         mps[i].resize(Quantum::zero(),qshape,dshape);
-         mps[i].generate(rgen);
+         A[i].resize(Quantum::zero(),qshape,dshape);
+         A[i].generate(rgen);
 
       }
 
-      return mps;
+      return A;
 
    }
 
@@ -286,7 +288,7 @@ namespace btas {
 
       }
 
-      MPS mps(L);
+      MPS A(L);
 
       Dshapes di;
       di.push_back(1);
@@ -303,8 +305,8 @@ namespace btas {
          qshape = make_array(qi,qp,-qo);
          dshape = make_array(di,dp,di);
 
-         mps[i].resize(Quantum::zero(),qshape,dshape);
-         mps[i] = 1.0;
+         A[i].resize(Quantum::zero(),qshape,dshape);
+         A[i] = 1.0;
 
       }
 
@@ -324,8 +326,8 @@ namespace btas {
             qshape = make_array(qi,qp,-qo);
             dshape = make_array(di,dp,di);
 
-            mps[i].resize(Quantum::zero(),qshape,dshape);
-            mps[i] = 1.0;
+            A[i].resize(Quantum::zero(),qshape,dshape);
+            A[i] = 1.0;
 
          }
 
@@ -345,8 +347,8 @@ namespace btas {
             qshape = make_array(qi,qp,-qo);
             dshape = make_array(di,dp,di);
 
-            mps[i].resize(Quantum::zero(),qshape,dshape);
-            mps[i] = 1.0;
+            A[i].resize(Quantum::zero(),qshape,dshape);
+            A[i] = 1.0;
 
          }
 
@@ -363,12 +365,12 @@ namespace btas {
          qshape = make_array(qi,qp,-qi);
          dshape = make_array(di,dp,di);
 
-         mps[i].resize(Quantum::zero(),qshape,dshape);
-         mps[i] = 1.0;
+         A[i].resize(Quantum::zero(),qshape,dshape);
+         A[i] = 1.0;
 
       }
 
-      return mps;
+      return A;
 
    }
 
