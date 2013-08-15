@@ -12,20 +12,19 @@ using namespace btas;
 namespace mps {
 
    /**
-    * create an MPS chain of length L initialized randomly on total Quantum number qt, with physical quantumnumber qp
+    * given the length, total quantumnumber and physical quantumnumbers, and some cutoff block dimension
+    * @return the right-bond quantumnumbers and dimensions
     * @param L length of the chain
     * @param qt total quantumnumber
-    * @param qp Qshapes object containing the physical quantumnumbers
-    * @param D maximal dimension of the quantum blocks
-    * @return the MPS chain randomly filled and with correct quantumnumbers and dimensions
+    * @param qp array of physical quantumnumbers on the sites
+    * @param qr std::vector of Qshapes length L, will contain the right bond quantumnumbers on exit, input will be destroyed
+    * @param dr std::vector of Dshapes length L, will contain the right bond dimensions corresponding to the numbers on exit, input will be destroyed
+    * @param D cutoff block dimension (max dimension of each quantumsector)
     */
-   MPS random(int L,const Quantum &qt,const Qshapes<Quantum> &qp,int D){ 
+   void calc_qdim(int L,const Quantum &qt,const Qshapes<Quantum> &qp,std::vector< Qshapes<Quantum> > &qr,std::vector<Dshapes> &dr,int D){
 
       //shape of the physical index
       Dshapes dp(qp.size(),1);
-
-      std::vector< Qshapes<Quantum> > qr(L);
-      std::vector<Dshapes> dr(L);
 
       qr[0] = qp;
       dr[0] = dp;
@@ -221,6 +220,26 @@ namespace mps {
 
       }
 
+   }
+
+   /**
+    * create an MPS chain of length L initialized randomly on total Quantum number qt, with physical quantumnumber qp
+    * @param L length of the chain
+    * @param qt total quantumnumber
+    * @param qp Qshapes object containing the physical quantumnumbers
+    * @param D maximal dimension of the quantum blocks
+    * @return the MPS chain randomly filled and with correct quantumnumbers and dimensions
+    */
+   MPS random(int L,const Quantum &qt,const Qshapes<Quantum> &qp,int D){ 
+
+      //shape of the physical index
+      Dshapes dp(qp.size(),1);
+
+      std::vector< Qshapes<Quantum> > qr(L);
+      std::vector<Dshapes> dr(L);
+
+      calc_qdim(L,qt,qp,qr,dr,D);
+
       //now allocate the tensors!
       TVector<Qshapes<Quantum>,3> qshape;
       TVector<Dshapes,3> dshape;
@@ -249,6 +268,60 @@ namespace mps {
 
          A[i].resize(Quantum::zero(),qshape,dshape);
          A[i].generate(rgen);
+
+      }
+
+      return A;
+
+   }
+
+   /**
+    * create an MPS chain of length L initialized on a contant number on total Quantum number qt, with physical quantumnumber qp
+    * @param L length of the chain
+    * @param qt total quantumnumber
+    * @param qp Qshapes object containing the physical quantumnumbers
+    * @param D maximal dimension of the quantum blocks
+    * @param value the number the mps is initialized onto, standard 0
+    * @return the MPS chain randomly filled and with correct quantumnumbers and dimensions
+    */
+   MPS init(int L,const Quantum &qt,const Qshapes<Quantum> &qp,int D,double value){ 
+
+      //shape of the physical index
+      Dshapes dp(qp.size(),1);
+
+      std::vector< Qshapes<Quantum> > qr(L);
+      std::vector<Dshapes> dr(L);
+
+      calc_qdim(L,qt,qp,qr,dr,D);
+
+      //now allocate the tensors!
+      TVector<Qshapes<Quantum>,3> qshape;
+      TVector<Dshapes,3> dshape;
+
+      //first 0
+      Qshapes<Quantum> ql(1,Quantum::zero());
+      Dshapes dl(ql.size(),1);
+
+      qshape = make_array(ql,qp,-qr[0]);
+      dshape = make_array(dl,dp,dr[0]);
+
+      //construct an MPS
+      MPS A(L);
+
+      A[0].resize(Quantum::zero(),qshape,dshape);
+      A[0] = value;
+
+      //then the  middle ones
+      for(int i = 1;i < L;++i){
+
+         ql = qr[i - 1];
+         dl = dr[i - 1];
+
+         qshape = make_array(ql,qp,-qr[i]);
+         dshape = make_array(dl,dp,dr[i]);
+
+         A[i].resize(Quantum::zero(),qshape,dshape);
+         A[i] = value;
 
       }
 

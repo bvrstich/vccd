@@ -25,8 +25,12 @@ namespace mps {
 
    //some function definitions on MPS's
    MPS random(int,const Quantum &qt,const Qshapes<Quantum> &,int);
+
+   MPS init(int,const Quantum &qt,const Qshapes<Quantum> &,int,double value = 0.0);
    
    MPS HF(int,const Quantum &qt);
+
+   void calc_qdim(int,const Quantum &,const Qshapes<Quantum> &,int,std::vector< Qshapes<Quantum> > &,std::vector< Dshapes > &,int);
 
    double rgen();
 

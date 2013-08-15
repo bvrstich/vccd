@@ -32,7 +32,7 @@ int main(void){
    Qshapes<Quantum> qp;
    physical(qp);
 
-   MPS A = random(L,Quantum(n_u,n_d),qp,20);
+   MPS A = init(L,Quantum(n_u,n_d),qp,20,0.1);
    print(A);
 
    return 0;
