@@ -28,45 +28,11 @@ namespace mps {
 
    MPS init(int,const Quantum &qt,const Qshapes<Quantum> &,int,double value = 0.0);
    
-   MPS HF(int,const Quantum &qt);
+   MPS product_state(int,const Qshapes<Quantum> &qp,const std::vector<int> &);
 
    void calc_qdim(int,const Quantum &,const Qshapes<Quantum> &,int,std::vector< Qshapes<Quantum> > &,std::vector< Dshapes > &,int);
 
    double rgen();
-
-   /**
-    * prints all the operators in mpo_p
-    * @param mpo_p input MPO
-    */
-   template<typename MPX>
-      void print(const MPX &mpx_p){
-
-         for(int i = 0;i < mpx_p.size();++i){
-
-            cout << "tensor on site " << i << endl;
-            cout << endl;
-            cout << mpx_p[i] << endl;
-            cout << endl;
-
-         }
-
-      }
-
-   /**
-    * will copy mpx to mpx_copy
-    * @param mpx the MPX to be copied
-    * @param mpx_copy the MPX into which will be copied
-    */
-   template<typename MPX>
-      void copy(const MPX &mpx,MPX &mpx_copy){
-
-         mpx_copy.resize(mpx.size());
-
-         for(unsigned int i = 0;i < mpx.size();++i)
-            QSDcopy(mpx[i],mpx_copy[i]);
-
-      }
-
 
    /**
     * scale the MPX with a constant factor

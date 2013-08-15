@@ -331,115 +331,48 @@ namespace mps {
 
    /**
     * @param L length of the chain
-    * @param qt total quantumnumber
-    * @return create an MPS chain of length L representing a hartree-fock wavefunction with quantumnumbers qt
+    * @param qp physical quantumnumbers
+    * @param occ std::vector of length L ints containing the local physical quantumnumber on every site in the product state
+    * @return create an product state chain of length L with physical indices qp and
     */
-   MPS HF(int L,const Quantum &qt){ 
-
-      //physical index
-      Qshapes<Quantum> qp;
-      physical(qp);
+   MPS product_state(int L,const Qshapes<Quantum> &qp,const std::vector<int> &occ){ 
 
       //shape of the physical index
       Dshapes dp(qp.size(),1);
-
-      Qshapes<Quantum> qz;
-      qz.push_back(Quantum::zero());
 
       //now allocate the tensors!
       TVector<Qshapes<Quantum>,3> qshape;
       TVector<Dshapes,3> dshape;
 
-      int n = qt.gn_up();
-
-      int flag = 0;
-
-      if(n > qt.gn_down()){
-
-         n = qt.gn_down();
-         flag = 1;
-
-      }
-
       MPS A(L);
 
-      Dshapes di;
-      di.push_back(1);
+      Qshapes<Quantum> qz;
+      qz.push_back(Quantum::zero());
 
-      //first the doubly occupied
-      for(int i = 0;i < n;++i){
+      Qshapes<Quantum> qr;
+      qr.push_back(qp[occ[0]]);
 
-         Qshapes<Quantum> qi;
-         qi.push_back(Quantum(i,i));
+      Dshapes dz;
+      dz.push_back(1);
 
-         Qshapes<Quantum> qo;
-         qo.push_back(Quantum(i+1,i+1));
+      qshape = make_array(qz,qp,-qr);
+      dshape = make_array(dz,dp,dz);
 
-         qshape = make_array(qi,qp,-qo);
-         dshape = make_array(di,dp,di);
+      A[0].resize(Quantum::zero(),qshape,dshape,1.0);
 
-         A[i].resize(Quantum::zero(),qshape,dshape);
-         A[i] = 1.0;
+      Quantum tmpq;
 
-      }
+      for(int i = 1;i < L;++i){
 
-      int n_max;
+         tmpq = qr[0] * qp[occ[i]];
 
-      //then the leftovers
-      if(flag == 0){//add down
+         qr.clear();
+         qr.push_back(tmpq);
 
-         for(int i = n;i < qt.gn_down();++i){
+         qshape = make_array(-A[i - 1].qshape(2),qp,-qr);
+         dshape = make_array(dz,dp,dz);
 
-            Qshapes<Quantum> qi;
-            qi.push_back(Quantum(n,i));
-
-            Qshapes<Quantum> qo;
-            qo.push_back(Quantum(n,i+1));
-
-            qshape = make_array(qi,qp,-qo);
-            dshape = make_array(di,dp,di);
-
-            A[i].resize(Quantum::zero(),qshape,dshape);
-            A[i] = 1.0;
-
-         }
-
-         n_max = qt.gn_down();
-
-      }
-      else{//add up
-
-         for(int i = n;i < qt.gn_up();++i){
-
-            Qshapes<Quantum> qi;
-            qi.push_back(Quantum(i,n));
-
-            Qshapes<Quantum> qo;
-            qo.push_back(Quantum(i+1,n));
-
-            qshape = make_array(qi,qp,-qo);
-            dshape = make_array(di,dp,di);
-
-            A[i].resize(Quantum::zero(),qshape,dshape);
-            A[i] = 1.0;
-
-         }
-
-         n_max = qt.gn_up();
-
-      }
-
-      //the rest is just identity
-      for(int i = n_max;i < L;++i){
-
-         Qshapes<Quantum> qi;
-         qi.push_back(qt);
-
-         qshape = make_array(qi,qp,-qi);
-         dshape = make_array(di,dp,di);
-
-         A[i].resize(Quantum::zero(),qshape,dshape);
-         A[i] = 1.0;
+         A[i].resize(Quantum::zero(),qshape,dshape,1.0);
 
       }
 
