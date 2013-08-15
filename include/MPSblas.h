@@ -53,8 +53,8 @@ namespace mps {
 
          alpha = pow(alpha,1.0/(double)L);
 
-         for(unsigned int i = 0;i < mpx.size();++i)
-            QSDscal(alpha,mpx[i]);
+         for(auto x : mpx)
+            QSDscal(alpha,x);
 
       }
 

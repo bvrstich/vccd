@@ -42,7 +42,7 @@ int main(void){
    clean(B);
    normalize(B);
 
-   cout << dot(A,A) << endl;
+   cout << dot(A,A) << "\t" << dot(B,B) << "\t"<< dot(A,B) << endl;
 
    return 0;
 
