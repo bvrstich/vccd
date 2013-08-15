@@ -46,7 +46,7 @@ int main(void){
    compress<4>(O,false,0,false);
    clean(O);
 
-   OA = gemv(O,A);
+   MPS OA = gemv(O,A);
 
    clean(OA);
    compress<3>(OA,true,0,false);
