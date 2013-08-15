@@ -17,6 +17,13 @@ using namespace btas;
 
 namespace mps {
 
+   enum MPS_DIRECTION {
+
+      Left,//!left to right
+      Right //!right to left
+
+   };
+
    //!typedefine MPS as an std::vector< QSDArray<3> > 
    typedef std::vector< QSDArray<3> > MPS;
 
@@ -27,7 +34,7 @@ namespace mps {
    MPS random(int,const Quantum &qt,const Qshapes<Quantum> &,int);
 
    MPS init(int,const Quantum &qt,const Qshapes<Quantum> &,int,double value = 0.0);
-   
+
    MPS product_state(int,const Qshapes<Quantum> &qp,const std::vector<int> &);
 
    void calc_qdim(int,const Quantum &,const Qshapes<Quantum> &,int,std::vector< Qshapes<Quantum> > &,std::vector< Dshapes > &,int);
@@ -146,7 +153,7 @@ namespace mps {
    /**
     * Compress an MP object by performing an SVD
     * @param mpx is the input MPX, will be lost/overwritten by the compressed MPX
-    * @param left if true left canonicalize, if false right
+    * @param dir direction of the canonicalization, from left to right if Left, right to left if Right
     * @param D if > 0   this specifies the number of states to be kept
     *          if == 0  all the states are kept
     *          if < 0 all singular values > 10^-D are kept
@@ -156,7 +163,7 @@ namespace mps {
 
          int L = mpx.size();//length of the chain
 
-         if(left) {
+         if(left == true) {
 
             SDArray<1> S;//singular values
             QSDArray<2> V;//V^T

@@ -37,6 +37,31 @@ namespace mps {
             for(unsigned int k = 0;k < dp.size();++k)
                dr[i].push_back(dr[i-1][j]*dp[k]);
 
+         //sort the list of quantumnumbers
+         Quantum srtq;
+         int srtd;
+
+         for(int j = 0;j < qr[i].size();++j){
+
+            for(int k = j + 1;k < qr[i].size();++k){
+
+               if(qr[i][k] < qr[i][j]){
+
+                  srtq = qr[i][j];
+                  srtd = dr[i][j];
+
+                  qr[i][j] = qr[i][k];
+                  dr[i][j] = dr[i][k];
+
+                  qr[i][k] = srtq;
+                  dr[i][k] = srtd;
+
+               }
+
+            }
+
+         }
+
          //remove quantumnumbers that occur multiple times
          int j = 0;
 
@@ -69,31 +94,6 @@ namespace mps {
             }
 
             ++j;
-
-         }
-
-         //sort the list of quantumnumbers
-         Quantum srtq;
-         int srtd;
-
-         for(int j = 0;j < qr[i].size();++j){
-
-            for(int k = j + 1;k < qr[i].size();++k){
-
-               if(qr[i][k] < qr[i][j]){
-
-                  srtq = qr[i][j];
-                  srtd = dr[i][j];
-
-                  qr[i][j] = qr[i][k];
-                  dr[i][j] = dr[i][k];
-
-                  qr[i][k] = srtq;
-                  dr[i][k] = srtd;
-
-               }
-
-            }
 
          }
 
@@ -392,35 +392,35 @@ namespace mps {
    /**
     * the contraction of two MPS's
     * @return the overlap of two MPS objects
-    * @param mps_X input MPS
-    * @param mps_Y input MPS
+    * @param X input MPS
+    * @param Y input MPS
     */
-   double dot(const MPS &mps_X,const MPS &mps_Y){
+   double dot(const MPS &X,const MPS &Y){
 
-      if(mps_X.size() != mps_Y.size())
+      if(X.size() != Y.size())
          cout << "Error: input MPS objects do not have the same length!" << endl;
 
-      if(mps_X[mps_X.size()-1].qshape(2) != mps_Y[mps_Y.size()-1].qshape(2))
+      if(X[X.size()-1].qshape(2) != Y[Y.size()-1].qshape(2))
          cout << "Error: input MPS objects do not have the same total quantumnumbers!" << endl;
 
       //going from left to right, this will store the already contracted part
       QSDArray<2> E;
 
-      QSDcontract(1.0,mps_X[0],shape(0,1),mps_Y[0].conjugate(),shape(0,1),0.0,E);
+      QSDcontract(1.0,X[0],shape(0,1),Y[0].conjugate(),shape(0,1),0.0,E);
 
       //this will contain an intermediate
       QSDArray<3> I;
 
-      for(unsigned int i = 1;i < mps_X.size();++i){
+      for(unsigned int i = 1;i < X.size();++i){
 
-         //construct intermediate, i.e. past mps_X to E
-         QSDcontract(1.0,E,shape(0),mps_X[i],shape(0),0.0,I);
+         //construct intermediate, i.e. past X to E
+         QSDcontract(1.0,E,shape(0),X[i],shape(0),0.0,I);
 
          //clear structure of E
          E.clear();
 
-         //construct E for site i by contracting I with mps_Y
-         QSDcontract(1.0,I,shape(0,1),mps_Y[i].conjugate(),shape(0,1),0.0,E);
+         //construct E for site i by contracting I with Y
+         QSDcontract(1.0,I,shape(0,1),Y[i].conjugate(),shape(0,1),0.0,E);
 
          I.clear();
 

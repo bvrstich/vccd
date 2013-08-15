@@ -32,8 +32,30 @@ int main(void){
    Qshapes<Quantum> qp;
    physical(qp);
 
-   MPS A = init(L,Quantum(n_u,n_d),qp,20,0.1);
-   print(A);
+   MPS A = random(L,Quantum(n_u,n_d),qp,20);
+   compress<3>(A,true,20,true);
+
+   MPS B = random(L,Quantum(n_u,n_d),qp,20);
+   compress<3>(B,true,20,true);
+
+   MPS AB = add<3>(A,B);
+
+   for(int i = 1;i < L;++i){
+
+      if(AB[i].dshape(0) != AB[i - 1].dshape(2)){
+
+         cout << AB[i].dshape(0) << endl;
+         cout << AB[i - 1].dshape(2) << endl;
+
+      }
+
+   }
+
+
+   MPS C = random(L,Quantum(n_u,n_d),qp,20);
+   compress<3>(B,true,20,true);
+
+   cout << dot(AB,C) << endl;
 
    return 0;
 
