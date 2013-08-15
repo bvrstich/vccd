@@ -39,11 +39,9 @@ namespace btas{
    MPO n_down_tot(int L);
   
    MPO hubbard(int L,double U);
-/*
-   MPO nnn_hopping(int L,int d,double);
 
-   MPO one_body(int L,int d,const DArray<2> &);
-*/
+   MPO T1(const DArray<2> &);
+
 }
 
 #endif

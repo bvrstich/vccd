@@ -796,385 +796,283 @@ namespace btas {
    }
 
    /**
-    * @return MPO which contains the next to nearest neighbour hopping operator where the nnn-sites are coupled with a factor t_nn
-    * i.e. H= -\sum_{i=1}^{L-1} ( a^\dagger_i a_{i+1} +  a^\dagger_{i+1} a_i ) + -t_nn \sum_{i = 1}^{L-2} ( a^\dagger_i a_{i + 2} a^\dagger_{i + 2} a_i )
+    * @return MPO object of length L containing the T1 operator with coefficients passed through the DArray<2> object t
     */
-   /*
-      MPO nnn_hopping(int L,int d,double t_nn){
+    MPO T1(const DArray<2> &t){
 
-      MPO mpo(L);
+       int no = t.shape(0);//number of occupied orbitals
+       int nv = t.shape(1);//number of virtual orbitals
 
-   //first set the quantumnumbers, before
-   Qshapes<Quantum> qp;
-   physical(d,qp);
+       int L = no + nv;
 
-   Qshapes<Quantum> qz; // 0 quantum number
-   qz.push_back(Quantum(0));
+       MPO mpo(L);
 
-   Qshapes<Quantum> qi;
-   qi.push_back(Quantum::zero());//0
-   qi.push_back(Quantum(1));//a
-   qi.push_back(Quantum(-1));//a^+
-   qi.push_back(Quantum(1));//a
-   qi.push_back(Quantum(-1));//a^+
-   qi.push_back(Quantum::zero());//I
+       Qshapes<Quantum> qp;
+       physical(qp);
 
-   Qshapes<Quantum> qo;
-   qo.push_back(Quantum::zero());//I
-   qo.push_back(Quantum(-1));//a^+
-   qo.push_back(Quantum(1));//a
-   qo.push_back(Quantum(-1));//a^+
-   qo.push_back(Quantum(1));//a
-   qo.push_back(Quantum::zero());//0
+       Qshapes<Quantum> qz; // 0 quantum number
+       qz.push_back(Quantum::zero());
 
-   mpo[0].resize(Quantum::zero(),make_array(qz,qp,-qp,qo));
+       Qshapes<Quantum> qo;
+       qo.push_back(Quantum::zero());//I
+       qo.push_back(Quantum(1,0));//a_up
+       qo.push_back(Quantum(0,1));//a_down
+         
+       DArray<4> Ip(1,1,1,1);
+       Ip = 1;
 
-   //resize & set to 0
-   for(int i = 1; i < L-1; ++i)
-   mpo[i].resize(Quantum::zero(),make_array(qi,qp,-qp,qo));
+       DArray<4> Im(1,1,1,1);
+       Im = -1;
 
-   mpo[L-1].resize(Quantum::zero(),make_array(qi,qp,-qp,qz));
+       mpo[0].resize(Quantum::zero(),make_array(qz,qp,-qp,qo));
 
-   DArray<4> Ip(1,1,1,1);
-   Ip = 1;
+       //identity
+       mpo[0].insert(shape(0,0,0,0),Ip);
+       mpo[0].insert(shape(0,1,1,0),Ip);
+       mpo[0].insert(shape(0,2,2,0),Ip);
+       mpo[0].insert(shape(0,3,3,0),Ip);
 
-   DArray<4> Im(1,1,1,1);
-   Im = -1;
+       //a_up (-1)^{n_down}
+       mpo[0].insert(shape(0,0,2,1),Ip);
+       mpo[0].insert(shape(0,1,3,1),Im);
 
-   DArray<4> Tm(1,1,1,1);
-   Tm = -t_nn;
+       //a_down
+       mpo[0].insert(shape(0,0,1,2),Ip);
+       mpo[0].insert(shape(0,2,3,2),Ip);
 
-   DArray<4> O(1,1,1,1);
-   O = 0;
+       for(int i = 1;i < no - 1;++i){
 
-   //left
-   mpo[0].insert(shape(0,0,0,0),Ip);
-   mpo[0].insert(shape(0,1,1,0),Ip);
+          qo.clear();
 
-   //hopping
-   mpo[0].insert(shape(0,1,0,1),Ip);//a^+
-   mpo[0].insert(shape(0,0,1,2),Ip);//a
+          qo.push_back(Quantum::zero());//I
 
-   //next hopping: nothing on first site
-   mpo[0].insert(shape(0,1,0,3),O);//a^+
-   mpo[0].insert(shape(0,0,1,4),O);//a
+          for(int j = 0;j < i + 1;++j){
 
-   mpo[0].insert(shape(0,0,0,5),O);//zero, you have to put something here: else merge will reduce the rank!
+             qo.push_back(Quantum(1,0));//a_up
+             qo.push_back(Quantum(0,1));//a_down
 
-   //middle
-   for(int i = 1;i < L-1;++i){
+          }
 
-   mpo[i].insert(shape(0,0,0,0),Ip);
-   mpo[i].insert(shape(0,1,1,0),Ip);
+          mpo[i].resize(Quantum::zero(),make_array(-mpo[i - 1].qshape(3),qp,-qp,qo));
 
-   //regular hopping
-   mpo[i].insert(shape(0,1,0,1),Ip);//a^+
-   mpo[i].insert(shape(0,0,1,2),Ip);//a
+          //identity
+          mpo[i].insert(shape(0,0,0,0),Ip);
+          mpo[i].insert(shape(0,1,1,0),Ip);
+          mpo[i].insert(shape(0,2,2,0),Ip);
+          mpo[i].insert(shape(0,3,3,0),Ip);
 
-   //next-site hopping
-   mpo[i].insert(shape(0,1,0,3),Ip);//a^+
-   mpo[i].insert(shape(0,0,1,4),Ip);//a
+          //a_up (-1)^{n_down}
+          mpo[i].insert(shape(0,0,2,1),Ip);
+          mpo[i].insert(shape(0,1,3,1),Im);
 
-   //fermion sign stuff for the nn-hopping
-   mpo[i].insert(shape(1,0,0,3),Ip);
-   mpo[i].insert(shape(1,1,1,3),Im);
+          //a_down
+          mpo[i].insert(shape(0,0,1,2),Ip);
+          mpo[i].insert(shape(0,2,3,2),Ip);
 
-   mpo[i].insert(shape(2,0,0,4),Ip);
-   mpo[i].insert(shape(2,1,1,4),Im);
+          //signs!
+          for(int j = 1;j < 2*i + 1;++j){
 
-   //regular hopping input
-   mpo[i].insert(shape(1,0,1,5),Im);//a
-   mpo[i].insert(shape(2,1,0,5),Im);//a^+
+             //fermion sign!
+             mpo[i].insert(shape(j,0,0,j + 2),Ip);
+             mpo[i].insert(shape(j,1,1,j + 2),Im);
+             mpo[i].insert(shape(j,2,2,j + 2),Im);
+             mpo[i].insert(shape(j,3,3,j + 2),Ip);
 
-   //next-site hopping input
-   mpo[i].insert(shape(3,0,1,5),Tm);//a
-   mpo[i].insert(shape(4,1,0,5),Tm);//a^+
+          }
 
-   mpo[i].insert(shape(5,0,0,5),Ip);
-   mpo[i].insert(shape(5,1,1,5),Ip);
+       }
+       
+       //last occupied
+       qo.clear();
 
-}
+       for(int j = 0;j < no;++j){
 
-mpo[L-1].insert(shape(0,0,0,0),O);//zero, you have to put something here: else merge will reduce the rank!
+          qo.push_back(Quantum(1,0));//a_up
+          qo.push_back(Quantum(0,1));//a_down
 
-//regular hopping
-mpo[L-1].insert(shape(1,0,1,0),Im);//a
-mpo[L-1].insert(shape(2,1,0,0),Im);//a^+
+       }
 
-//nn hopping
-mpo[L-1].insert(shape(3,0,1,0),Tm);//a
-mpo[L-1].insert(shape(4,1,0,0),Tm);//a^+
+       mpo[no - 1].resize(Quantum::zero(),make_array(-mpo[no - 2].qshape(3),qp,-qp,qo));
 
-mpo[L-1].insert(shape(5,0,0,0),Ip);
-mpo[L-1].insert(shape(5,1,1,0),Ip);
+       //a_up (-1)^{n_down}
+       mpo[no - 1].insert(shape(0,0,2,0),Ip);
+       mpo[no - 1].insert(shape(0,1,3,0),Im);
 
-//merge everything together
-TVector<Qshapes<Quantum>,1> qmerge;
-TVector<Dshapes,1> dmerge;
+       //a_down
+       mpo[no - 1].insert(shape(0,0,1,1),Ip);
+       mpo[no - 1].insert(shape(0,2,3,1),Ip);
 
-qmerge[0] = mpo[0].qshape(3);
-dmerge[0] = mpo[0].dshape(3);
+       //signs!
+       for(int j = 1;j < 2*no - 1;++j){
 
-QSTmergeInfo<1> info(qmerge,dmerge);
+          //fermion sign!
+          mpo[no - 1].insert(shape(j,0,0,j + 1),Ip);
+          mpo[no - 1].insert(shape(j,1,1,j + 1),Im);
+          mpo[no - 1].insert(shape(j,2,2,j + 1),Im);
+          mpo[no - 1].insert(shape(j,3,3,j + 1),Ip);
 
-QSDArray<4> tmp;
-QSTmerge(mpo[0],info,tmp);
+       }
 
-mpo[0] = tmp;
+       //first virtual
+       qo.clear();
 
-for(int i = 1;i < L - 1;++i){
+       for(int j = 0;j < no;++j){
 
-   //first merge the row
-   qmerge[0] = mpo[i].qshape(0);
-   dmerge[0] = mpo[i].dshape(0);
+          qo.push_back(Quantum(1,0));//a_up
+          qo.push_back(Quantum(0,1));//a_down
 
-   info.reset(qmerge,dmerge);
+       }
 
-   tmp.clear();
+       qo.push_back(Quantum::zero());//last column
 
-   QSTmerge(info,mpo[i],tmp);
+       mpo[no].resize(Quantum::zero(),make_array(-mpo[no - 1].qshape(3),qp,-qp,qo));
 
-   //then merge the column
-   qmerge[0] = tmp.qshape(3);
-   dmerge[0] = tmp.dshape(3);
+       //signs!
+       for(int j = 0;j < 2*no;++j){
 
-   info.reset(qmerge,dmerge);
+          //fermion sign!
+          mpo[no].insert(shape(j,0,0,j),Ip);
+          mpo[no].insert(shape(j,1,1,j),Im);
+          mpo[no].insert(shape(j,2,2,j),Im);
+          mpo[no].insert(shape(j,3,3,j),Ip);
 
-   mpo[i].clear();
+       }
 
-   QSTmerge(tmp,info,mpo[i]);
+       DArray<4> Tp(1,1,1,1);
+       DArray<4> Tm(1,1,1,1);
 
-}
+       //last column: create!
+       for(int j = 0;j < no;++j){
 
-//only merge row for i = L - 1
-qmerge[0] = mpo[L - 1].qshape(0);
-dmerge[0] = mpo[L - 1].dshape(0);
+          Tp = t(no - 1 - j,0);
+          Tm = -t(no - 1 - j,0);
 
-info.reset(qmerge,dmerge);
+          //a^+ up
+          mpo[no].insert(shape(2*j,2,0,2*no),Tp);
+          mpo[no].insert(shape(2*j,3,1,2*no),Tp);
 
-tmp.clear();
+          //a^+ down (-1)^n_up
+          mpo[no].insert(shape(2*j + 1,1,0,2*no),Tp);
+          mpo[no].insert(shape(2*j + 1,3,2,2*no),Tm);
 
-QSTmerge(info,mpo[L - 1],tmp);
+       }
 
-mpo[L - 1] = tmp;
+       //other virtuals
+       for(int i = no + 1;i < L - 1;++i){
 
-return mpo;
+          mpo[i].resize(Quantum::zero(),make_array(-qo,qp,-qp,qo));
 
-}
-*/
-/**
- * @return MPO which contains/describes the general one-body operator t_{ij} a^\dagger_i a_j
- * @param t the L x L DArray<2> containing the one-body operator
- */
-/*
-   MPO one_body(int L,int d,const DArray<2> &t){
+          //signs!
+          for(int j = 0;j < 2*no;++j){
 
-   MPO mpo(L);
+             //fermion sign!
+             mpo[i].insert(shape(j,0,0,j),Ip);
+             mpo[i].insert(shape(j,1,1,j),Im);
+             mpo[i].insert(shape(j,2,2,j),Im);
+             mpo[i].insert(shape(j,3,3,j),Ip);
 
-//first set the quantumnumbers, before
-Qshapes<Quantum> qp;
-physical(d,qp);
+          }
 
-Qshapes<Quantum> qz; // 0 quantum number
-qz.push_back(Quantum(0));
+          //last column: create!
+          for(int j = 0;j < no;++j){
 
-Qshapes<Quantum> qi;
-qi.push_back(Quantum::zero());//0
+             Tp = t(no - 1 - j,i - no);
+             Tm = -t(no - 1 - j,i - no);
 
-for(int i = 1;i < L;++i){
+             //a^+ up
+             mpo[i].insert(shape(2*j,2,0,2*no),Tp);
+             mpo[i].insert(shape(2*j,3,1,2*no),Tp);
 
-qi.push_back(Quantum(1));//a
-qi.push_back(Quantum(-1));//a^+
+             //a^+ down (-1)^n_up
+             mpo[i].insert(shape(2*j + 1,1,0,2*no),Tp);
+             mpo[i].insert(shape(2*j + 1,3,2,2*no),Tm);
 
-}
+          }
 
-qi.push_back(Quantum::zero());//I
+          //last element:identity
+          mpo[i].insert(shape(2*no,0,0,2*no),Ip);
+          mpo[i].insert(shape(2*no,1,1,2*no),Ip);
+          mpo[i].insert(shape(2*no,2,2,2*no),Ip);
+          mpo[i].insert(shape(2*no,3,3,2*no),Ip);
 
+       }
 
-Qshapes<Quantum> qo;
-qo.push_back(Quantum::zero());//I
+       //finally the last virtual
+       mpo[L-1].resize(Quantum::zero(),make_array(-qo,qp,-qp,qz));
 
-for(int i = 1;i < L;++i){
+       for(int j = 0;j < no;++j){
 
-qo.push_back(Quantum(-1));//a^+
-qo.push_back(Quantum(1));//a
+          Tp = t(no - 1 - j,nv - 1);
+          Tm = -t(no - 1 - j,nv - 1);
 
-}
+          //a^+ up
+          mpo[L-1].insert(shape(2*j,2,0,0),Tp);
+          mpo[L-1].insert(shape(2*j,3,1,0),Tp);
 
-qo.push_back(Quantum::zero());//0
+          //a^+ down (-1)^n_up
+          mpo[L-1].insert(shape(2*j + 1,1,0,0),Tp);
+          mpo[L-1].insert(shape(2*j + 1,3,2,0),Tm);
 
-mpo[0].resize(Quantum::zero(),make_array(qz,qp,-qp,qo));
+       }
 
-//resize & set to 0
-for(int i = 1; i < L-1; ++i)
-mpo[i].resize(Quantum::zero(),make_array(qi,qp,-qp,qo));
+       //last element:identity
+       mpo[L-1].insert(shape(2*no,0,0,0),Ip);
+       mpo[L-1].insert(shape(2*no,1,1,0),Ip);
+       mpo[L-1].insert(shape(2*no,2,2,0),Ip);
+       mpo[L-1].insert(shape(2*no,3,3,0),Ip);
 
-mpo[L-1].resize(Quantum::zero(),make_array(qi,qp,-qp,qz));
+       //merge everything together
+       TVector<Qshapes<Quantum>,1> qmerge;
+       TVector<Dshapes,1> dmerge;
 
-DArray<4> Ip(1,1,1,1);
-Ip = 1;
+       qmerge[0] = mpo[0].qshape(3);
+       dmerge[0] = mpo[0].dshape(3);
 
-DArray<4> Im(1,1,1,1);
-Im = -1;
+       QSTmergeInfo<1> info(qmerge,dmerge);
 
-DArray<4> O(1,1,1,1);
-O = 0;
+       QSDArray<4> tmp;
+       QSTmerge(mpo[0],info,tmp);
 
-//left
-mpo[0].insert(shape(0,0,0,0),Ip);
-mpo[0].insert(shape(0,1,1,0),Ip);
+       mpo[0] = tmp;
 
-//nearest neighbour hopping:
-mpo[0].insert(shape(0,1,0,1),Ip);//a^+
-mpo[0].insert(shape(0,0,1,2),Ip);//a
+       for(int i = 1;i < L - 1;++i){
 
-//long-range hopping: nothing on first site
-for(int i = 1;i < L - 1;++i){
+          //first merge the row
+          qmerge[0] = mpo[i].qshape(0);
+          dmerge[0] = mpo[i].dshape(0);
 
-mpo[0].insert(shape(0,1,0,2*i + 1),O);//a^+
-mpo[0].insert(shape(0,0,1,2*i + 2),O);//a
+          info.reset(qmerge,dmerge);
 
-}
+          tmp.clear();
 
-DArray<4> T(1,1,1,1);
-T = t(0,0);//diagonal term becomes local
+          QSTmerge(info,mpo[i],tmp);
 
-mpo[0].insert(shape(0,0,0,2*L - 1),T);
+          //then merge the column
+          qmerge[0] = tmp.qshape(3);
+          dmerge[0] = tmp.dshape(3);
 
-//middle
-for(int i = 1;i < L-1;++i){
+          info.reset(qmerge,dmerge);
 
-   //first row
-   mpo[i].insert(shape(0,0,0,0),Ip);
-   mpo[i].insert(shape(0,1,1,0),Ip);
+          mpo[i].clear();
 
-   //nearest neighbour hopping:
-   mpo[i].insert(shape(0,1,0,1),Ip);//a^+
-   mpo[i].insert(shape(0,0,1,2),Ip);//a
+          QSTmerge(tmp,info,mpo[i]);
 
-   //long-range hopping: nothing on first row
-   for(int j = 1;j < L - 1;++j){
+       }
 
-      mpo[j].insert(shape(0,1,0,2*j + 1),O);//a^+
-      mpo[j].insert(shape(0,0,1,2*j + 2),O);//a
+       //only merge row for i = L - 1
+       qmerge[0] = mpo[L - 1].qshape(0);
+       dmerge[0] = mpo[L - 1].dshape(0);
 
-   }
+       info.reset(qmerge,dmerge);
 
-   T = t(i,i);
+       tmp.clear();
 
-   mpo[i].insert(shape(0,1,1,2*L - 1),T);//diagonal term becomes local
+       QSTmerge(info,mpo[L - 1],tmp);
 
-   //Middle, the fermion signs
-   for(int j = 1;j < 2*L -3;++j){
+       mpo[L - 1] = tmp;
 
-      mpo[i].insert(shape(j,0,0,j + 2),Ip);
-      mpo[i].insert(shape(j,1,1,j + 2),Im);
+       return mpo;
 
-   }
+    }
 
-   //last column
-   for(int j = 1;j <= i;++j){
-
-      //anni
-      T = t(i-j,i);
-
-      mpo[i].insert(shape(2*j - 1,0,1,2*L - 1),T);
-
-      //crea
-      T = t(i,i-j);
-
-      mpo[i].insert(shape(2*j,1,0,2*L - 1),T);
-
-   }
-
-   //rest is zero
-   for(int j = i + 1;j < L;++j){
-
-      mpo[i].insert(shape(2*j - 1,0,1,2*L - 1),O);
-
-      mpo[i].insert(shape(2*j,1,0,2*L - 1),O);
-
-   }
-
-   //finally the identity in the right bottom
-   mpo[i].insert(shape(2*L - 1,0,0,2*L - 1),Ip);
-   mpo[i].insert(shape(2*L - 1,1,1,2*L - 1),Ip);
-
-}
-
-T = t(L - 1,L - 1);
-mpo[L-1].insert(shape(0,0,0,0),T);
-
-for(int j = 1;j < L;++j){
-
-   //anni
-   T = t(L - 1 - j,L - 1);
-
-   mpo[L - 1].insert(shape(2*j - 1,0,1,0),T);
-
-   //crea
-   T = t(L - 1,L - 1 - j);
-
-   mpo[L - 1].insert(shape(2*j,1,0,0),T);
-
-}
-
-//finally the identity
-mpo[L - 1].insert(shape(2*L - 1,0,0,0),Ip);
-mpo[L - 1].insert(shape(2*L - 1,1,1,0),Ip);
-
-//merge everything together
-TVector<Qshapes<Quantum>,1> qmerge;
-TVector<Dshapes,1> dmerge;
-
-qmerge[0] = mpo[0].qshape(3);
-dmerge[0] = mpo[0].dshape(3);
-
-QSTmergeInfo<1> info(qmerge,dmerge);
-
-QSDArray<4> tmp;
-QSTmerge(mpo[0],info,tmp);
-
-mpo[0] = tmp;
-
-for(int i = 1;i < L - 1;++i){
-
-   //first merge the row
-   qmerge[0] = mpo[i].qshape(0);
-   dmerge[0] = mpo[i].dshape(0);
-
-   info.reset(qmerge,dmerge);
-
-   tmp.clear();
-
-   QSTmerge(info,mpo[i],tmp);
-
-   //then merge the column
-   qmerge[0] = tmp.qshape(3);
-   dmerge[0] = tmp.dshape(3);
-
-   info.reset(qmerge,dmerge);
-
-   mpo[i].clear();
-
-   QSTmerge(tmp,info,mpo[i]);
-
-}
-
-//only merge row for i = L - 1
-qmerge[0] = mpo[L - 1].qshape(0);
-dmerge[0] = mpo[L - 1].dshape(0);
-
-info.reset(qmerge,dmerge);
-
-tmp.clear();
-
-QSTmerge(info,mpo[L - 1],tmp);
-
-mpo[L - 1] = tmp;
-
-return mpo;
-
-}
-*/
 }

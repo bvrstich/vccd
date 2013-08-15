@@ -422,6 +422,23 @@ namespace btas {
 
       }
 
+      //some ugly programming to clean up bug
+      int sum = 0;
+
+      for(int j = 0;j < E.qshape(0).size();++j)
+         sum += E.dshape(0)[j];
+
+      if(sum == 0)
+         return 0.0;
+
+      sum = 0;
+
+      for(int j = 0;j < E.qshape(1).size();++j)
+         sum += E.dshape(1)[j];
+
+      if(sum == 0)
+         return 0.0;
+
       return (*(E.begin()->second))(0,0);
 
    }
