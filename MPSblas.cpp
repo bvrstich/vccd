@@ -10,18 +10,14 @@ using std::ostream;
 namespace btas {
 
    /**
-    * create an MPS chain of length L initialized randomly on total Quantum number qt
+    * create an MPS chain of length L initialized randomly on total Quantum number qt, with physical quantumnumber qp
     * @param L length of the chain
     * @param qt total quantumnumber
+    * @param qp Qshapes object containing the physical quantumnumbers
     * @param D maximal dimension of the quantum blocks
     * @return the MPS chain randomly filled and with correct quantumnumbers and dimensions
     */
-   MPS create(int L,const Quantum &qt,int D){ 
-
-      //physical index
-      Qshapes<Quantum> qp;
-
-      physical(qp);
+   MPS create(int L,const Quantum &qt,const Qshapes<Quantum> &qp,int D){ 
 
       //shape of the physical index
       Dshapes dp(qp.size(),1);
