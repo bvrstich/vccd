@@ -49,6 +49,9 @@ int main(void){
 
    cout << inprod(mps::Left,A,O,B) << "\t" << inprod(mps::Right,A,O,B) << endl;
 
+   MPS OA_left = gemv(O,A);
+   cout << dot(mps::Left,OA_left,B) << endl;
+
    return 0;
 
 }
