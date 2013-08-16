@@ -32,25 +32,26 @@ int main(void){
    Qshapes<Quantum> qp;
    physical(qp);
 
-   MPS A = random(L,Quantum(n_u,n_d),qp,20);
-   compress<3>(A,mps::Left,100);
-   clean(A);
-   normalize(A);
+   std::vector<int> occ(L);
 
-   MPS B = random(L,Quantum(n_u,n_d),qp,20);
-   compress<3>(B,mps::Left,100);
-   clean(B);
-   normalize(B);
+   for(int i = 0;i < n_u;++i)//double occupied beneath n_u
+      occ[i] = 3;
+
+   for(int i = n_u;i < L;++i)//empty after
+      occ[i] = 0;
+
+   MPS A = product_state(L,qp,occ);
 
    DArray<2> t(10,10);
    t.generate(rgen);
 
+   double norm = sqrt(2.0*Ddot(t,t));
+   Dscal(1.0/norm,t);
+
    MPO O = T1(t);
+   MPS OA = gemv(O,A);
 
-   cout << inprod(mps::Left,A,O,B) << "\t" << inprod(mps::Right,A,O,B) << endl;
-
-   MPS OA_left = gemv(O,A);
-   cout << dot(mps::Left,OA_left,B) << endl;
+   cout << dot(mps::Left,OA,OA) << endl;
 
    return 0;
 
