@@ -335,7 +335,7 @@ namespace mps {
 
    double dist(const MPS &,const MPS &);
 
-   double inprod(const MPS &,const MPO &,const MPS &);
+   double inprod(const MPS_DIRECTION &,const MPS &,const MPO &,const MPS &);
 
    MPS gemv(const MPO &,const MPS &);
 

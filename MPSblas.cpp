@@ -466,7 +466,6 @@ namespace mps {
 
       return (*(E.find(shape(0,0))->second))(0,0);
 
-   return 0.0;
    }
 
    /**
@@ -488,12 +487,13 @@ namespace mps {
    }
 
    /**
+    * @param dir go from left to right (Left) or right to left (Right) for contraction
     * @param A input MPS
     * @param O input MPO
     * @param B input MPS
     * @return the number containing < A | O | B >
     */
-   double inprod(const MPS &A,const MPO &O,const MPS &B){
+   double inprod(const MPS_DIRECTION &dir,const MPS &A,const MPO &O,const MPS &B){
 
       //first check if we can sum these two:
       if(A.size() != B.size() || A.size() != O.size())
@@ -501,64 +501,129 @@ namespace mps {
 
       int L = A.size();
 
-      //from left to right
-      QSDArray<5> loc;
-
-      QSDcontract(1.0,O[0],shape(2),A[0],shape(1),0.0,loc);
-
-      //merge 2 columns together
-      TVector<Qshapes<Quantum>,2> qmerge;
-      TVector<Dshapes,2> dmerge;
-
-      for(int i = 0;i < 2;++i){
-
-         qmerge[i] = loc.qshape(3 + i);
-         dmerge[i] = loc.dshape(3 + i);
-
-      }
-
-      QSTmergeInfo<2> info(qmerge,dmerge);
-
-      QSDArray<4> tmp;
-      QSTmerge(loc,info,tmp);
-
-      //this will contain the right going part
-      QSDArray<3> EO;
-
-      QSDcontract(1.0,B[0].conjugate(),shape(0,1),tmp,shape(0,1),0.0,EO);
-
-      QSDArray<4> I1;
-      QSDArray<4> I2;
-
-      for(int i = 1;i < L;++i){
+      if(dir == Left){
 
          enum {j,k,l,m,n,o};
 
-         I1.clear();
+         //from left to right
+         QSDArray<5> loc;
 
-         QSDindexed_contract(1.0,EO,shape(j,k,l),A[i],shape(l,m,n),0.0,I1,shape(j,k,m,n));
+         QSDindexed_contract(1.0,O[0],shape(m,n,k,o),A[0],shape(j,k,l),0.0,loc,shape(j,m,n,l,o));
 
-         I2.clear();
+         //merge 2 rows together
+         TVector<Qshapes<Quantum>,2> qmerge;
+         TVector<Dshapes,2> dmerge;
 
-         QSDindexed_contract(1.0,I1,shape(j,k,m,n),O[i],shape(k,o,m,l),0.0,I2,shape(j,o,l,n));
+         for(int i = 0;i < 2;++i){
 
-         EO.clear();
+            qmerge[i] = loc.qshape(i);
+            dmerge[i] = loc.dshape(i);
 
-         QSDindexed_contract(1.0,I2,shape(j,o,l,n),B[i].conjugate(),shape(j,o,k),0.0,EO,shape(k,l,n));
+         }
+
+         QSTmergeInfo<2> info(qmerge,dmerge);
+
+         QSDArray<4> tmp;
+         QSTmerge(info,loc,tmp);
+
+         //this will contain the right going part
+         QSDArray<3> EO;
+
+         QSDindexed_contract(1.0,B[0].conjugate(),shape(j,k,l),tmp,shape(j,k,m,n),0.0,EO,shape(m,n,l));
+
+         QSDArray<4> I1;
+         QSDArray<4> I2;
+
+         for(int i = 1;i < L;++i){
+
+            I1.clear();
+
+            QSDindexed_contract(1.0,EO,shape(j,k,l),A[i],shape(j,m,n),0.0,I1,shape(k,l,n,m));
+
+            I2.clear();
+
+            QSDindexed_contract(1.0,I1,shape(k,l,n,m),O[i],shape(k,j,m,o),0.0,I2,shape(l,j,n,o));
+
+            EO.clear();
+
+            QSDindexed_contract(1.0,I2,shape(l,j,n,o),B[i].conjugate(),shape(l,j,k),0.0,EO,shape(n,o,k));
+
+         }
+
+         //if no blocks remain, return zero
+         if(EO.dshape(0)[0] == 0)
+            return 0.0;
+
+         if(EO.dshape(1)[0] == 0)
+            return 0.0;
+
+         if(EO.dshape(2)[0] == 0)
+            return 0.0;
+
+         return (*(EO.find(shape(0,0,0))->second))(0,0,0);
 
       }
+      else{
 
-      //if no blocks remain, return zero
-      if(EO.dshape(0)[0] == 0)
-         return 0.0;
+         enum {j,k,l,m,n,o};
 
-      if(EO.dshape(1)[0] == 0)
-         return 0.0;
+         //from right to left
+         QSDArray<5> loc;
 
-      if(EO.dshape(2)[0] == 0)
-         return 0.0;
+         QSDindexed_contract(1.0,O[L - 1],shape(j,k,l,m),A[L - 1],shape(o,l,n),0.0,loc,shape(o,j,k,n,m));
 
-      return (*(EO.find(shape(0,0,0))->second))(0,0,0);
+         //merge 2 columns together
+         TVector<Qshapes<Quantum>,2> qmerge;
+         TVector<Dshapes,2> dmerge;
+
+         for(int i = 0;i < 2;++i){
+
+            qmerge[i] = loc.qshape(3 + i);
+            dmerge[i] = loc.dshape(3 + i);
+
+         }
+
+         QSTmergeInfo<2> info(qmerge,dmerge);
+
+         QSDArray<4> tmp;
+         QSTmerge(loc,info,tmp);
+
+         //this will contain the left going part
+         QSDArray<3> EO;
+         QSDindexed_contract(1.0,tmp,shape(j,k,l,m),B[L-1].conjugate(),shape(n,l,m),0.0,EO,shape(j,k,n));
+
+         QSDArray<4> I1;
+         QSDArray<4> I2;
+
+         for(int i = L - 2;i >= 0;--i){
+            
+            I1.clear();
+
+            QSDindexed_contract(1.0,A[i],shape(j,k,l),EO,shape(l,m,n),0.0,I1,shape(j,k,m,n));
+
+            I2.clear();
+
+            QSDindexed_contract(1.0,O[i],shape(l,o,k,m),I1,shape(j,k,m,n),0.0,I2,shape(j,l,o,n));
+
+            EO.clear();
+
+            QSDindexed_contract(1.0,B[i].conjugate(),shape(k,o,n),I2,shape(j,l,o,n),0.0,EO,shape(j,l,k));
+
+         }
+
+         //if no blocks remain, return zero
+         if(EO.dshape(0)[0] == 0)
+            return 0.0;
+
+         if(EO.dshape(1)[0] == 0)
+            return 0.0;
+
+         if(EO.dshape(2)[0] == 0)
+            return 0.0;
+
+         return (*(EO.find(shape(0,0,0))->second))(0,0,0);
+
+      }
 
    }
 

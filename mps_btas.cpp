@@ -42,15 +42,12 @@ int main(void){
    clean(B);
    normalize(B);
 
-   MPS AB =add<3>(A,B);
+   DArray<2> t(10,10);
+   t.generate(rgen);
 
-   MPS C = random(L,Quantum(n_u,n_d),qp,20);
-   compress<3>(C,mps::Left,100);
-   clean(C);
-   normalize(C);
+   MPO O = T1(t);
 
-   cout << dot(mps::Left,A,C) + dot(mps::Left,B,C) << "\t" << dot(mps::Left,AB,C) << endl;
-   cout << dot(mps::Right,A,C) + dot(mps::Right,B,C) << "\t" << dot(mps::Right,AB,C) << endl;
+   cout << inprod(mps::Left,A,O,B) << "\t" << inprod(mps::Right,A,O,B) << endl;
 
    return 0;
 
