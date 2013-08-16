@@ -9,35 +9,31 @@
 using namespace btas;
 using namespace mps;
 
-/**
- * @param qp Qshapes object containing the local quantumnumbers on output, input is destroyed
- */
 template<class Q>
-void physical(Qshapes<Q> &qp){
+void physical(Qshapes<Q> &qp);
 
-   qp.clear();
+template<class Q>
+MPO<Q> creator(int L,int site,int spin);
 
-   qp.push_back(Quantum(0,0));
-   qp.push_back(Quantum(0,1));
-   qp.push_back(Quantum(1,0));
-   qp.push_back(Quantum(1,1));
+template<class Q>
+MPO<Q> annihilator(int L,int site,int spin);
 
-}
+template<class Q>
+MPO<Q> n_loc(int L,int site);
 
-MPO creator(int L,int site,int spin);
+template<class Q>
+MPO<Q> N_tot(int L);
 
-MPO annihilator(int L,int site,int spin);
+template<class Q>
+MPO<Q> n_up_tot(int L);
 
-MPO n_loc(int L,int site);
+template<class Q>
+MPO<Q> n_down_tot(int L);
 
-MPO N_tot(int L);
+template<class Q>
+MPO<Q> hubbard(int L,double U);
 
-MPO n_up_tot(int L);
-
-MPO n_down_tot(int L);
-
-MPO hubbard(int L,double U);
-
-MPO T1(const DArray<2> &);
+template<class Q>
+MPO<Q> T1(const DArray<2> &);
 
 #endif

@@ -9,7 +9,6 @@
 # -----------------------------------------------------------------------------
 BINNAME = mps_btas
 CPPSRC	= mps_btas.cpp\
-           MPSblas.cpp\
            FermiHamiltonian.cpp
 
 

@@ -8,36 +8,52 @@ using std::ostream;
 #include "include.h"
 
 /**
+ * @param qp Qshapes object containing the local quantumnumbers on output, input is destroyed
+ */
+template<class Q>
+void physical(Qshapes<Q> &qp){
+
+   qp.clear();
+
+   qp.push_back(Q(0,0));
+   qp.push_back(Q(0,1));
+   qp.push_back(Q(1,0));
+   qp.push_back(Q(1,1));
+
+}
+
+/**
  * construct an MPO of length L which creates a fermion at site 'site' with spin +1/2 if spin == 0 and spin -1/2 if spin == 1
  */
-MPO creator(int L,int site,int spin){
+template<class Q>
+MPO<Q> creator(int L,int site,int spin){
 
-   MPO mpo(L);
+   MPO<Q> mpo(L);
 
    //first set the quantumnumbers, before
-   Qshapes<Quantum> qp;
+   Qshapes<Q> qp;
    physical(qp);
 
-   Qshapes<Quantum> qz; // 0 quantum number
-   qz.push_back(Quantum(0,0));
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q(0,0));
 
-   Qshapes<Quantum> qt; // total quantum number
+   Qshapes<Q> qt; // total quantum number
 
    if(spin == 0)
-      qt.push_back(Quantum(1,0));
+      qt.push_back(Q(1,0));
    else
-      qt.push_back(Quantum(0,1));
+      qt.push_back(Q(0,1));
 
    //resize & set to 0
    for(int i = 0; i < site; ++i)
-      mpo[i].resize(Quantum::zero(),make_array(qz,qp,-qp,qz));
+      mpo[i].resize(Q::zero(),make_array(qz,qp,-qp,qz));
 
    //the quantumnumbers on the site of the operation
-   mpo[site].resize(Quantum::zero(),make_array(qz,qp,-qp,-qt));
+   mpo[site].resize(Q::zero(),make_array(qz,qp,-qp,-qt));
 
    //the quantumnumbers after
    for(int i = site + 1;i < L;++i)
-      mpo[i].resize(Quantum::zero(),make_array(qt,qp,-qp,-qt));
+      mpo[i].resize(Q::zero(),make_array(qt,qp,-qp,-qt));
 
    DArray<4> Ip(1,1,1,1);
    Ip = 1;
@@ -87,34 +103,35 @@ MPO creator(int L,int site,int spin){
 /**
  * construct an MPO of length L which annihilates a fermion at site 'site' with spin +1/2 if spin == 0 and spin -1/2 if spin == 1
  */
-MPO annihilator(int L,int site,int spin){
+template<class Q>
+MPO<Q> annihilator(int L,int site,int spin){
 
-   MPO mpo(L);
+   MPO<Q> mpo(L);
 
    //first set the quantumnumbers, before
-   Qshapes<Quantum> qp;
+   Qshapes<Q> qp;
    physical(qp);
 
-   Qshapes<Quantum> qz; // 0 quantum number
-   qz.push_back(Quantum(0,0));
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q(0,0));
 
-   Qshapes<Quantum> qt; // total quantum number
+   Qshapes<Q> qt; // total quantum number
 
    if(spin == 0)
-      qt.push_back(Quantum(-1,0));
+      qt.push_back(Q(-1,0));
    else
-      qt.push_back(Quantum(0,-1));
+      qt.push_back(Q(0,-1));
 
    //resize & set to 0
    for(int i = 0; i < site; ++i)
-      mpo[i].resize(Quantum::zero(),make_array(qz,qp,-qp,qz));
+      mpo[i].resize(Q::zero(),make_array(qz,qp,-qp,qz));
 
    //the quantumnumbers on the site of the operation
-   mpo[site].resize(Quantum::zero(),make_array(qz,qp,-qp,-qt));
+   mpo[site].resize(Q::zero(),make_array(qz,qp,-qp,-qt));
 
    //the quantumnumbers after
    for(int i = site + 1;i < L;++i)
-      mpo[i].resize(Quantum::zero(),make_array(qt,qp,-qp,-qt));
+      mpo[i].resize(Q::zero(),make_array(qt,qp,-qp,-qt));
 
    DArray<4> Ip(1,1,1,1);
    Ip = 1;
@@ -161,24 +178,24 @@ MPO annihilator(int L,int site,int spin){
 
 }
 
-
 /**
  * construct an MPO which returns the local particle number operator a^+_i a_i
  */
-MPO n_loc(int L,int site){
+template<class Q>
+MPO<Q> n_loc(int L,int site){
 
-   MPO mpo(L);
+   MPO<Q> mpo(L);
 
    //first set the quantumnumbers, before
-   Qshapes<Quantum> qp;
+   Qshapes<Q> qp;
    physical(qp);
 
-   Qshapes<Quantum> qz; // 0 quantum number
-   qz.push_back(Quantum::zero());
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q::zero());
 
    //resize & set to 0
    for(int i = 0; i < L; ++i)
-      mpo[i].resize(Quantum::zero(),make_array(qz,qp,-qp,qz));
+      mpo[i].resize(Q::zero(),make_array(qz,qp,-qp,qz));
 
    DArray<4> I(1,1,1,1);
    I = 1;
@@ -218,32 +235,33 @@ MPO n_loc(int L,int site){
 /**
  * @return MPO which returns the total particle number operator \sum_i a^+_i a_i
  */
-MPO N_tot(int L){
+template<class Q>
+MPO<Q> N_tot(int L){
 
-   MPO mpo(L);
+   MPO<Q> mpo(L);
 
    //first set the quantumnumbers, before
-   Qshapes<Quantum> qp;
+   Qshapes<Q> qp;
    physical(qp);
 
-   Qshapes<Quantum> qz; // 0 quantum number
-   qz.push_back(Quantum::zero());
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q::zero());
 
-   Qshapes<Quantum> qi;
-   qi.push_back(Quantum::zero());
-   qi.push_back(Quantum::zero());
+   Qshapes<Q> qi;
+   qi.push_back(Q::zero());
+   qi.push_back(Q::zero());
 
-   Qshapes<Quantum> qo;
-   qo.push_back(Quantum::zero());
-   qo.push_back(Quantum::zero());
+   Qshapes<Q> qo;
+   qo.push_back(Q::zero());
+   qo.push_back(Q::zero());
 
-   mpo[0].resize(Quantum::zero(),make_array(qz,qp,-qp,qo));
+   mpo[0].resize(Q::zero(),make_array(qz,qp,-qp,qo));
 
    //resize & set to 0
    for(int i = 1; i < L-1; ++i)
-      mpo[i].resize(Quantum::zero(),make_array(qi,qp,-qp,qo));
+      mpo[i].resize(Q::zero(),make_array(qi,qp,-qp,qo));
 
-   mpo[L-1].resize(Quantum::zero(),make_array(qi,qp,-qp,qz));
+   mpo[L-1].resize(Q::zero(),make_array(qi,qp,-qp,qz));
 
    DArray<4> I(1,1,1,1);
    I = 1;
@@ -291,7 +309,7 @@ MPO N_tot(int L){
    mpo[L-1].insert(shape(1,3,3,0),I);
 
    //merge everything together
-   TVector<Qshapes<Quantum>,1> qmerge;
+   TVector<Qshapes<Q>,1> qmerge;
    TVector<Dshapes,1> dmerge;
 
    qmerge[0] = mpo[0].qshape(3);
@@ -347,32 +365,33 @@ MPO N_tot(int L){
 /**
  * @return MPO which returns the total number of spin-up particles
  */
-MPO n_up_tot(int L){
+template<class Q>
+MPO<Q> n_up_tot(int L){
 
-   MPO mpo(L);
+   MPO<Q> mpo(L);
 
    //first set the quantumnumbers, before
-   Qshapes<Quantum> qp;
+   Qshapes<Q> qp;
    physical(qp);
 
-   Qshapes<Quantum> qz; // 0 quantum number
-   qz.push_back(Quantum::zero());
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q::zero());
 
-   Qshapes<Quantum> qi;
-   qi.push_back(Quantum::zero());
-   qi.push_back(Quantum::zero());
+   Qshapes<Q> qi;
+   qi.push_back(Q::zero());
+   qi.push_back(Q::zero());
 
-   Qshapes<Quantum> qo;
-   qo.push_back(Quantum::zero());
-   qo.push_back(Quantum::zero());
+   Qshapes<Q> qo;
+   qo.push_back(Q::zero());
+   qo.push_back(Q::zero());
 
-   mpo[0].resize(Quantum::zero(),make_array(qz,qp,-qp,qo));
+   mpo[0].resize(Q::zero(),make_array(qz,qp,-qp,qo));
 
    //resize & set to 0
    for(int i = 1; i < L-1; ++i)
-      mpo[i].resize(Quantum::zero(),make_array(qi,qp,-qp,qo));
+      mpo[i].resize(Q::zero(),make_array(qi,qp,-qp,qo));
 
-   mpo[L-1].resize(Quantum::zero(),make_array(qi,qp,-qp,qz));
+   mpo[L-1].resize(Q::zero(),make_array(qi,qp,-qp,qz));
 
    DArray<4> I(1,1,1,1);
    I = 1;
@@ -414,7 +433,7 @@ MPO n_up_tot(int L){
    mpo[L-1].insert(shape(1,3,3,0),I);
 
    //merge everything together
-   TVector<Qshapes<Quantum>,1> qmerge;
+   TVector<Qshapes<Q>,1> qmerge;
    TVector<Dshapes,1> dmerge;
 
    qmerge[0] = mpo[0].qshape(3);
@@ -470,32 +489,33 @@ MPO n_up_tot(int L){
 /**
  * @return MPO which returns the total number of spin-down particles
  */
-MPO n_down_tot(int L){
+template<class Q>
+MPO<Q> n_down_tot(int L){
 
-   MPO mpo(L);
+   MPO<Q> mpo(L);
 
    //first set the quantumnumbers, before
-   Qshapes<Quantum> qp;
+   Qshapes<Q> qp;
    physical(qp);
 
-   Qshapes<Quantum> qz; // 0 quantum number
-   qz.push_back(Quantum::zero());
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q::zero());
 
-   Qshapes<Quantum> qi;
-   qi.push_back(Quantum::zero());
-   qi.push_back(Quantum::zero());
+   Qshapes<Q> qi;
+   qi.push_back(Q::zero());
+   qi.push_back(Q::zero());
 
-   Qshapes<Quantum> qo;
-   qo.push_back(Quantum::zero());
-   qo.push_back(Quantum::zero());
+   Qshapes<Q> qo;
+   qo.push_back(Q::zero());
+   qo.push_back(Q::zero());
 
-   mpo[0].resize(Quantum::zero(),make_array(qz,qp,-qp,qo));
+   mpo[0].resize(Q::zero(),make_array(qz,qp,-qp,qo));
 
    //resize & set to 0
    for(int i = 1; i < L-1; ++i)
-      mpo[i].resize(Quantum::zero(),make_array(qi,qp,-qp,qo));
+      mpo[i].resize(Q::zero(),make_array(qi,qp,-qp,qo));
 
-   mpo[L-1].resize(Quantum::zero(),make_array(qi,qp,-qp,qz));
+   mpo[L-1].resize(Q::zero(),make_array(qi,qp,-qp,qz));
 
    DArray<4> I(1,1,1,1);
    I = 1;
@@ -537,7 +557,7 @@ MPO n_down_tot(int L){
    mpo[L-1].insert(shape(1,3,3,0),I);
 
    //merge everything together
-   TVector<Qshapes<Quantum>,1> qmerge;
+   TVector<Qshapes<Q>,1> qmerge;
    TVector<Dshapes,1> dmerge;
 
    qmerge[0] = mpo[0].qshape(3);
@@ -590,45 +610,44 @@ MPO n_down_tot(int L){
 
 }
 
-
-
 /**
  * @return MPO which contains the hubbard model hamiltonian
  */
-MPO hubbard(int L,double U){
+template<class Q>
+MPO<Q> hubbard(int L,double U){
 
-   MPO mpo(L);
+   MPO<Q> mpo(L);
 
    //first set the quantumnumbers, before
-   Qshapes<Quantum> qp;
+   Qshapes<Q> qp;
    physical(qp);
 
-   Qshapes<Quantum> qz; // 0 quantum number
-   qz.push_back(Quantum::zero());
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q::zero());
 
-   Qshapes<Quantum> qi;
-   qi.push_back(Quantum::zero());//on-site rep
-   qi.push_back(Quantum(1,0));//a^+_up
-   qi.push_back(Quantum(-1,0));//a_up
-   qi.push_back(Quantum(0,1));//a^+_down
-   qi.push_back(Quantum(0,-1));//a_up_down
-   qi.push_back(Quantum::zero());//I
+   Qshapes<Q> qi;
+   qi.push_back(Q::zero());//on-site rep
+   qi.push_back(Q(1,0));//a^+_up
+   qi.push_back(Q(-1,0));//a_up
+   qi.push_back(Q(0,1));//a^+_down
+   qi.push_back(Q(0,-1));//a_up_down
+   qi.push_back(Q::zero());//I
 
-   Qshapes<Quantum> qo;
-   qo.push_back(Quantum::zero());//I
-   qo.push_back(Quantum(-1,0));//a^+_up
-   qo.push_back(Quantum(1,0));//a_up
-   qo.push_back(Quantum(0,-1));//a^+_down
-   qo.push_back(Quantum(0,1));//a_up_down
-   qo.push_back(Quantum::zero());//on-site rep
+   Qshapes<Q> qo;
+   qo.push_back(Q::zero());//I
+   qo.push_back(Q(-1,0));//a^+_up
+   qo.push_back(Q(1,0));//a_up
+   qo.push_back(Q(0,-1));//a^+_down
+   qo.push_back(Q(0,1));//a_up_down
+   qo.push_back(Q::zero());//on-site rep
 
-   mpo[0].resize(Quantum::zero(),make_array(qz,qp,-qp,qo));
+   mpo[0].resize(Q::zero(),make_array(qz,qp,-qp,qo));
 
    //resize & set to 0
    for(int i = 1; i < L-1; ++i)
-      mpo[i].resize(Quantum::zero(),make_array(qi,qp,-qp,qo));
+      mpo[i].resize(Q::zero(),make_array(qi,qp,-qp,qo));
 
-   mpo[L-1].resize(Quantum::zero(),make_array(qi,qp,-qp,qz));
+   mpo[L-1].resize(Q::zero(),make_array(qi,qp,-qp,qz));
 
    DArray<4> Ip(1,1,1,1);
    Ip = 1;
@@ -740,7 +759,7 @@ MPO hubbard(int L,double U){
    mpo[L-1].insert(shape(5,3,3,0),Ip);
 
    //merge everything together
-   TVector<Qshapes<Quantum>,1> qmerge;
+   TVector<Qshapes<Q>,1> qmerge;
    TVector<Dshapes,1> dmerge;
 
    qmerge[0] = mpo[0].qshape(3);
@@ -796,25 +815,26 @@ MPO hubbard(int L,double U){
 /**
  * @return MPO object of length L containing the T1 operator with coefficients passed through the DArray<2> object t
  */
-MPO T1(const DArray<2> &t){
+template<class Q>
+MPO<Q> T1(const DArray<2> &t){
 
    int no = t.shape(0);//number of occupied orbitals
    int nv = t.shape(1);//number of virtual orbitals
 
    int L = no + nv;
 
-   MPO mpo(L);
+   MPO<Q> mpo(L);
 
-   Qshapes<Quantum> qp;
+   Qshapes<Q> qp;
    physical(qp);
 
-   Qshapes<Quantum> qz; // 0 quantum number
-   qz.push_back(Quantum::zero());
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q::zero());
 
-   Qshapes<Quantum> qo;
-   qo.push_back(Quantum::zero());//I
-   qo.push_back(Quantum(1,0));//a_up
-   qo.push_back(Quantum(0,1));//a_down
+   Qshapes<Q> qo;
+   qo.push_back(Q::zero());//I
+   qo.push_back(Q(1,0));//a_up
+   qo.push_back(Q(0,1));//a_down
 
    DArray<4> Ip(1,1,1,1);
    Ip = 1;
@@ -822,7 +842,7 @@ MPO T1(const DArray<2> &t){
    DArray<4> Im(1,1,1,1);
    Im = -1;
 
-   mpo[0].resize(Quantum::zero(),make_array(qz,qp,-qp,qo));
+   mpo[0].resize(Q::zero(),make_array(qz,qp,-qp,qo));
 
    //identity
    mpo[0].insert(shape(0,0,0,0),Ip);
@@ -842,16 +862,16 @@ MPO T1(const DArray<2> &t){
 
       qo.clear();
 
-      qo.push_back(Quantum::zero());//I
+      qo.push_back(Q::zero());//I
 
       for(int j = 0;j < i + 1;++j){
 
-         qo.push_back(Quantum(1,0));//a_up
-         qo.push_back(Quantum(0,1));//a_down
+         qo.push_back(Q(1,0));//a_up
+         qo.push_back(Q(0,1));//a_down
 
       }
 
-      mpo[i].resize(Quantum::zero(),make_array(-mpo[i - 1].qshape(3),qp,-qp,qo));
+      mpo[i].resize(Q::zero(),make_array(-mpo[i - 1].qshape(3),qp,-qp,qo));
 
       //identity
       mpo[i].insert(shape(0,0,0,0),Ip);
@@ -885,12 +905,12 @@ MPO T1(const DArray<2> &t){
 
    for(int j = 0;j < no;++j){
 
-      qo.push_back(Quantum(1,0));//a_up
-      qo.push_back(Quantum(0,1));//a_down
+      qo.push_back(Q(1,0));//a_up
+      qo.push_back(Q(0,1));//a_down
 
    }
 
-   mpo[no - 1].resize(Quantum::zero(),make_array(-mpo[no - 2].qshape(3),qp,-qp,qo));
+   mpo[no - 1].resize(Q::zero(),make_array(-mpo[no - 2].qshape(3),qp,-qp,qo));
 
    //a_up (-1)^{n_down}
    mpo[no - 1].insert(shape(0,0,2,0),Ip);
@@ -916,14 +936,14 @@ MPO T1(const DArray<2> &t){
 
    for(int j = 0;j < no;++j){
 
-      qo.push_back(Quantum(1,0));//a_up
-      qo.push_back(Quantum(0,1));//a_down
+      qo.push_back(Q(1,0));//a_up
+      qo.push_back(Q(0,1));//a_down
 
    }
 
-   qo.push_back(Quantum::zero());//last column
+   qo.push_back(Q::zero());//last column
 
-   mpo[no].resize(Quantum::zero(),make_array(-mpo[no - 1].qshape(3),qp,-qp,qo));
+   mpo[no].resize(Q::zero(),make_array(-mpo[no - 1].qshape(3),qp,-qp,qo));
 
    //signs!
    for(int j = 0;j < 2*no;++j){
@@ -958,7 +978,7 @@ MPO T1(const DArray<2> &t){
    //other virtuals
    for(int i = no + 1;i < L - 1;++i){
 
-      mpo[i].resize(Quantum::zero(),make_array(-qo,qp,-qp,qo));
+      mpo[i].resize(Q::zero(),make_array(-qo,qp,-qp,qo));
 
       //signs!
       for(int j = 0;j < 2*no;++j){
@@ -996,7 +1016,7 @@ MPO T1(const DArray<2> &t){
    }
 
    //finally the last virtual
-   mpo[L-1].resize(Quantum::zero(),make_array(-qo,qp,-qp,qz));
+   mpo[L-1].resize(Q::zero(),make_array(-qo,qp,-qp,qz));
 
    for(int j = 0;j < no;++j){
 
@@ -1020,7 +1040,7 @@ MPO T1(const DArray<2> &t){
    mpo[L-1].insert(shape(2*no,3,3,0),Ip);
 
    //merge everything together
-   TVector<Qshapes<Quantum>,1> qmerge;
+   TVector<Qshapes<Q>,1> qmerge;
    TVector<Dshapes,1> dmerge;
 
    qmerge[0] = mpo[0].qshape(3);
@@ -1072,3 +1092,13 @@ MPO T1(const DArray<2> &t){
    return mpo;
 
 }
+
+template void physical<Quantum>(Qshapes<Quantum> &);
+template MPO<Quantum> creator<Quantum>(int L,int site,int spin);
+template MPO<Quantum> annihilator(int L,int site,int spin);
+template MPO<Quantum> n_loc(int L,int site);
+template MPO<Quantum> N_tot(int L);
+template MPO<Quantum> n_up_tot(int L);
+template MPO<Quantum> n_down_tot(int L);
+template MPO<Quantum> hubbard(int L,double U);
+template MPO<Quantum> T1(const DArray<2> &);
