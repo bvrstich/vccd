@@ -39,28 +39,16 @@ int main(void){
 
    std::vector<int> occ(L);
 
-   for(int i = 0;i < n_u;++i)//double occupied beneath n_u
-      occ[i] = 3;
-
-   for(int i = n_u;i < L;++i)//empty after
-      occ[i] = 0;
-
    MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,20,rgen);
-   
    compress(A,mps::Left,100);
-   clean(A);
-   normalize(A);
+   MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,20,rgen);
+   compress(B,mps::Left,100);
 
-   DArray<2> t(10,10);
-   t.generate(rgen);
+   MPS<Quantum> AB = add(A,B);
 
-   double norm = sqrt(2.0)*Dnrm2(t);
-   Dscal(1.0/norm,t);
+   MPS<Quantum> C = create(L,Quantum(n_u,n_d),qp,20,rgen);
 
-   MPO<Quantum> O = T1<Quantum>(t);
-   MPS<Quantum> OA = gemv(O,A);
-
-   cout << dot(mps::Left,OA,OA) << endl;
+   cout << dot(mps::Left,A,C) + dot(mps::Left,B,C) << "\t" << dot(mps::Left,AB,C) << endl;
 
    return 0;
 
