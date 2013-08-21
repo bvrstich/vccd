@@ -22,7 +22,7 @@ BRIGHT_ROOT= .
 
 BOOSTLIB= -lboost_serialization
 
-BTASINC=-I/home/bright/bestanden/programmas/btas/c++11/include
+BTASINC=-I/home/bright/bestanden/programmas/btas/include
 BTASLIB= /home/bright/bestanden/programmas/btas/c++11/lib
 
 INCLUDE = ./include $(BTASINC)

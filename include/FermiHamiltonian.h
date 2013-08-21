@@ -36,4 +36,7 @@ MPO<Q> hubbard(int L,double U);
 template<class Q>
 MPO<Q> T1(const DArray<2> &);
 
+template<class Q>
+MPO<Q> T2(const DArray<4> &);
+
 #endif
