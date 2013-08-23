@@ -1791,8 +1791,8 @@ MPO<Q> T2(const DArray<4> &t){
                   }
                   else{//up down
 
-                     Tp = -t(pairs[j][2],pairs[j][0],vjnd,vind);
-                     Tm = t(pairs[j][2],pairs[j][0],vjnd,vind);
+                     Tp = -t(pairs[k][2],pairs[k][0],vjnd,vind);
+                     Tm = t(pairs[k][2],pairs[k][0],vjnd,vind);
 
                   }
 

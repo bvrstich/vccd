@@ -28,11 +28,11 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 4;
+   int L = 6;
 
    //number of particles
-   int n_u = 2;
-   int n_d = 2;
+   int n_u = 3;
+   int n_d = 3;
 
    Qshapes<Quantum> qp;
    physical(qp);
@@ -49,13 +49,50 @@ int main(void){
 
    //i j a b
    DArray<4> t(n_u,n_u,n_u,n_u);
-   t.generate(rgen);
+
+   t = 0.0;
 
    for(int i = 0;i < n_u;++i)
-      for(int j = 0;j < n_u;++j)
-         for(int a = 0;a < n_u;++a)
-            for(int b = 0;b < n_u;++b)
-               t(i,j,a,b) = t(j,i,b,a);
+      for(int a = 0;a < n_u;++a)
+         t(i,i,a,a) = rgen();
+
+   for(int i = 0;i < n_u;++i)
+      for(int a = 0;a < n_u;++a)
+         for(int b = a + 1;b < n_u;++b){
+
+            t(i,i,a,b) = rgen();
+            t(i,i,b,a) = t(i,i,a,b);
+
+         }
+
+   for(int i = 0;i < n_u;++i)
+      for(int j = i + 1;j < n_u;++j)
+         for(int a = 0;a < n_u;++a){
+
+            t(i,j,a,a) = rgen();
+            t(j,i,a,a) = t(i,j,a,a);
+
+         }
+
+   for(int i = 0;i < n_u;++i)
+      for(int j = i + 1;j < n_u;++j)
+         for(int a = 0;a < n_u;++a){
+
+            for(int b = 0;b < a;++b){
+
+               t(i,j,a,b) = rgen();
+               t(j,i,a,b) = t(i,j,a,b);
+
+            }
+
+            for(int b = a + 1;b < n_u;++b){
+
+               t(i,j,a,b) = rgen();
+               t(j,i,a,b) = t(i,j,a,b);
+
+            }
+
+         }
 
    double norm = Ddot(t,t);
    cout << norm << endl;
@@ -82,11 +119,33 @@ int main(void){
             for(int b = a + 1;b < n_u;++b)
                tmp += 2.0 * (t(i,j,a,b) - t(i,j,b,a)) * (t(i,j,a,b) - t(i,j,b,a));
 
+   //down up coming in: create up
    for(int i = 0;i < n_u;++i)
       for(int j = i + 1;j < n_u;++j)
          for(int a = 0;a < n_u;++a)
             for(int b = a + 1;b < n_u;++b)
-               tmp += 2.0 * t(i,j,a,b) * t(i,j,a,b) + 2 * (t(i,j,b,a) * t(i,j,b,a));
+               tmp += t(i,j,a,b) * t(i,j,a,b);
+
+   //down up coming in: create down
+   for(int i = 0;i < n_u;++i)
+      for(int j = i + 1;j < n_u;++j)
+         for(int a = 0;a < n_u;++a)
+            for(int b = a + 1;b < n_u;++b)
+               tmp += t(i,j,b,a) * t(i,j,b,a);
+
+   //up down coming in: create down
+   for(int i = 0;i < n_u;++i)
+      for(int j = i + 1;j < n_u;++j)
+         for(int a = 0;a < n_u;++a)
+            for(int b = a + 1;b < n_u;++b)
+               tmp += t(i,j,a,b) * t(i,j,a,b);
+
+   //up down coming in: create up
+   for(int i = 0;i < n_u;++i)
+      for(int j = i + 1;j < n_u;++j)
+         for(int a = 0;a < n_u;++a)
+            for(int b = a + 1;b < n_u;++b)
+               tmp += t(i,j,b,a) * t(i,j,b,a);
 
    cout << tmp << endl;
 
@@ -105,74 +164,6 @@ int main(void){
    compress(OA,mps::Left,0);
 
    cout << dot(mps::Left,OA,OA) << endl;
-
-   for(int i = 0;i < n_u;++i)
-      for(int j = 0;j < n_u;++j)
-         for(int a = 0;a < n_u;++a)
-            for(int b = 0;b < n_u;++b)
-               cout << i << "\t" << j << "\t" << a << "\t" << b << "\t" << t(i,j,a,b) << endl;
-
-   occ[0] = 1;
-   occ[1] = 2;
-   occ[2] = 1;
-   occ[3] = 2;
-
-   MPS<Quantum> exc = product_state(L,qp,occ);
-
-   cout << endl;
-   cout << dot(mps::Left,exc,OA) << endl;
-
-   occ[0] = 2;
-   occ[1] = 1;
-   occ[2] = 2;
-   occ[3] = 1;
-
-   exc = product_state(L,qp,occ);
-
-   cout << endl;
-   cout << dot(mps::Left,exc,OA) << endl;
-
-   occ[0] = 1;
-   occ[1] = 2;
-   occ[2] = 2;
-   occ[3] = 1;
-
-   exc = product_state(L,qp,occ);
-
-   cout << endl;
-   cout << dot(mps::Left,exc,OA) << endl;
-
-   occ[0] = 2;
-   occ[1] = 1;
-   occ[2] = 1;
-   occ[3] = 2;
-
-   exc = product_state(L,qp,occ);
-
-   cout << endl;
-   cout << dot(mps::Left,exc,OA) << endl;
-
-   occ[0] = 2;
-   occ[1] = 2;
-   occ[2] = 1;
-   occ[3] = 1;
-
-   exc = product_state(L,qp,occ);
-
-   cout << endl;
-   cout << dot(mps::Left,exc,OA) << endl;
-
-   occ[0] = 1;
-   occ[1] = 1;
-   occ[2] = 2;
-   occ[3] = 2;
-
-   exc = product_state(L,qp,occ);
-
-   cout << endl;
-   cout << dot(mps::Left,exc,OA) << endl;
-
-
 
    return 0;
 
