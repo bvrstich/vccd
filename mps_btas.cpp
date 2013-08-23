@@ -106,6 +106,74 @@ int main(void){
 
    cout << dot(mps::Left,OA,OA) << endl;
 
+   for(int i = 0;i < n_u;++i)
+      for(int j = 0;j < n_u;++j)
+         for(int a = 0;a < n_u;++a)
+            for(int b = 0;b < n_u;++b)
+               cout << i << "\t" << j << "\t" << a << "\t" << b << "\t" << t(i,j,a,b) << endl;
+
+   occ[0] = 1;
+   occ[1] = 2;
+   occ[2] = 1;
+   occ[3] = 2;
+
+   MPS<Quantum> exc = product_state(L,qp,occ);
+
+   cout << endl;
+   cout << dot(mps::Left,exc,OA) << endl;
+
+   occ[0] = 2;
+   occ[1] = 1;
+   occ[2] = 2;
+   occ[3] = 1;
+
+   exc = product_state(L,qp,occ);
+
+   cout << endl;
+   cout << dot(mps::Left,exc,OA) << endl;
+
+   occ[0] = 1;
+   occ[1] = 2;
+   occ[2] = 2;
+   occ[3] = 1;
+
+   exc = product_state(L,qp,occ);
+
+   cout << endl;
+   cout << dot(mps::Left,exc,OA) << endl;
+
+   occ[0] = 2;
+   occ[1] = 1;
+   occ[2] = 1;
+   occ[3] = 2;
+
+   exc = product_state(L,qp,occ);
+
+   cout << endl;
+   cout << dot(mps::Left,exc,OA) << endl;
+
+   occ[0] = 2;
+   occ[1] = 2;
+   occ[2] = 1;
+   occ[3] = 1;
+
+   exc = product_state(L,qp,occ);
+
+   cout << endl;
+   cout << dot(mps::Left,exc,OA) << endl;
+
+   occ[0] = 1;
+   occ[1] = 1;
+   occ[2] = 2;
+   occ[3] = 2;
+
+   exc = product_state(L,qp,occ);
+
+   cout << endl;
+   cout << dot(mps::Left,exc,OA) << endl;
+
+
+
    return 0;
 
 }
