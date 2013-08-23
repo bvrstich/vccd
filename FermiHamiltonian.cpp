@@ -15,10 +15,10 @@ void physical(Qshapes<Q> &qp){
 
    qp.clear();
 
-   qp.push_back(Q(0,0));
-   qp.push_back(Q(0,1));
-   qp.push_back(Q(1,0));
-   qp.push_back(Q(1,1));
+   qp.push_back(Q(0,0));//zero
+   qp.push_back(Q(1,0));//up
+   qp.push_back(Q(0,1));//down
+   qp.push_back(Q(1,1));//up down pair
 
 }
 
@@ -1114,9 +1114,9 @@ MPO<Q> T2(const DArray<4> &t){
 
    Qshapes<Q> qo;
    qo.push_back(Q::zero());//I
-   qo.push_back(Q(1,0));//a_up
    qo.push_back(Q(0,1));//a_down
-   qo.push_back(Q(1,1));//a_up a_down
+   qo.push_back(Q(1,0));//a_up
+   qo.push_back(Q(1,1));//a_down a_up
 
    DArray<4> Ip(1,1,1,1);
    Ip = 1;
@@ -1139,26 +1139,26 @@ MPO<Q> T2(const DArray<4> &t){
 
    ostates.push_back(v);
 
-   //a_up 
+   //a_down
    mpo[0].insert(shape(0,0,2,1),Ip);
    mpo[0].insert(shape(0,1,3,1),Ip);
 
    v.resize(2);
    v[0] = 0;//site
-   v[0] = 0;//spin
+   v[1] = 1;//spin down
 
    ostates.push_back(v);
 
-   //a_down
+   //a_up (-1)^n_down
    mpo[0].insert(shape(0,0,1,2),Ip);
-   mpo[0].insert(shape(0,2,3,2),Ip);
+   mpo[0].insert(shape(0,2,3,2),Im);
 
    v[0] = 0;//site
-   v[1] = 1;//spin
+   v[1] = 0;//spin up
 
    ostates.push_back(v);
 
-   //a_up a_down
+   //a_down a_up
    mpo[0].insert(shape(0,0,3,3),Ip);
 
    v.resize(4);
@@ -1183,26 +1183,26 @@ MPO<Q> T2(const DArray<4> &t){
 
       ostates.push_back(istates[0]);
 
-      qo.push_back(Q(1,0));//a_up
       qo.push_back(Q(0,1));//a_down
+      qo.push_back(Q(1,0));//a_up
 
       v.resize(2);
+      v[0] = i;//site i
+      v[1] = 1;//spin down
+
+      ostates.push_back(v);
+
       v[0] = i;//site i
       v[1] = 0;//spin up
 
       ostates.push_back(v);
 
-      v[0] = i;//site i
-      v[1] = 1;//spin up
-
-      ostates.push_back(v);
-
       for(int j = 1;j < i + 1;++j){
 
-         qo.push_back(Q(1,0));//a_up
+         qo.push_back(Q(0,1));//a_down
          ostates.push_back(istates[2*j - 1]);
 
-         qo.push_back(Q(0,1));//a_down
+         qo.push_back(Q(1,0));//a_up
          ostates.push_back(istates[2*j]);
 
       }
@@ -1217,43 +1217,47 @@ MPO<Q> T2(const DArray<4> &t){
 
       ostates.push_back(v);
 
-      //add an up
+      //add a down
       for(int j = 1;j < i + 1;++j){
 
-         qo.push_back(Q(2,0));//a_up a_up
+         qo.push_back(Q(0,2));//a_down a_down
 
-         v = istates[2*j - 1];
-         v.push_back(i);
-         v.push_back(0);
+         v[0] = i;
+         v[1] = 1;
+         v[2] = istates[2*j - 1][0];
+         v[3] = istates[2*j - 1][1];
 
          ostates.push_back(v);
 
-         qo.push_back(Q(1,1));//a_down a_up
+         qo.push_back(Q(1,1));//a_up a_down
 
-         v = istates[2*j];
-         v.push_back(i);
-         v.push_back(0);
+         v[0] = i;
+         v[1] = 1;
+         v[2] = istates[2*j][0];
+         v[3] = istates[2*j][1];
 
          ostates.push_back(v);
 
       }
 
-      //add a down
+      //add an up 
       for(int j = 1;j < i + 1;++j){
 
-         qo.push_back(Q(1,1));//a_up a_down
+         qo.push_back(Q(1,1));//a_down a_up
 
-         v = istates[2*j - 1];
-         v.push_back(i);
-         v.push_back(1);
+         v[0] = i;
+         v[1] = 0;
+         v[2] = istates[2*j - 1][0];
+         v[3] = istates[2*j - 1][1];
 
          ostates.push_back(v);
 
-         qo.push_back(Q(0,2));//a_down a_down
+         qo.push_back(Q(2,0));//a_up a_up
 
-         v = istates[2*j];
-         v.push_back(i);
-         v.push_back(1);
+         v[0] = i;
+         v[1] = 0;
+         v[2] = istates[2*j][0];
+         v[3] = istates[2*j][1];
 
          ostates.push_back(v);
 
@@ -1267,15 +1271,15 @@ MPO<Q> T2(const DArray<4> &t){
 
          for(int k = j - 1;k >= 0;--k){
 
-            qo.push_back(Q(2,0));//a_up a_up
+            qo.push_back(Q(0,2));//a_down a_down
             qo.push_back(Q(1,1));//a_up a_down
 
          }
 
          for(int k = j - 1;k >= 0;--k){
 
-            qo.push_back(Q(1,1));//a_down a_up
-            qo.push_back(Q(0,2));//a_down a_down
+            qo.push_back(Q(1,1));//a_up a_down
+            qo.push_back(Q(2,0));//a_up a_up
 
          }
 
@@ -1297,16 +1301,13 @@ MPO<Q> T2(const DArray<4> &t){
       mpo[i].insert(shape(0,2,2,0),Ip);
       mpo[i].insert(shape(0,3,3,0),Ip);
 
-      v.resize(1);
-      v[0] = 1;
-
-      //a_up (-1)^{n_down}
+      //a_down
       mpo[i].insert(shape(0,0,2,1),Ip);
       mpo[i].insert(shape(0,1,3,1),Ip);
 
-      //a_down
+      //a_up (-1)^{n_down}
       mpo[i].insert(shape(0,0,1,2),Ip);
-      mpo[i].insert(shape(0,2,3,2),Ip);
+      mpo[i].insert(shape(0,2,3,2),Im);
 
       column = 3;
 
@@ -1315,8 +1316,8 @@ MPO<Q> T2(const DArray<4> &t){
 
          //fermion sign!
          mpo[i].insert(shape(j,0,0,column),Ip);
-         mpo[i].insert(shape(j,1,1,column),Ip);
-         mpo[i].insert(shape(j,2,2,column),Ip);
+         mpo[i].insert(shape(j,1,1,column),Im);
+         mpo[i].insert(shape(j,2,2,column),Im);
          mpo[i].insert(shape(j,3,3,column),Ip);
 
          column++;
@@ -1327,17 +1328,17 @@ MPO<Q> T2(const DArray<4> &t){
       mpo[i].insert(shape(0,0,3,column),Ip);
       column++;
 
-      //single remove up
+      //single remove down (-1)^n_up
       for(int j = 1;j < 2*i + 1;++j){
 
          //fermion sign!
          mpo[i].insert(shape(j,0,2,column),Ip);
-         mpo[i].insert(shape(j,1,3,column),Ip);
+         mpo[i].insert(shape(j,1,3,column),Im);
          column++;
 
       }
 
-      //single remove down 
+      //single remove up
       for(int j = 1;j < 2*i + 1;++j){
 
          //fermion sign!
@@ -1382,19 +1383,21 @@ MPO<Q> T2(const DArray<4> &t){
 
    for(int j = 1;j < no;++j){
 
-      qo.push_back(Q(2,0));//a_up a_up
+      qo.push_back(Q(0,2));//a_down a_down
 
-      v = istates[2*j - 1];
-      v.push_back(no - 1);
-      v.push_back(0);
+      v[0] = no - 1;
+      v[1] = 1;
+      v[2] = istates[2*j - 1][0];
+      v[3] = istates[2*j - 1][1];
 
       ostates.push_back(v);
 
-      qo.push_back(Q(1,1));//a_down a_up
+      qo.push_back(Q(1,1));//a_up a_down
 
-      v = istates[2*j];
-      v.push_back(no - 1);
-      v.push_back(0);
+      v[0] = no - 1;
+      v[1] = 1;
+      v[2] = istates[2*j][0];
+      v[3] = istates[2*j][1];
 
       ostates.push_back(v);
 
@@ -1402,19 +1405,21 @@ MPO<Q> T2(const DArray<4> &t){
 
    for(int j = 1;j < no;++j){
 
-      qo.push_back(Q(1,1));//a_up a_down
+      qo.push_back(Q(1,1));//a_down a_up
 
-      v = istates[2*j - 1];
-      v.push_back(no - 1);
-      v.push_back(1);
+      v[0] = no - 1;
+      v[1] = 0;
+      v[2] = istates[2*j - 1][0];
+      v[3] = istates[2*j - 1][1];
 
       ostates.push_back(v);
 
-      qo.push_back(Q(0,2));//a_down a_down
+      qo.push_back(Q(2,0));//a_up a_up
 
-      v = istates[2*j];
-      v.push_back(no - 1);
-      v.push_back(1);
+      v[0] = no - 1;
+      v[1] = 0;
+      v[2] = istates[2*j][0];
+      v[3] = istates[2*j][1];
 
       ostates.push_back(v);
 
@@ -1428,17 +1433,18 @@ MPO<Q> T2(const DArray<4> &t){
 
       for(int k = j - 1;k >= 0;--k){
 
-         qo.push_back(Q(2,0));//a_up a_up
-         qo.push_back(Q(1,1));//a_up a_down
+         qo.push_back(Q(0,2));//a_down a_down
+         qo.push_back(Q(1,1));//a_down a_up
 
       }
 
       for(int k = j - 1;k >= 0;--k){
 
-         qo.push_back(Q(1,1));//a_down a_up
-         qo.push_back(Q(0,2));//a_down a_down
+         qo.push_back(Q(1,1));//a_up a_down
+         qo.push_back(Q(2,0));//a_up a_up
 
       } 
+
    }
 
    //a_0_up a_0_down
@@ -1456,20 +1462,19 @@ MPO<Q> T2(const DArray<4> &t){
    mpo[no - 1].insert(shape(0,0,3,column),Ip);
    column++;
 
-   //single remove up
+   //single remove down
    for(int j = 1;j < 2*no - 1;++j){
 
       //fermion sign!
       mpo[no - 1].insert(shape(j,0,2,column),Ip);
-      mpo[no - 1].insert(shape(j,1,3,column),Ip);
+      mpo[no - 1].insert(shape(j,1,3,column),Im);
       column++;
 
    }
 
-   //single remove down 
+   //single remove up
    for(int j = 1;j < 2*no - 1;++j){
 
-      //fermion sign!
       mpo[no - 1].insert(shape(j,0,1,column),Ip);
       mpo[no - 1].insert(shape(j,2,3,column),Ip);
       ++column;
@@ -1507,17 +1512,17 @@ MPO<Q> T2(const DArray<4> &t){
    //first all the virtuals
    for(int j = no + 1;j < L;++j){
 
-      qo.push_back(Q(1,0));//go to 1 up removed
+      qo.push_back(Q(0,1));//go to 1 down removed
 
       v.resize(2);
       v[0] = j;
-      v[1] = 0;
+      v[1] = 1;
       ostates.push_back(v);
 
-      qo.push_back(Q(0,1));//go to 1 down removed
+      qo.push_back(Q(1,0));//go to 1 up removed
 
       v[0] = j;
-      v[1] = 1;
+      v[1] = 0;
       ostates.push_back(v);
 
    }
@@ -1539,7 +1544,11 @@ MPO<Q> T2(const DArray<4> &t){
       if(mpo[no].qshape(0)[j].gn_up() == -1 && mpo[no].qshape(0)[j].gn_down() == -1){//insert double create
 
          DArray<4> Tp(1,1,1,1);
-         Tp = t(istates[j][2],istates[j][0],0,0);
+
+         if(istates[j][1] == 1)//down spin is first
+            Tp = t(istates[j][2],istates[j][0],0,0);
+         else//up spin is first
+            Tp = -t(istates[j][2],istates[j][0],0,0);
 
          //double create: first column
          mpo[no].insert(shape(j,3,0,0),Tp);
@@ -1551,27 +1560,51 @@ MPO<Q> T2(const DArray<4> &t){
    //then the rest of the virtuals
    for(int j = no + 1;j < L;++j){
 
-      int vjnd = j - no;
+      int vjnd = j - no;//virtual index
 
-      //first to one up removed
-      for(int k = 0;k < istates.size();++k){
+      //first to one down removed
+      for(int k = 0;k < istates.size();++k){//these are the rows, sum over pairs
 
-         if(mpo[no].qshape(0)[k].gn_up() == -1 && mpo[no].qshape(0)[k].gn_down() == -1){//insert create down
-
-            DArray<4> Tp(1,1,1,1);
-            Tp = t(istates[k][2],istates[k][0],0,vjnd);
-
-            //create down: 
-            mpo[no].insert(shape(k,1,0,2*vjnd-1),Tp);
-            mpo[no].insert(shape(k,3,2,2*vjnd-1),Tp);
-
-         }
-         else if(mpo[no].qshape(0)[k].gn_up() == -2 && mpo[no].qshape(0)[k].gn_down() == 0){//insert create up
+         if(mpo[no].qshape(0)[k].gn_up() == -1 && mpo[no].qshape(0)[k].gn_down() == -1){//insert create up, so from (-1,-1) -> (0,1)
 
             DArray<4> Tp(1,1,1,1);
-            Tp = t(istates[k][2],istates[k][0],0,j - no);
+            DArray<4> Tm(1,1,1,1);
+
+            if(istates[k][2] == istates[k][0]){//is it a double occupied site coming in?
+
+               Tp = t(istates[k][2],istates[k][0],0,vjnd);
+               Tm = -t(istates[k][2],istates[k][0],0,vjnd);
+
+            }
+            else{//two different sites coming in: up down or down up
+
+               if(istates[k][1] == 1){// down up
+
+                  Tp = t(istates[k][2],istates[k][0],0,vjnd);
+                  Tm = -t(istates[k][2],istates[k][0],0,vjnd);
+
+               }
+               else{//up down
+
+                  Tp = -t(istates[k][2],istates[k][0],vjnd,0);
+                  Tm = t(istates[k][2],istates[k][0],vjnd,0);
+
+               }
+
+            }
 
             //create up: 
+            mpo[no].insert(shape(k,1,0,2*vjnd-1),Tp);
+            mpo[no].insert(shape(k,3,2,2*vjnd-1),Tm);
+
+         }
+         else if(mpo[no].qshape(0)[k].gn_up() == 0 && mpo[no].qshape(0)[k].gn_down() == -2){//insert create down: from (0,2) -> (0,-1)
+
+            DArray<4> Tp(1,1,1,1);
+
+            Tp = t(istates[k][2],istates[k][0],0,vjnd) - t(istates[k][2],istates[k][0],vjnd,0);
+
+            //create down: 
             mpo[no].insert(shape(k,2,0,2*vjnd-1),Tp);
             mpo[no].insert(shape(k,3,1,2*vjnd-1),Tp);
 
@@ -1579,27 +1612,40 @@ MPO<Q> T2(const DArray<4> &t){
 
       }
 
-      //then to one down removed
+      //then to one up removed
       for(int k = 0;k < istates.size();++k){
 
-         if(mpo[no].qshape(0)[k].gn_up() == -1 && mpo[no].qshape(0)[k].gn_down() == -1){//insert create up
+         if(mpo[no].qshape(0)[k].gn_up() == -1 && mpo[no].qshape(0)[k].gn_down() == -1){//insert create down, from (1,1) -> (-1,0)
 
             DArray<4> Tp(1,1,1,1);
-            Tp = t(istates[k][2],istates[k][0],0,j - no);
 
-            //create up: 
+            if(istates[k][2] == istates[k][0])//is it a double occupied site coming in?
+               Tp = -t(istates[k][2],istates[k][0],0,vjnd);
+            else{//two different sites coming in: up down or down up
+
+               if(istates[k][1] == 1)// down up
+                  Tp = -t(istates[k][2],istates[k][0],vjnd,0);
+               else//up down
+                  Tp = t(istates[k][2],istates[k][0],0,vjnd);
+
+            }
+
+            //create down: 
             mpo[no].insert(shape(k,2,0,2*vjnd),Tp);
             mpo[no].insert(shape(k,3,1,2*vjnd),Tp);
 
          }
-         else if(mpo[no].qshape(0)[k].gn_up() == 0 && mpo[no].qshape(0)[k].gn_down() == -2){//insert create down
+         else if(mpo[no].qshape(0)[k].gn_up() == -2 && mpo[no].qshape(0)[k].gn_down() == 0){//insert create up : from (2,0) -> (-1,0)
 
             DArray<4> Tp(1,1,1,1);
-            Tp = t(istates[k][2],istates[k][0],0,j - no);
+            DArray<4> Tm(1,1,1,1);
 
-            //create down: 
+            Tp = t(istates[k][2],istates[k][0],0,vjnd) - t(istates[k][2],istates[k][0],vjnd,0);
+            Tm = t(istates[k][2],istates[k][0],vjnd,0) + t(istates[k][2],istates[k][0],0,vjnd);
+
+            //create up:
             mpo[no].insert(shape(k,1,0,2*vjnd),Tp);
-            mpo[no].insert(shape(k,3,2,2*vjnd),Tp);
+            mpo[no].insert(shape(k,3,2,2*vjnd),Tm);
 
          }
 
@@ -1640,17 +1686,17 @@ MPO<Q> T2(const DArray<4> &t){
       //first all the remaining the virtuals
       for(int j = i + 1;j < L;++j){
 
-         qo.push_back(Q(1,0));//go to 1 up removed
+         qo.push_back(Q(0,1));//go to 1 down removed
 
          v.resize(2);
          v[0] = j;
-         v[1] = 0;
+         v[1] = 1;
          ostates.push_back(v);
 
-         qo.push_back(Q(0,1));//go to 1 down removed
+         qo.push_back(Q(1,0));//go to 1 down removed
 
          v[0] = j;
-         v[1] = 1;
+         v[1] = 0;
          ostates.push_back(v);
 
       }
@@ -1672,34 +1718,43 @@ MPO<Q> T2(const DArray<4> &t){
       mpo[i].insert(shape(0,2,2,0),Ip);
       mpo[i].insert(shape(0,3,3,0),Ip);
 
-      //create up particle
+      //create a down particle
       mpo[i].insert(shape(1,2,0,0),Ip);
-      mpo[i].insert(shape(1,3,1,0),Ip);
+      mpo[i].insert(shape(1,3,1,0),Im);
 
-      //create down particle
+      //create an up particle
       mpo[i].insert(shape(2,1,0,0),Ip);
       mpo[i].insert(shape(2,3,2,0),Ip);
 
+      row = 2*(nv - vind) + 1;
+
+      //insert the closing pairs
       for(int j = 0;j < pairs.size();++j){
 
-         if(mpo[i].qshape(0)[2*(nv - vind) + 1 + j].gn_up() == -1 && mpo[i].qshape(0)[2*(nv - vind) + 1 + j].gn_down() == -1){//insert double create
+         if(mpo[i].qshape(0)[row].gn_up() == -1 && mpo[i].qshape(0)[row].gn_down() == -1){//insert double create
 
             DArray<4> Tp(1,1,1,1);
-            Tp = t(pairs[j][2],pairs[j][0],i - nv,i - nv);
+
+            if(pairs[j][1] == 1)//down spin is first
+               Tp = t(pairs[j][2],pairs[j][0],vind,vind);
+            else//up spin is first
+               Tp = -t(pairs[j][2],pairs[j][0],vind,vind);
 
             //double create: first column
-            mpo[i].insert(shape(2*(nv - vind) + 1 + j,3,0,0),Tp);
+            mpo[i].insert(shape(row,3,0,0),Tp);
 
          }
 
+         ++row;
+
       }
 
-      //insert identities
+      //insert fermion signs
       for(int j = 3;j < 2*(nv - vind) + 1;++j){
 
          mpo[i].insert(shape(j,0,0,j-2),Ip);
-         mpo[i].insert(shape(j,1,1,j-2),Ip);
-         mpo[i].insert(shape(j,2,2,j-2),Ip);
+         mpo[i].insert(shape(j,1,1,j-2),Im);
+         mpo[i].insert(shape(j,2,2,j-2),Im);
          mpo[i].insert(shape(j,3,3,j-2),Ip);
 
       }
@@ -1707,55 +1762,103 @@ MPO<Q> T2(const DArray<4> &t){
       //insert the t coefficients
       for(int j = i + 1;j < L;++j){
 
-         //first to one up removed
-         for(int k = 0;k < pairs.size();++k){
+         int vjnd = j - nv;
+         int col = j - i;
 
-            if(mpo[i].qshape(0)[k + 2*(nv - vind) + 1].gn_up() == -1 && mpo[i].qshape(0)[k + 2*(nv - vind) + 1].gn_down() == -1){//insert create down
+         row = 2*(nv - vind) + 1;
 
-               DArray<4> Tp(1,1,1,1);
-               Tp = t(pairs[k][2],pairs[k][0],vind,j - no);
+         //first to one down removed
+         for(int k = 0;k < pairs.size();++k){//these are the rows, sum over pairs
 
-               //create down: 
-               mpo[i].insert(shape(k + 2*(nv - vind) + 1,1,0,2*(j-i) - 1),Tp);
-               mpo[i].insert(shape(k + 2*(nv - vind) + 1,3,2,2*(j-i) - 1),Tp);
-
-            }
-            else if(mpo[i].qshape(0)[k + 2*(nv - vind) + 1].gn_up() == -2 && mpo[i].qshape(0)[k + 2*(nv - vind) + 1].gn_down() == 0){//insert create up
+            if(mpo[i].qshape(0)[row].gn_up() == -1 && mpo[i].qshape(0)[row].gn_down() == -1){//insert create up, so from (-1,-1) -> (0,1)
 
                DArray<4> Tp(1,1,1,1);
-               Tp = t(pairs[k][2],pairs[k][0],i - no,j - no);
+               DArray<4> Tm(1,1,1,1);
+
+               if(pairs[k][2] == pairs[k][0]){//is it a double occupied site coming in?
+
+                  Tp = t(pairs[k][2],pairs[k][0],vind,vjnd);
+                  Tm = -t(pairs[k][2],pairs[k][0],vind,vjnd);
+
+               }
+               else{//two different sites coming in: up down or down up
+
+                  if(pairs[k][1] == 1){// down up
+
+                     Tp = t(pairs[k][2],pairs[k][0],vind,vjnd);
+                     Tm = -t(pairs[k][2],pairs[k][0],vind,vjnd);
+
+                  }
+                  else{//up down
+
+                     Tp = -t(pairs[j][2],pairs[j][0],vjnd,vind);
+                     Tm = t(pairs[j][2],pairs[j][0],vjnd,vind);
+
+                  }
+
+               }
 
                //create up: 
-               mpo[i].insert(shape(k + 2*(nv - vind) + 1,2,0,2*(j-i) - 1),Tp);
-               mpo[i].insert(shape(k + 2*(nv - vind) + 1,3,1,2*(j-i) - 1),Tp);
+               mpo[i].insert(shape(row,1,0,2*col-1),Tp);
+               mpo[i].insert(shape(row,3,2,2*col-1),Tm);
 
             }
+            else if(mpo[i].qshape(0)[row].gn_up() == 0 && mpo[i].qshape(0)[row].gn_down() == -2){//insert create down: from (0,2) -> (0,-1)
+
+               DArray<4> Tp(1,1,1,1);
+
+               Tp = t(pairs[k][2],pairs[k][0],vind,vjnd) - t(pairs[k][2],pairs[k][0],vjnd,vind);
+
+               //create down: 
+               mpo[i].insert(shape(row,2,0,2*col-1),Tp);
+               mpo[i].insert(shape(row,3,1,2*col-1),Tp);
+
+            }
+
+            ++row;
 
          }
 
-         //then to one down removed
+         row = 2*(nv - vind) + 1;
+
+         //then to one up removed
          for(int k = 0;k < pairs.size();++k){
 
-            if(mpo[i].qshape(0)[k + 2*(nv - vind) + 1].gn_up() == -1 && mpo[i].qshape(0)[k + 2*(nv - vind) + 1].gn_down() == -1){//insert create up
+            if(mpo[i].qshape(0)[row].gn_up() == -1 && mpo[i].qshape(0)[row].gn_down() == -1){//insert create down, from (1,1) -> (-1,0)
 
                DArray<4> Tp(1,1,1,1);
-               Tp = t(pairs[k][2],pairs[k][0],i - no,j - no);
 
-               //create up: 
-               mpo[i].insert(shape(k + 2*(nv - vind) + 1,2,0,2*(j-i)),Tp);
-               mpo[i].insert(shape(k + 2*(nv - vind) + 1,3,1,2*(j-i)),Tp);
+               if(pairs[k][2] == pairs[k][0])//is it a double occupied site coming in?
+                  Tp = -t(pairs[k][2],pairs[k][0],vind,vjnd);
+               else{//two different sites coming in: up down or down up
 
-            }
-            else if(mpo[i].qshape(0)[k + 2*(nv - vind) + 1].gn_up() == 0 && mpo[i].qshape(0)[k + 2*(nv - vind) + 1].gn_down() == -2){//insert create down
+                  if(pairs[k][1] == 1)// down up
+                     Tp = -t(pairs[k][2],pairs[k][0],vjnd,vind);
+                  else//up down
+                     Tp = t(pairs[k][2],pairs[k][0],vind,vjnd);
 
-               DArray<4> Tp(1,1,1,1);
-               Tp = t(pairs[k][2],pairs[k][0],i - no,j - no);
+               }
 
                //create down: 
-               mpo[i].insert(shape(k + 2*(nv - vind) + 1,1,0,2*(j-i)),Tp);
-               mpo[i].insert(shape(k + 2*(nv - vind) + 1,3,2,2*(j-i)),Tp);
+               mpo[i].insert(shape(row,2,0,2*col),Tp);
+               mpo[i].insert(shape(row,3,1,2*col),Tp);
 
             }
+            else if(mpo[i].qshape(0)[row].gn_up() == -2 && mpo[i].qshape(0)[row].gn_down() == 0){//insert create up : from (2,0) -> (-1,0)
+
+               DArray<4> Tp(1,1,1,1);
+               DArray<4> Tm(1,1,1,1);
+
+               Tp = t(pairs[k][2],pairs[k][0],vind,vjnd) - t(pairs[k][2],pairs[k][0],vjnd,vind);
+               Tm = t(pairs[k][2],pairs[k][0],vjnd,vind) + t(pairs[k][2],pairs[k][0],vind,vjnd);
+
+               //create up:
+               mpo[i].insert(shape(row,1,0,2*col),Tp);
+               mpo[i].insert(shape(row,3,2,2*col),Tm);
+
+            }
+
+            ++row;
 
          }
 
@@ -1787,31 +1890,40 @@ MPO<Q> T2(const DArray<4> &t){
 
    mpo[L - 1].resize(Q::zero(),make_array(-mpo[L - 2].qshape(3),qp,-qp,qo));
 
-   //identity
+   //first column is closed
    mpo[L - 1].insert(shape(0,0,0,0),Ip);
    mpo[L - 1].insert(shape(0,1,1,0),Ip);
    mpo[L - 1].insert(shape(0,2,2,0),Ip);
    mpo[L - 1].insert(shape(0,3,3,0),Ip);
 
-   //create up particle
+   //create a down particle
    mpo[L - 1].insert(shape(1,2,0,0),Ip);
-   mpo[L - 1].insert(shape(1,3,1,0),Ip);
+   mpo[L - 1].insert(shape(1,3,1,0),Im);
 
-   //create down particle
+   //create an up particle
    mpo[L - 1].insert(shape(2,1,0,0),Ip);
    mpo[L - 1].insert(shape(2,3,2,0),Ip);
 
+   row = 3;
+
+   //insert the closing pairs
    for(int j = 0;j < pairs.size();++j){
 
-      if(mpo[L - 1].qshape(0)[j + 3].gn_up() == -1 && mpo[L - 1].qshape(0)[j + 3].gn_down() == -1){//insert double create
+      if(mpo[L - 1].qshape(0)[row].gn_up() == -1 && mpo[L - 1].qshape(0)[row].gn_down() == -1){//insert double create
 
          DArray<4> Tp(1,1,1,1);
-         Tp = t(pairs[j][2],pairs[j][0],nv - 1,nv - 1);
 
-         //double create:
-         mpo[L - 1].insert(shape(j + 3,3,0,0),Tp);
+         if(pairs[j][1] == 1)//down spin is first
+            Tp = t(pairs[j][2],pairs[j][0],nv - 1,nv - 1);
+         else//up spin is first
+            Tp = -t(pairs[j][2],pairs[j][0],nv - 1,nv - 1);
+
+         //double create: first column
+         mpo[L - 1].insert(shape(row,3,0,0),Tp);
 
       }
+
+      ++row;
 
    }
 

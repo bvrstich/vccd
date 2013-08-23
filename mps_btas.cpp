@@ -28,11 +28,11 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 6;
+   int L = 4;
 
    //number of particles
-   int n_u = 3;
-   int n_d = 3;
+   int n_u = 2;
+   int n_d = 2;
 
    Qshapes<Quantum> qp;
    physical(qp);
@@ -46,26 +46,58 @@ int main(void){
       occ[i] = 0;
 
    MPS<Quantum> A = product_state(L,qp,occ);
-   MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,20,rgen);
-   compress(B,mps::Left,100);
-   normalize(B);
 
+   //i j a b
    DArray<4> t(n_u,n_u,n_u,n_u);
    t.generate(rgen);
 
-   double norm = sqrt(Ddot(t,t));
-   Dscal(1.0/norm,t);
+   for(int i = 0;i < n_u;++i)
+      for(int j = 0;j < n_u;++j)
+         for(int a = 0;a < n_u;++a)
+            for(int b = 0;b < n_u;++b)
+               t(i,j,a,b) = t(j,i,b,a);
 
-   cout << Ddot(t,t) << endl;
+   double norm = Ddot(t,t);
+   cout << norm << endl;
+
+   double tmp = 0.0;
+
+   for(int i = 0;i < n_u;++i)
+      for(int a = 0;a < n_u;++a)
+         tmp += t(i,i,a,a) * t(i,i,a,a);
+
+   for(int i = 0;i < n_u;++i)
+      for(int a = 0;a < n_u;++a)
+         for(int b = a + 1;b < n_u;++b)
+            tmp += 2 * t(i,i,a,b) * t(i,i,a,b);
+
+   for(int i = 0;i < n_u;++i)
+      for(int j = i + 1;j < n_u;++j)
+         for(int a = 0;a < n_u;++a)
+            tmp += 2 * t(i,j,a,a) * t(i,j,a,a);
+
+   for(int i = 0;i < n_u;++i)
+      for(int j = i + 1;j < n_u;++j)
+         for(int a = 0;a < n_u;++a)
+            for(int b = a + 1;b < n_u;++b)
+               tmp += 2.0 * (t(i,j,a,b) - t(i,j,b,a)) * (t(i,j,a,b) - t(i,j,b,a));
+
+   for(int i = 0;i < n_u;++i)
+      for(int j = i + 1;j < n_u;++j)
+         for(int a = 0;a < n_u;++a)
+            for(int b = a + 1;b < n_u;++b)
+               tmp += 2.0 * t(i,j,a,b) * t(i,j,a,b) + 2 * (t(i,j,b,a) * t(i,j,b,a));
+
+   cout << tmp << endl;
+
+   //Dscal(1.0/norm,t);
 
    MPO<Quantum> O = T2<Quantum>(t);
 
    MPS<Quantum> OA = gemv(O,A);
-   cout << dot(mps::Left,OA,OA) << endl;
-
    compress(O,mps::Right,0);
    compress(O,mps::Left,0);
-   
+
    OA = gemv(O,A);
    cout << dot(mps::Left,OA,OA) << endl;
 
