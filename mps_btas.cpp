@@ -34,49 +34,43 @@ int main(void){
    int n_u = 3;
    int n_d = 3;
 
+   int no = n_u;
+   int nv = L - no;
+
    Qshapes<Quantum> qp;
    physical(qp);
 
-   std::vector<int> occ(L);
-
-   for(int i = 0;i < n_u;++i)
-      occ[i] = 3;
-
-   for(int i = n_u;i < L;++i)
-      occ[i] = 0;
-
-   MPS<Quantum> A = product_state(L,qp,occ);
-
    //i j a b
-   DArray<4> t(n_u,n_u,n_u,n_u);
+   DArray<2> t(L,L);
+   t.generate(rgen);
 
    t = 0.0;
 
-   for(int i = 0;i < n_u;++i)
-      for(int a = 0;a < n_u;++a)
+   for(int i = 0;i < no;++i)
+      for(int a = 0;a < nv;++a)
          t(i,i,a,a) = rgen();
 
-   for(int i = 0;i < n_u;++i)
-      for(int a = 0;a < n_u;++a)
-         for(int b = a + 1;b < n_u;++b){
+   for(int i = 0;i < no;++i)
+      for(int a = 0;a < nv;++a)
+         for(int b = a + 1;b < nv;++b){
 
             t(i,i,a,b) = rgen();
             t(i,i,b,a) = t(i,i,a,b);
 
          }
 
-   for(int i = 0;i < n_u;++i)
-      for(int j = i + 1;j < n_u;++j)
-         for(int a = 0;a < n_u;++a){
+   for(int i = 0;i < no;++i)
+      for(int j = i + 1;j < no;++j)
+         for(int a = 0;a < nv;++a){
 
             t(i,j,a,a) = rgen();
             t(j,i,a,a) = t(i,j,a,a);
 
          }
 
-   for(int i = 0;i < n_u;++i)
-      for(int j = i + 1;j < n_u;++j)
-         for(int a = 0;a < n_u;++a){
+   for(int i = 0;i < no;++i)
+      for(int j = i + 1;j < no;++j)
+         for(int a = 0;a < nv;++a){
 
             for(int b = 0;b < a;++b){
 
@@ -85,7 +79,7 @@ int main(void){
 
             }
 
-            for(int b = a + 1;b < n_u;++b){
+            for(int b = a + 1;b < nv;++b){
 
                t(i,j,a,b) = rgen();
                t(j,i,a,b) = t(i,j,a,b);
@@ -99,71 +93,53 @@ int main(void){
 
    double tmp = 0.0;
 
-   for(int i = 0;i < n_u;++i)
-      for(int a = 0;a < n_u;++a)
+   for(int i = 0;i < no;++i)
+      for(int a = 0;a < nv;++a)
          tmp += t(i,i,a,a) * t(i,i,a,a);
 
-   for(int i = 0;i < n_u;++i)
-      for(int a = 0;a < n_u;++a)
-         for(int b = a + 1;b < n_u;++b)
+   for(int i = 0;i < no;++i)
+      for(int a = 0;a < nv;++a)
+         for(int b = a + 1;b < nv;++b)
             tmp += 2 * t(i,i,a,b) * t(i,i,a,b);
 
-   for(int i = 0;i < n_u;++i)
-      for(int j = i + 1;j < n_u;++j)
-         for(int a = 0;a < n_u;++a)
+   for(int i = 0;i < no;++i)
+      for(int j = i + 1;j < no;++j)
+         for(int a = 0;a < nv;++a)
             tmp += 2 * t(i,j,a,a) * t(i,j,a,a);
 
-   for(int i = 0;i < n_u;++i)
-      for(int j = i + 1;j < n_u;++j)
-         for(int a = 0;a < n_u;++a)
-            for(int b = a + 1;b < n_u;++b)
+   for(int i = 0;i < no;++i)
+      for(int j = i + 1;j < no;++j)
+         for(int a = 0;a < nv;++a)
+            for(int b = a + 1;b < nv;++b)
                tmp += 2.0 * (t(i,j,a,b) - t(i,j,b,a)) * (t(i,j,a,b) - t(i,j,b,a));
 
-   //down up coming in: create up
-   for(int i = 0;i < n_u;++i)
-      for(int j = i + 1;j < n_u;++j)
-         for(int a = 0;a < n_u;++a)
-            for(int b = a + 1;b < n_u;++b)
-               tmp += t(i,j,a,b) * t(i,j,a,b);
-
-   //down up coming in: create down
-   for(int i = 0;i < n_u;++i)
-      for(int j = i + 1;j < n_u;++j)
-         for(int a = 0;a < n_u;++a)
-            for(int b = a + 1;b < n_u;++b)
-               tmp += t(i,j,b,a) * t(i,j,b,a);
-
-   //up down coming in: create down
-   for(int i = 0;i < n_u;++i)
-      for(int j = i + 1;j < n_u;++j)
-         for(int a = 0;a < n_u;++a)
-            for(int b = a + 1;b < n_u;++b)
-               tmp += t(i,j,a,b) * t(i,j,a,b);
-
-   //up down coming in: create up
-   for(int i = 0;i < n_u;++i)
-      for(int j = i + 1;j < n_u;++j)
-         for(int a = 0;a < n_u;++a)
-            for(int b = a + 1;b < n_u;++b)
-               tmp += t(i,j,b,a) * t(i,j,b,a);
+   for(int i = 0;i < no;++i)
+      for(int j = i + 1;j < no;++j)
+         for(int a = 0;a < nv;++a)
+            for(int b = a + 1;b < nv;++b)
+               tmp += 2*t(i,j,a,b) * t(i,j,a,b) + 2*t(i,j,b,a) * t(i,j,b,a);
 
    cout << tmp << endl;
 
    //Dscal(1.0/norm,t);
 
+   cout << "is it this?" << endl;
    MPO<Quantum> O = T2<Quantum>(t);
-
-   MPS<Quantum> OA = gemv(O,A);
    compress(O,mps::Right,0);
    compress(O,mps::Left,0);
+   cout << "that takes long?" << endl;
 
-   OA = gemv(O,A);
-   cout << dot(mps::Left,OA,OA) << endl;
+   for(int i = 0;i < 20;++i){
 
-   compress(OA,mps::Right,0);
-   compress(OA,mps::Left,0);
+      cout << endl;
+      cout << "site " << i << endl;
+      cout << endl;
+      cout << O[i].qshape() << endl;
+      cout << O[i].dshape() << endl;
+      cout << endl;
 
-   cout << dot(mps::Left,OA,OA) << endl;
+   }
+
 
    return 0;
 
