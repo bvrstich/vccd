@@ -9,17 +9,92 @@ using std::ifstream;
 
 #include "include.h"
 
+std::vector< std::vector<int> > Ostate::oplist;
+
+/**
+ * static fucntion which constructs the list relating the operator index to the actual operator:
+ * 0 == id
+ * 1 -> L = create up on site
+ * L+1 -> 2L = create down on site 
+ * 2L + 1 -> 3L = anni up on site 
+ * 3L + 1 -> 4L = anni down on site
+ * @param L length of the chain 
+ */
+void Ostate::construct_oplist(int L){
+
+   std::vector<int> v(1);//Id
+   v[0] = 0;
+
+   oplist.push_back(v);
+
+   v.resize(3);//Id
+
+   for(int i = 0;i < L;++i){
+
+      v[0] = i;//site
+      v[1] = 0;//spin up
+      v[2] = 0;//create
+
+      oplist.push_back(v);
+
+   }
+
+   for(int i = 0;i < L;++i){
+
+      v[0] = i;//site
+      v[1] = 1;//spin down
+      v[2] = 0;//create
+
+      oplist.push_back(v);
+
+   }
+
+   for(int i = 0;i < L;++i){
+
+      v[0] = i;//site
+      v[1] = 0;//spin up
+      v[2] = 1;//anni
+
+      oplist.push_back(v);
+
+   }
+
+   for(int i = 0;i < L;++i){
+
+      v[0] = i;//site
+      v[1] = 1;//spin down
+      v[2] = 1;//anni
+
+      oplist.push_back(v);
+
+   }
+
+}
+
+/**
+ * static function: prints the oplist
+ */
+void Ostate::print_oplist(){
+
+   for(int i = 0;i < oplist.size();++i)
+      cout << i << "\t" << oplist[i] << endl;
+
+}
+
+/**
+ * constructor
+ * @param number of sites
+ */
+Ostate::Ostate(){ }
+
 /**
  * constructor 
- * @param site_i site of the state
- * @param spin_i spin of the state
- * @param act_i action on the state: create or annihilate
+ * @param L number of sites
+ * @param nop number of operators on the site
  */
-Ostate::Ostate(int site_i,bool spin_i,bool act_i){
+Ostate::Ostate(int nop){
 
-   this->site = site_i;
-   this->spin = spin_i;
-   this->act = act_i;
+   op.resize(nop);
 
 }
 
@@ -29,35 +104,33 @@ Ostate::Ostate(int site_i,bool spin_i,bool act_i){
  */
 Ostate::Ostate(const Ostate &ostate_c){
 
-   site = ostate_c.gsite();
-   spin = ostate_c.gspin();
-   act = ostate_c.gact();
+   op = ostate_c.op;
+
+}
+
+Ostate::~Ostate(){ }
+
+/**
+ * overload equality operator
+ */
+Ostate &Ostate::operator=(const Ostate &ostate_c){
+
+   op = ostate_c.op;
+
+}
+
+ostream &operator<<(ostream &output,const Ostate &ostate_p){
+
+   for(int i = 0;i < ostate_p.size();++i)
+      output << oplist[ostate_p.op[i]] << endl;
 
 }
 
 /**
- * @return the site
+ * add the identity operator
  */
-int Ostate::gsite(){
+void Ostate::push_id(){
 
-   return site;
-
-}
-
-/**
- * @return the spin
- */
-bool Ostate::gspin(){
-
-   return spin;
-
-}
-
-/**
- * @return the action on the site
- */
-bool Ostate::gact(){
-
-   return act;
+   op.
 
 }

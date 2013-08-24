@@ -37,6 +37,9 @@ int main(void){
    int no = n_u;
    int nv = L - no;
 
+   Ostate::construct_oplist(L);
+   Ostate::print_oplist();
+
    Qshapes<Quantum> qp;
    physical(qp);
 
@@ -44,102 +47,7 @@ int main(void){
    DArray<2> t(L,L);
    t.generate(rgen);
 
-   t = 0.0;
-
-   for(int i = 0;i < no;++i)
-      for(int a = 0;a < nv;++a)
-         t(i,i,a,a) = rgen();
-
-   for(int i = 0;i < no;++i)
-      for(int a = 0;a < nv;++a)
-         for(int b = a + 1;b < nv;++b){
-
-            t(i,i,a,b) = rgen();
-            t(i,i,b,a) = t(i,i,a,b);
-
-         }
-
-   for(int i = 0;i < no;++i)
-      for(int j = i + 1;j < no;++j)
-         for(int a = 0;a < nv;++a){
-
-            t(i,j,a,a) = rgen();
-            t(j,i,a,a) = t(i,j,a,a);
-
-         }
-
-   for(int i = 0;i < no;++i)
-      for(int j = i + 1;j < no;++j)
-         for(int a = 0;a < nv;++a){
-
-            for(int b = 0;b < a;++b){
-
-               t(i,j,a,b) = rgen();
-               t(j,i,a,b) = t(i,j,a,b);
-
-            }
-
-            for(int b = a + 1;b < nv;++b){
-
-               t(i,j,a,b) = rgen();
-               t(j,i,a,b) = t(i,j,a,b);
-
-            }
-
-         }
-
-   double norm = Ddot(t,t);
-   cout << norm << endl;
-
-   double tmp = 0.0;
-
-   for(int i = 0;i < no;++i)
-      for(int a = 0;a < nv;++a)
-         tmp += t(i,i,a,a) * t(i,i,a,a);
-
-   for(int i = 0;i < no;++i)
-      for(int a = 0;a < nv;++a)
-         for(int b = a + 1;b < nv;++b)
-            tmp += 2 * t(i,i,a,b) * t(i,i,a,b);
-
-   for(int i = 0;i < no;++i)
-      for(int j = i + 1;j < no;++j)
-         for(int a = 0;a < nv;++a)
-            tmp += 2 * t(i,j,a,a) * t(i,j,a,a);
-
-   for(int i = 0;i < no;++i)
-      for(int j = i + 1;j < no;++j)
-         for(int a = 0;a < nv;++a)
-            for(int b = a + 1;b < nv;++b)
-               tmp += 2.0 * (t(i,j,a,b) - t(i,j,b,a)) * (t(i,j,a,b) - t(i,j,b,a));
-
-   for(int i = 0;i < no;++i)
-      for(int j = i + 1;j < no;++j)
-         for(int a = 0;a < nv;++a)
-            for(int b = a + 1;b < nv;++b)
-               tmp += 2*t(i,j,a,b) * t(i,j,a,b) + 2*t(i,j,b,a) * t(i,j,b,a);
-
-   cout << tmp << endl;
-
-   //Dscal(1.0/norm,t);
-
-   cout << "is it this?" << endl;
-   MPO<Quantum> O = T2<Quantum>(t);
-   compress(O,mps::Right,0);
-   compress(O,mps::Left,0);
-   cout << "that takes long?" << endl;
-
-   for(int i = 0;i < 20;++i){
-
-      cout << endl;
-      cout << "site " << i << endl;
-      cout << endl;
-      cout << O[i].qshape() << endl;
-      cout << O[i].dshape() << endl;
-      cout << endl;
-
-   }
-
+   MPO<Quantum> O = one_body<Quantum>(t);
 
    return 0;
 

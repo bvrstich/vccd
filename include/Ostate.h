@@ -18,7 +18,9 @@ class Ostate{
    public:
 
       //constructor
-      Ostate(int,bool,bool);
+      Ostate();
+
+      Ostate(int);
 
       //copy constructor
       Ostate(const Ostate &);
@@ -29,23 +31,34 @@ class Ostate{
       //overload equality operator
       Ostate &operator=(const Ostate &);
 
-      int gsite() const;
+      void resize(int);
 
-      bool gspin() const;
+      void push_id();
 
-      bool gact() const;
+      void push_crea_up(int);
+
+      void push_crea_down(int);
+
+      void push_anni_up(int);
+
+      void push_anni_down(int);
+
+      static void construct_oplist(int);
+
+      static void print_oplist();
 
    private:
+
+      //!vector containing the operators: 
+      //!0 = id
+      //!1 -> L = create up on site 
+      //!L+1 -> 2L = create down on site 
+      //!2L + 1 -> 3L = anni up on site 
+      //!3L + 1 -> 4L = anni down
+      std::vector<int> op;
+
+      static std::vector< std::vector<int> > oplist;
       
-      //!the site on which the operator acts
-      int site;
-
-      //!up (true) or down (false) spin
-      bool spin;
-
-      //!creation (true) or annihilation (false)
-      bool act;
-
 };
 
 #endif
