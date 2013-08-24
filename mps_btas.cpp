@@ -41,7 +41,7 @@ int main(void){
    physical(qp);
 
    //i j a b
-   DArray<2> t(L,L);
+   DArray<4> t(no,no,nv,nv);
    t.generate(rgen);
 
    t = 0.0;
@@ -123,23 +123,22 @@ int main(void){
 
    //Dscal(1.0/norm,t);
 
-   cout << "is it this?" << endl;
    MPO<Quantum> O = T2<Quantum>(t);
    compress(O,mps::Right,0);
    compress(O,mps::Left,0);
-   cout << "that takes long?" << endl;
 
-   for(int i = 0;i < 20;++i){
+   std::vector<int> occ(L);
 
-      cout << endl;
-      cout << "site " << i << endl;
-      cout << endl;
-      cout << O[i].qshape() << endl;
-      cout << O[i].dshape() << endl;
-      cout << endl;
+   for(int i = 0;i < no;++i)
+      occ[i] = 3;
 
-   }
+   for(int i = no;i < L;++i)
+      occ[i] = 0;
 
+   MPS<Quantum> A = product_state(L,qp,occ);
+
+   MPS<Quantum> OA = gemv(O,A);
+   cout << dot(mps::Left,OA,OA) << endl;
 
    return 0;
 

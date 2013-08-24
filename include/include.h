@@ -16,4 +16,3 @@ namespace btas { typedef FermiQuantum Quantum; };
 #include "btas/MPS/MPSblas.h"
 
 #include "FermiHamiltonian.h"
-#include "Ostate.h"

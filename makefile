@@ -9,8 +9,7 @@
 # -----------------------------------------------------------------------------
 BINNAME = mps_btas
 CPPSRC	= mps_btas.cpp\
-           FermiHamiltonian.cpp\
-           Ostate.cpp
+           FermiHamiltonian.cpp
 
 
 OBJ	= $(CPPSRC:.cpp=.o)
