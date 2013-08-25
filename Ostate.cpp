@@ -10,6 +10,7 @@ using std::ifstream;
 #include "include.h"
 
 std::vector< std::vector<int> > Ostate::oplist;
+int Ostate::L;
 
 /**
  * static fucntion which constructs the list relating the operator index to the actual operator:
@@ -18,9 +19,11 @@ std::vector< std::vector<int> > Ostate::oplist;
  * L+1 -> 2L = create down on site 
  * 2L + 1 -> 3L = anni up on site 
  * 3L + 1 -> 4L = anni down on site
- * @param L length of the chain 
+ * @param L_in length of the chain 
  */
-void Ostate::construct_oplist(int L){
+void Ostate::construct_oplist(int L_in){
+
+   L = L_in;
 
    std::vector<int> v(1);//Id
    v[0] = 0;
@@ -83,46 +86,28 @@ void Ostate::print_oplist(){
 
 /**
  * constructor
- * @param number of sites
  */
-Ostate::Ostate(){ }
+Ostate::Ostate() : std::vector<int>(){ }
 
 /**
  * constructor 
  * @param L number of sites
  * @param nop number of operators on the site
  */
-Ostate::Ostate(int nop){
-
-   op.resize(nop);
-
-}
+Ostate::Ostate(int nop) : std::vector<int>(nop){ }
 
 /**
  * copy constructor 
  * @param ostate_c object to be copied
  */
-Ostate::Ostate(const Ostate &ostate_c){
-
-   op = ostate_c.op;
-
-}
+Ostate::Ostate(const Ostate &ostate_c) : std::vector<int>(ostate_c){ }
 
 Ostate::~Ostate(){ }
-
-/**
- * overload equality operator
- */
-Ostate &Ostate::operator=(const Ostate &ostate_c){
-
-   op = ostate_c.op;
-
-}
 
 ostream &operator<<(ostream &output,const Ostate &ostate_p){
 
    for(int i = 0;i < ostate_p.size();++i)
-      output << oplist[ostate_p.op[i]] << endl;
+      output << Ostate::oplist[ostate_p[i]] << endl;
 
 }
 
@@ -131,6 +116,42 @@ ostream &operator<<(ostream &output,const Ostate &ostate_p){
  */
 void Ostate::push_id(){
 
-   op.
+   push_back(0);
+
+}
+
+/**
+ * add a creation operator of a spin up particle on site
+ */
+void Ostate::push_crea_up(int site){
+
+   push_back(1 + site);
+
+}
+
+/**
+ * add a creation operator of a spin down particle on site
+ */
+void Ostate::push_crea_down(int site){
+
+   push_back(L + 1 + site);
+
+}
+
+/**
+ * add a annihilation operator of a spin up particle on site
+ */
+void Ostate::push_anni_up(int site){
+
+   push_back(2*L + 1 + site);
+
+}
+
+/**
+ * add a annihilation operator of a spin up particle on site
+ */
+void Ostate::push_anni_down(int site){
+
+   push_back(3*L + 1 + site);
 
 }

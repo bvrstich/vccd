@@ -43,8 +43,8 @@ int main(void){
    Qshapes<Quantum> qp;
    physical(qp);
 
-   //i j a b
-   DArray<2> t(L,L);
+   //i j
+   DArray<4> t(no,no,nu,nu);
    t.generate(rgen);
 
    MPO<Quantum> O = one_body<Quantum>(t);

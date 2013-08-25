@@ -11,7 +11,7 @@ using std::ostream;
  * @date 24-08-2013
  * This class just collects the information needed for incoming and outgoing states of a MPO.
  */
-class Ostate{
+class Ostate : public std::vector<int> {
 
    friend ostream &operator<<(ostream &output,const Ostate &ostate_p);
 
@@ -28,8 +28,9 @@ class Ostate{
       //destructor
       virtual ~Ostate();
 
-      //overload equality operator
-      Ostate &operator=(const Ostate &);
+      using std::vector<int>::operator=;
+
+      using std::vector<int>::operator[];
 
       void resize(int);
 
@@ -55,9 +56,10 @@ class Ostate{
       //!L+1 -> 2L = create down on site 
       //!2L + 1 -> 3L = anni up on site 
       //!3L + 1 -> 4L = anni down
-      std::vector<int> op;
-
       static std::vector< std::vector<int> > oplist;
+
+      //!number of sites
+      static int L;
       
 };
 
