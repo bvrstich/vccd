@@ -1126,10 +1126,8 @@ MPO<Q> T2(const DArray<4> &t){
 
    mpo[0].resize(Q::zero(),make_array(qz,qp,-qp,qo));
 
-   std::vector<int> v(1);
-   v[0] = 1;
-
-   std::vector< std::vector<int> > ostates;
+   std::vector< Ostate > ostates;
+   Ostate state;
 
    //identity
    mpo[0].insert(shape(0,0,0,0),Ip);
@@ -1137,39 +1135,37 @@ MPO<Q> T2(const DArray<4> &t){
    mpo[0].insert(shape(0,2,2,0),Ip);
    mpo[0].insert(shape(0,3,3,0),Ip);
 
-   ostates.push_back(v);
+   state.push_id();
+   ostates.push_back(state);
+   state.clear();
 
    //a_down
    mpo[0].insert(shape(0,0,2,1),Ip);
    mpo[0].insert(shape(0,1,3,1),Ip);
 
-   v.resize(2);
-   v[0] = 0;//site
-   v[1] = 1;//spin down
-
-   ostates.push_back(v);
+   state.push_anni_down(0);
+   ostates.push_back(state);
+   state.clear();
 
    //a_up (-1)^n_down
    mpo[0].insert(shape(0,0,1,2),Ip);
    mpo[0].insert(shape(0,2,3,2),Im);
 
-   v[0] = 0;//site
-   v[1] = 0;//spin up
-
-   ostates.push_back(v);
+   state.push_anni_up(0);
+   ostates.push_back(state);
+   state.clear();
 
    //a_down a_up
    mpo[0].insert(shape(0,0,3,3),Ip);
 
-   v.resize(4);
+   state.push_anni_down(0);
+   state.push_anni_up(0);
+   ostates.push_back(state);
+   state.clear();
 
-   v[0] = 0;//site
-   v[1] = 1;//down
-   v[2] = 0;//site
-   v[3] = 0;//up
+   cout << ostates << endl;
 
-   ostates.push_back(v);
-
+/*
    std::vector< std::vector<int> > istates;
    istates = ostates;
 
@@ -1976,7 +1972,7 @@ MPO<Q> T2(const DArray<4> &t){
    QSTmerge(info,mpo[L - 1],tmp);
 
    mpo[L - 1] = tmp;
-
+*/
    return mpo;
 
 }

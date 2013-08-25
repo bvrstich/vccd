@@ -43,11 +43,55 @@ int main(void){
    Qshapes<Quantum> qp;
    physical(qp);
 
-   //i j
-   DArray<4> t(no,no,nu,nu);
+   //i j a b
+   DArray<4> t(no,no,nv,nv);
    t.generate(rgen);
 
-   MPO<Quantum> O = one_body<Quantum>(t);
+   t = 0.0;
+
+   for(int i = 0;i < no;++i)
+      for(int a = 0;a < nv;++a)
+         t(i,i,a,a) = rgen();
+
+   for(int i = 0;i < no;++i)
+      for(int a = 0;a < nv;++a)
+         for(int b = a + 1;b < nv;++b){
+
+            t(i,i,a,b) = rgen();
+            t(i,i,b,a) = t(i,i,a,b);
+
+         }
+
+   for(int i = 0;i < no;++i)
+      for(int j = i + 1;j < no;++j)
+         for(int a = 0;a < nv;++a){
+
+            t(i,j,a,a) = rgen();
+            t(j,i,a,a) = t(i,j,a,a);
+
+         }
+
+   for(int i = 0;i < no;++i)
+      for(int j = i + 1;j < no;++j)
+         for(int a = 0;a < nv;++a){
+
+            for(int b = 0;b < a;++b){
+
+               t(i,j,a,b) = rgen();
+               t(j,i,a,b) = t(i,j,a,b);
+
+            }
+
+            for(int b = a + 1;b < nv;++b){
+
+               t(i,j,a,b) = rgen();
+               t(j,i,a,b) = t(i,j,a,b);
+
+            }
+
+         }
+
+   MPO<Quantum> O = T2<Quantum>(t);
 
    return 0;
 

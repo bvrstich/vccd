@@ -106,8 +106,14 @@ Ostate::~Ostate(){ }
 
 ostream &operator<<(ostream &output,const Ostate &ostate_p){
 
-   for(int i = 0;i < ostate_p.size();++i)
-      output << Ostate::oplist[ostate_p[i]] << endl;
+   cout << "what the fuck is going on here" << endl;
+   cout << Ostate::oplist[ostate_p[0]] << endl;
+
+   for(int i = 0;i < ostate_p.size();++i){
+
+      output << ostate_p[i] << endl;
+
+   }
 
 }
 
