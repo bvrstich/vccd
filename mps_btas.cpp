@@ -38,7 +38,6 @@ int main(void){
    int nv = L - no;
 
    Ostate::construct_oplist(L);
-   Ostate::print_oplist();
 
    Qshapes<Quantum> qp;
    physical(qp);

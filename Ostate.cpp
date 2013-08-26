@@ -30,7 +30,7 @@ void Ostate::construct_oplist(int L_in){
 
    oplist.push_back(v);
 
-   v.resize(3);//Id
+   v.resize(3);
 
    for(int i = 0;i < L;++i){
 
@@ -106,14 +106,10 @@ Ostate::~Ostate(){ }
 
 ostream &operator<<(ostream &output,const Ostate &ostate_p){
 
-   cout << "what the fuck is going on here" << endl;
-   cout << Ostate::oplist[ostate_p[0]] << endl;
+   for(int i = 0;i < ostate_p.size();++i)
+      output << Ostate::oplist[ostate_p[i]] << endl;
 
-   for(int i = 0;i < ostate_p.size();++i){
-
-      output << ostate_p[i] << endl;
-
-   }
+   return output;
 
 }
 
@@ -159,5 +155,44 @@ void Ostate::push_anni_up(int site){
 void Ostate::push_anni_down(int site){
 
    push_back(3*L + 1 + site);
+
+}
+
+/**
+ * @return spin of the 'n'the operator: 0 is up, 1 is down
+ */
+int Ostate::gspin(int n) const{
+
+   return oplist[(*this)[n]][1];
+
+}
+
+/**
+ * @return site of the 'n'the operator
+ */
+int Ostate::gsite(int n) const{
+
+   return oplist[(*this)[n]][0];
+
+}
+
+/**
+ * @return action f the 'n'the operator: 0 is create, 1 is annihilate
+ */
+int Ostate::gact(int n) const{
+
+   return oplist[(*this)[n]][2];
+
+}
+
+/**
+ * @return true if the two operators are on the same site
+ */
+bool Ostate::is_pair() const {
+
+   if(oplist[(*this)[0]][0] == oplist[(*this)[1]][0])
+      return true;
+   else
+      return false;
 
 }

@@ -28,10 +28,6 @@ class Ostate : public std::vector<int> {
       //destructor
       virtual ~Ostate();
 
-      using std::vector<int>::operator=;
-
-      using std::vector<int>::operator[];
-
       void resize(int);
 
       void push_id();
@@ -43,6 +39,14 @@ class Ostate : public std::vector<int> {
       void push_anni_up(int);
 
       void push_anni_down(int);
+
+      int gspin(int) const;
+
+      int gsite(int) const;
+
+      int gact(int) const;
+
+      bool is_pair() const;
 
       static void construct_oplist(int);
 
