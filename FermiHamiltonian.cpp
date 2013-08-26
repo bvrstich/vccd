@@ -1199,8 +1199,8 @@ MPO<Q> T2(const DArray<4> &t){
 
       qo.push_back(Q(1,1));//a_up a_down
 
-      state.push_anni_down(0);
-      state.push_anni_up(0);
+      state.push_anni_down(i);
+      state.push_anni_up(i);
       ostates.push_back(state);
       state.clear();
 

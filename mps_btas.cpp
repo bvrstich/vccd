@@ -28,11 +28,11 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 6;
+   int L = 20;
 
    //number of particles
-   int n_u = 3;
-   int n_d = 3;
+   int n_u = 9;
+   int n_d = 9;
 
    int no = n_u;
    int nv = L - no;
@@ -46,51 +46,23 @@ int main(void){
    DArray<4> t(no,no,nv,nv);
    t.generate(rgen);
 
-   t = 0.0;
+   ifstream in("t.in");
 
    for(int i = 0;i < no;++i)
-      for(int a = 0;a < nv;++a)
-         t(i,i,a,a) = rgen();
-
-   for(int i = 0;i < no;++i)
-      for(int a = 0;a < nv;++a)
-         for(int b = a + 1;b < nv;++b){
-
-            t(i,i,a,b) = rgen();
-            t(i,i,b,a) = t(i,i,a,b);
-
-         }
-
-   for(int i = 0;i < no;++i)
-      for(int j = i + 1;j < no;++j)
-         for(int a = 0;a < nv;++a){
-
-            t(i,j,a,a) = rgen();
-            t(j,i,a,a) = t(i,j,a,a);
-
-         }
-
-   for(int i = 0;i < no;++i)
-      for(int j = i + 1;j < no;++j)
-         for(int a = 0;a < nv;++a){
-
-            for(int b = 0;b < a;++b){
-
-               t(i,j,a,b) = rgen();
-               t(j,i,a,b) = t(i,j,a,b);
-
-            }
-
-            for(int b = a + 1;b < nv;++b){
-
-               t(i,j,a,b) = rgen();
-               t(j,i,a,b) = t(i,j,a,b);
-
-            }
-
-         }
+      for(int j = 0;j < no;++j)
+         for(int a = 0;a < nv;++a)
+            for(int b = 0;b < nv;++b)
+               in >> i >> j >> a >> b >> t(i,j,a,b);
 
    MPO<Quantum> O = T2<Quantum>(t);
+
+   for(int i = 0;i < L;++i){
+      cout << endl;
+      cout << "site " << i << endl;
+      cout << endl;
+      cout << O[i] << endl;
+   }
+
 
    return 0;
 
