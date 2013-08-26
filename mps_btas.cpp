@@ -31,8 +31,8 @@ int main(void){
    int L = 20;
 
    //number of particles
-   int n_u = 9;
-   int n_d = 9;
+   int n_u = 10;
+   int n_d = 10;
 
    int no = n_u;
    int nv = L - no;
@@ -43,26 +43,22 @@ int main(void){
    physical(qp);
 
    //i j a b
-   DArray<4> t(no,no,nv,nv);
+   DArray<2> t(L,L);
    t.generate(rgen);
 
-   ifstream in("t.in");
-
-   for(int i = 0;i < no;++i)
-      for(int j = 0;j < no;++j)
-         for(int a = 0;a < nv;++a)
-            for(int b = 0;b < nv;++b)
-               in >> i >> j >> a >> b >> t(i,j,a,b);
-
-   MPO<Quantum> O = T2<Quantum>(t);
+   MPO<Quantum> O = one_body<Quantum>(t);
+   compress(O,mps::Right,0);
+   compress(O,mps::Left,0);
 
    for(int i = 0;i < L;++i){
-      cout << endl;
+
       cout << "site " << i << endl;
       cout << endl;
-      cout << O[i] << endl;
-   }
+      cout << O[i].qshape() << endl;
+      cout << O[i].dshape() << endl;
+      cout << endl;
 
+   }
 
    return 0;
 
