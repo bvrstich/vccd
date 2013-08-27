@@ -2315,6 +2315,911 @@ MPO<Q> one_body(const DArray<2> &t){
 
 }
 
+/**
+ * @return MPO object of length L containing a general one-body operator \sum_ab t_ab a^+_as a_bs
+ */
+template<class Q>
+MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
+
+   int L = t.shape(0);//number of occupied orbitals
+
+   MPO<Q> mpo(L);
+
+   Qshapes<Q> qp;
+   physical(qp);
+
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q::zero());
+
+   Qshapes<Q> qo;
+   Qshapes<Q> qi;
+
+   //first make the incoming and outgoing states:
+   std::vector< Ostate > istates;
+
+   //identity only incoming
+   Ostate state;
+   state.push_id();
+   istates.push_back(state);
+   state.clear();
+
+   std::vector< Ostate > ostates;
+
+   //identity
+   state.push_id();
+   ostates.push_back(state);
+   state.clear();
+
+   qo.push_back(Q::zero());//I
+
+   //singles
+
+   //a^+_up
+   state.push_crea_up(0);
+   ostates.push_back(state);
+   state.clear();
+
+   qo.push_back(Q(-1,0));
+
+   //a^+_down 
+   state.push_crea_down(0);
+   ostates.push_back(state);
+   state.clear();
+
+   qo.push_back(Q(0,-1));
+
+   //a_up 
+   state.push_anni_up(0);
+   ostates.push_back(state);
+   state.clear();
+
+   qo.push_back(Q(1,0));
+
+   //a_down
+   state.push_anni_down(0);
+   ostates.push_back(state);
+   state.clear();
+
+   qo.push_back(Q(0,1));
+
+   //doubles:
+
+   //a^+_up a^+_down
+   state.push_crea_up(0);
+   state.push_crea_down(0);
+   ostates.push_back(state);
+   state.clear();
+
+   qo.push_back(Q(-1,-1));
+
+   //doubles: a^+_up a_up
+   state.push_crea_up(0);
+   state.push_anni_up(0);
+   ostates.push_back(state);
+   state.clear();
+
+   qo.push_back(Q::zero());
+
+   //doubles: a^+_up a_down
+   state.push_crea_up(0);
+   state.push_anni_down(0);
+   ostates.push_back(state);
+   state.clear();
+
+   qo.push_back(Q(-1,1));
+
+   //doubles: a^+_down a_up
+   state.push_crea_down(0);
+   state.push_anni_up(0);
+   ostates.push_back(state);
+   state.clear();
+
+   qo.push_back(Q(1,-1));
+
+   //doubles: a^+_down a_down
+   state.push_crea_down(0);
+   state.push_anni_down(0);
+   ostates.push_back(state);
+   state.clear();
+
+   qo.push_back(Q::zero());
+
+   //doubles: a_up a_down
+   state.push_anni_up(0);
+   state.push_anni_down(0);
+   ostates.push_back(state);
+   state.clear();
+
+   qo.push_back(Q(1,1));
+
+   //complementary operators: triples
+   for(int j = 1;j < L;++j){
+      
+      state.push_crea_up(j);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q(-1,0));
+
+      state.push_crea_down(j);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q(0,-1));
+
+      state.push_anni_down(j);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q(0,1));
+
+      state.push_anni_up(j);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q(1,0));
+
+   }
+
+   //finally the local term:
+   state.push_id();
+   ostates.push_back(state);
+   state.clear();
+
+   qo.push_back(Q::zero());
+
+   //now fill
+   mpo[0].resize(Q::zero(),make_array(qz,qp,-qp,qo));
+
+   int row = 0;
+   int column = 0;
+
+   //insert id
+   insert_id(mpo[0],0,0);
+
+   //insert singles
+   insert_crea_up_s(mpo[0],0,1,1.0);
+   insert_crea_down(mpo[0],0,2,1.0);
+   insert_anni_up_s(mpo[0],0,3,1.0);
+   insert_anni_down(mpo[0],0,4,1.0);
+
+   column = 5;
+
+   //insert doubles
+   insert_crea_up_crea_down(mpo[0],0,5,1.0);
+   insert_crea_up_anni_up(mpo[0],0,6,1.0);
+   insert_crea_up_anni_down(mpo[0],0,7,1.0);
+   insert_crea_down_anni_up(mpo[0],0,8,1.0);
+   insert_crea_down_anni_down(mpo[0],0,9,1.0);
+   insert_anni_up_anni_down(mpo[0],0,10,1.0);
+
+   column = 11;
+
+   //insert tripes: complementary operator
+   for(int j = 1;j < L;++j){
+
+      insert_comp_anni_up(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
+      insert_comp_anni_down(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
+      insert_comp_crea_down(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
+      insert_comp_crea_up(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
+
+   }
+
+   //last term:
+   insert_local(mpo[0],0,column,t(0,0),V(0,0,0,0));
+
+   istates = ostates;
+   qi = qo;
+
+   //middle tensors
+   //for(int i = 1;i < L - 1;++i){
+      int i = 1;
+
+      //first construct the ingoing and outgoing states
+      ostates.clear();
+      qo.clear();
+
+      //identity
+      state.push_id();
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q::zero());//I
+
+      //singles
+
+      //a^+_up
+      state.push_crea_up(i);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q(-1,0));
+
+      //a^+_down 
+      state.push_crea_down(i);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q(0,-1));
+
+      //a_up 
+      state.push_anni_up(i);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q(1,0));
+
+      //a_down
+      state.push_anni_down(i);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q(0,1));
+
+      //copy the singles from previous tensor
+      row = 1;
+
+      while(istates[row].size() == 1){
+
+         ostates.push_back(istates[row]);
+         qo.push_back(qi[row]);
+         ++row;
+
+      }
+
+      //doubles:
+
+      //a^+_up a^+_down
+      state.push_crea_up(i);
+      state.push_crea_down(i);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q(-1,-1));
+
+      //doubles: a^+_up a_up
+      state.push_crea_up(i);
+      state.push_anni_up(i);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q::zero());
+
+      //doubles: a^+_up a_down
+      state.push_crea_up(0);
+      state.push_anni_down(0);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q(-1,1));
+
+      //doubles: a^+_down a_up
+      state.push_crea_down(i);
+      state.push_anni_up(i);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q(1,-1));
+
+      //doubles: a^+_down a_down
+      state.push_crea_down(i);
+      state.push_anni_down(i);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q::zero());
+
+      //doubles: a_up a_down
+      state.push_anni_up(i);
+      state.push_anni_down(i);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q(1,1));
+
+      //make new doubles by adding on single f^'s and f's
+      row = 1;
+
+      while(istates[row].size() == 1){//create up
+
+         state.push_crea_up(i);
+         state.insert(state.end(),istates[row].begin(),istates[row].end());
+         ostates.push_back(state);
+         state.clear();
+
+         Quantum tmp = qi[row];
+         tmp.crea_up();
+         qo.push_back(tmp);
+
+         ++row;
+
+      }
+
+      row = 1;
+
+      while(istates[row].size() == 1){//create down
+
+         state.push_crea_down(i);
+         state.insert(state.end(),istates[row].begin(),istates[row].end());
+         ostates.push_back(state);
+         state.clear();
+
+         Quantum tmp = qi[row];
+         tmp.crea_down();
+         qo.push_back(tmp);
+
+         ++row;
+
+      }
+
+      row = 1;
+
+      while(istates[row].size() == 1){//anni up
+
+         state.push_anni_up(i);
+         state.insert(state.end(),istates[row].begin(),istates[row].end());
+         ostates.push_back(state);
+         state.clear();
+
+         Quantum tmp = qi[row];
+         tmp.anni_up();
+         qo.push_back(tmp);
+
+         ++row;
+
+      }
+
+      row = 1;
+
+      while(istates[row].size() == 1){//anni down 
+
+         state.push_anni_down(i);
+         state.insert(state.end(),istates[row].begin(),istates[row].end());
+         ostates.push_back(state);
+         state.clear();
+
+         Quantum tmp = qi[row];
+         tmp.anni_down();
+         qo.push_back(tmp);
+
+         ++row;
+
+      }
+
+      //copy the doubles from previous tensor
+      while(istates[row].size() == 2){
+
+         ostates.push_back(istates[row]);
+         qo.push_back(qi[row]);
+         ++row;
+
+      }
+
+      //complementary operators: triples
+      for(int j = i + 1;j < L;++j){
+
+         state.push_crea_up(j);
+         ostates.push_back(state);
+         state.clear();
+
+         qo.push_back(Q(-1,0));
+
+         state.push_crea_down(j);
+         ostates.push_back(state);
+         state.clear();
+
+         qo.push_back(Q(0,-1));
+
+         state.push_anni_down(j);
+         ostates.push_back(state);
+         state.clear();
+
+         qo.push_back(Q(0,1));
+
+         state.push_anni_up(j);
+         ostates.push_back(state);
+         state.clear();
+
+         qo.push_back(Q(1,0));
+
+      }
+
+      //finally the local term:
+      state.push_id();
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q::zero());
+
+      //now fill
+      mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+      row = 0;
+      column = 0;
+
+      //insert id
+      insert_id(mpo[i],0,0);
+
+      //insert singles
+      insert_crea_up_s(mpo[i],0,1,1.0);
+      insert_crea_down(mpo[i],0,2,1.0);
+      insert_anni_up_s(mpo[i],0,3,1.0);
+      insert_anni_down(mpo[i],0,4,1.0);
+  
+      //insert signs
+      row = 1;
+      column = 5;
+
+      while(istates[row].size() == 1){
+
+         insert_sign(mpo[i],row,column);
+         ++row;
+         ++column;
+
+      }
+
+      //insert doubles
+      insert_crea_up_crea_down(mpo[i],0,column,1.0);++column;
+      insert_crea_up_anni_up(mpo[i],0,column,1.0);++column;
+      insert_crea_up_anni_down(mpo[i],0,column,1.0);++column;
+      insert_crea_down_anni_up(mpo[i],0,column,1.0);++column;
+      insert_crea_down_anni_down(mpo[i],0,column,1.0);++column;
+      insert_anni_up_anni_down(mpo[i],0,column,1.0);++column;
+
+      //insert singles to form outgoing doubles
+      row = 1;
+
+      while(istates[row].size() == 1){//create up
+
+         insert_crea_up(mpo[i],row,column,1.0);
+         ++row;
+         ++column;
+
+      }
+
+      row = 1;
+
+      while(istates[row].size() == 1){//create down with sign
+
+         insert_crea_down_s(mpo[i],row,column,1.0);
+         ++row;
+         ++column;
+
+      }
+
+      row = 1;
+
+      while(istates[row].size() == 1){//annihilate up
+
+         insert_anni_up(mpo[i],row,column,1.0);
+         ++row;
+         ++column;
+
+      }
+
+      row = 1;
+
+      while(istates[row].size() == 1){//annihilate down with sign
+
+         insert_anni_down_s(mpo[i],row,column,1.0);
+         ++row;
+         ++column;
+
+      }
+
+      //copy the doubles from previous tensor: identity
+      while(istates[row].size() == 2){
+
+         insert_id(mpo[i],row,column);
+         ++row;
+         ++column;
+
+      }
+
+      //HERE STARTS THE COMPLEMENTARY OPERATOR STUFF!
+      for(int j = i + 1;j < L;++j){
+
+         //go to <j anni up>, meaning these terms will only couple to anni up on site j!
+
+         //first row
+         insert_comp_anni_up(mpo[i],0,column,t(i,j),V(i,i,j,i));
+
+         column++;
+
+         //go to <j anni down>, meaning these terms will only couple to anni down on site j!
+
+         //first row
+         insert_comp_anni_down(mpo[i],0,column,t(i,j),V(i,i,j,i));
+
+         column++;
+
+         //go to <j crea down>, meaning these terms will only couple to crea up on site j!
+
+         //first row
+         insert_comp_crea_down(mpo[i],0,column,t(i,j),V(i,i,j,i));
+
+         column++;
+
+         //go to <j crea up>, meaning these terms will only couple to crea down on site j!
+
+         //first row
+         insert_comp_crea_up(mpo[i],0,column,t(i,j),V(i,i,j,i));
+
+         column++;
+
+      }
+
+      //last column! closing down everything!
+
+      //first row
+      insert_local(mpo[i],0,column,t(i,i),V(i,i,i,i));
+
+      istates = ostates;
+      qi = qo;
+
+//   }
+
+   /*
+   //merge everything together
+   TVector<Qshapes<Q>,1> qmerge;
+   TVector<Dshapes,1> dmerge;
+
+   qmerge[0] = mpo[0].qshape(3);
+   dmerge[0] = mpo[0].dshape(3);
+
+   QSTmergeInfo<1> info(qmerge,dmerge);
+
+   QSDArray<4> tmp;
+   QSTmerge(mpo[0],info,tmp);
+
+   mpo[0] = tmp;
+
+   for(int i = 1;i < L - 1;++i){
+
+   //first merge the row
+   qmerge[0] = mpo[i].qshape(0);
+   dmerge[0] = mpo[i].dshape(0);
+
+   info.reset(qmerge,dmerge);
+
+   tmp.clear();
+
+   QSTmerge(info,mpo[i],tmp);
+
+   //then merge the column
+   qmerge[0] = tmp.qshape(3);
+   dmerge[0] = tmp.dshape(3);
+
+   info.reset(qmerge,dmerge);
+
+   mpo[i].clear();
+
+   QSTmerge(tmp,info,mpo[i]);
+
+   }
+
+   //only merge row for i = L - 1
+   qmerge[0] = mpo[L - 1].qshape(0);
+   dmerge[0] = mpo[L - 1].dshape(0);
+
+   info.reset(qmerge,dmerge);
+
+   tmp.clear();
+
+   QSTmerge(info,mpo[L - 1],tmp);
+
+   mpo[L - 1] = tmp;
+    */
+   return mpo;
+
+}
+
+/**
+ * insert identity operator in mpo O
+ */
+void insert_id(QSDArray<4> &O,int row,int column){
+
+   DArray<4> Ip(1,1,1,1);
+   Ip = 1;
+
+   O.insert(shape(row,0,0,column),Ip);
+   O.insert(shape(row,1,1,column),Ip);
+   O.insert(shape(row,2,2,column),Ip);
+   O.insert(shape(row,3,3,column),Ip);
+
+}
+
+/**
+ * insert identity operator with fermion sign
+ */
+void insert_sign(QSDArray<4> &O,int row,int column){
+
+   DArray<4> Ip(1,1,1,1);
+
+   Ip = 1;
+   O.insert(shape(row,0,0,column),Ip);
+   O.insert(shape(row,3,3,column),Ip);
+
+   Ip = -1;
+   O.insert(shape(row,1,1,column),Ip);
+   O.insert(shape(row,2,2,column),Ip);
+
+}
+
+/**
+ * insert creator of up spin
+ */
+void insert_crea_up(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+   Ip = value;
+
+   O.insert(shape(row,1,0,column),Ip);
+   O.insert(shape(row,3,2,column),Ip);
+
+}
+
+/**
+ * insert creator of up spin with sign down
+ */
+void insert_crea_up_s(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+   Ip = value;
+
+   //a^+_up (-1)^n_down
+   O.insert(shape(row,1,0,column),Ip);
+
+   Ip = -value;
+
+   O.insert(shape(row,3,2,column),Ip);
+
+}
+
+/**
+ * insert creator of down spin
+ */
+void insert_crea_down(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+   Ip = value;
+
+   //a^dagger_down 
+   O.insert(shape(row,2,0,column),Ip);
+   O.insert(shape(row,3,1,column),Ip);
+
+}
+
+/**
+ * insert creator of down spin with up spin sign
+ */
+void insert_crea_down_s(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+
+   //a^dagger_down 
+   Ip = value;
+   O.insert(shape(row,2,0,column),Ip);
+
+   Ip = -value;
+   O.insert(shape(row,3,1,column),Ip);
+
+}
+
+/**
+ * insert annihilator of up spin
+ */
+void insert_anni_up(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+   Ip = value;
+
+   //a_up (-1)^n_down
+   O.insert(shape(row,0,1,column),Ip);
+   O.insert(shape(row,2,3,column),Ip);
+
+}
+
+/**
+ * insert annihilator of up spin with down sign
+ */
+void insert_anni_up_s(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+   Ip = value;
+
+   //a_up (-1)^n_down
+   O.insert(shape(row,0,1,column),Ip);
+
+   Ip = -value;
+
+   O.insert(shape(row,2,3,column),Ip);
+
+}
+
+/**
+ * insert annihilator of down spin
+ */
+void insert_anni_down(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+   Ip = value;
+
+   //a_down
+   O.insert(shape(row,0,2,column),Ip);
+   O.insert(shape(row,1,3,column),Ip);
+
+}
+
+/**
+ * insert annihilator of down spin with sign for up spin
+ */
+void insert_anni_down_s(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+
+   //a_down
+   Ip = value;
+   O.insert(shape(row,0,2,column),Ip);
+
+   Ip = -value;
+   O.insert(shape(row,1,3,column),Ip);
+
+}
+
+/**
+ * insert creator of an up down pair on site
+ */
+void insert_crea_up_crea_down(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+   Ip = value;
+
+   //a_down
+   O.insert(shape(row,3,0,column),Ip);
+
+}
+
+/**
+ * insert n_up operator
+ */
+void insert_crea_up_anni_up(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+   Ip = value;
+
+   O.insert(shape(row,1,1,column),Ip);
+   O.insert(shape(row,3,3,column),Ip);
+
+}
+
+/**
+ * insert create up annihilate down
+ */
+void insert_crea_up_anni_down(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+   Ip = value;
+
+   O.insert(shape(row,1,2,column),Ip);
+
+}
+
+/**
+ * insert create down annihilate up
+ */
+void insert_crea_down_anni_up(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+   Ip = value;
+
+   O.insert(shape(row,2,1,column),Ip);
+
+}
+
+/**
+ * insert create down annihilate down --> n_down
+ */
+void insert_crea_down_anni_down(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+   Ip = value;
+
+   O.insert(shape(row,2,2,column),Ip);
+   O.insert(shape(row,3,3,column),Ip);
+
+}
+
+/**
+ * insert annihilate up annihilate down
+ */
+void insert_anni_up_anni_down(QSDArray<4> &O,int row,int column,double value){
+
+   DArray<4> Ip(1,1,1,1);
+   Ip = value;
+
+   O.insert(shape(row,0,3,column),Ip);
+
+}
+
+/**
+ * insert complementary operator for a_up: behaves as a creator of up
+ */
+void insert_comp_anni_up(QSDArray<4> &O,int row,int column,double tval,double Vval){
+
+   DArray<4> Ip(1,1,1,1);
+
+   Ip = tval;
+   O.insert(shape(row,1,0,column),Ip);
+
+   Ip = -tval - Vval;
+   O.insert(shape(row,3,2,column),Ip);
+
+}
+
+/**
+ * insert complementary operator for a_down: behaves as a creator of down 
+ */
+void insert_comp_anni_down(QSDArray<4> &O,int row,int column,double tval,double Vval){
+
+   DArray<4> Ip(1,1,1,1);
+
+   Ip = tval;
+   O.insert(shape(row,2,0,column),Ip);
+
+   Ip = tval + Vval;
+   O.insert(shape(row,3,1,column),Ip);
+
+}
+
+/**
+ * insert complementary operator for a^+_down: behaves as an annihilator of down 
+ */
+void insert_comp_crea_down(QSDArray<4> &O,int row,int column,double tval,double Vval){
+
+   DArray<4> Ip(1,1,1,1);
+
+   Ip = tval;
+   O.insert(shape(row,0,2,column),Ip);
+
+   Ip = tval + Vval;
+   O.insert(shape(row,1,3,column),Ip);
+
+}
+
+/**
+ * insert complementary operator for a^+_up: behaves as an annihilator of up
+ */
+void insert_comp_crea_up(QSDArray<4> &O,int row,int column,double tval,double Vval){
+
+   DArray<4> Ip(1,1,1,1);
+
+   Ip = tval;
+   O.insert(shape(row,0,1,column),Ip);
+
+   Ip = -tval - Vval;
+   O.insert(shape(row,2,3,column),Ip);
+
+}
+
+/**
+ * insert local term: t(i,i) + V(i,i,i,i)
+ */
+void insert_local(QSDArray<4> &O,int row,int column,double tval,double Vval){
+
+   DArray<4> Ip(1,1,1,1);
+
+   Ip = tval;
+
+   O.insert(shape(row,1,1,column),Ip);
+   O.insert(shape(row,2,2,column),Ip);
+
+   Ip = 2*tval + Vval;
+
+   O.insert(shape(row,3,3,column),Ip);
+
+}
+
 template void physical<Quantum>(Qshapes<Quantum> &);
 template MPO<Quantum> creator<Quantum>(int L,int site,int spin);
 template MPO<Quantum> annihilator(int L,int site,int spin);
@@ -2326,3 +3231,4 @@ template MPO<Quantum> hubbard(int L,double U);
 template MPO<Quantum> T1(const DArray<2> &);
 template MPO<Quantum> T2(const DArray<4> &);
 template MPO<Quantum> one_body(const DArray<2> &);
+template MPO<Quantum> qcham(const DArray<2> &,const DArray<4> &);

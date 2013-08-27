@@ -28,11 +28,11 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 20;
+   int L = 6;
 
    //number of particles
-   int n_u = 10;
-   int n_d = 10;
+   int n_u = 3;
+   int n_d = 3;
 
    int no = n_u;
    int nv = L - no;
@@ -46,19 +46,10 @@ int main(void){
    DArray<2> t(L,L);
    t.generate(rgen);
 
-   MPO<Quantum> O = one_body<Quantum>(t);
-   compress(O,mps::Right,0);
-   compress(O,mps::Left,0);
+   DArray<4> V(L,L,L,L);
+   V.generate(rgen);
 
-   for(int i = 0;i < L;++i){
-
-      cout << "site " << i << endl;
-      cout << endl;
-      cout << O[i].qshape() << endl;
-      cout << O[i].dshape() << endl;
-      cout << endl;
-
-   }
+   MPO<Quantum> O = qcham<Quantum>(t,V);
 
    return 0;
 

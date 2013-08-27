@@ -4,6 +4,8 @@
 #include <iostream>
 #include <iomanip>
 
+class Ostate;
+
 //some functions which initialize an MPO to a certian Hamiltonian
 
 using namespace btas;
@@ -41,5 +43,30 @@ MPO<Q> T2(const DArray<4> &);
 
 template<class Q>
 MPO<Q> one_body(const DArray<2> &);
+
+template<class Q>
+MPO<Q> qcham(const DArray<2> &,const DArray<4> &);
+
+void insert_id(QSDArray<4> &,int row,int column);
+void insert_sign(QSDArray<4> &,int row,int column);
+void insert_crea_up(QSDArray<4> &,int row,int column,double);
+void insert_crea_up_s(QSDArray<4> &,int row,int column,double);
+void insert_crea_down(QSDArray<4> &,int row,int column,double);
+void insert_crea_down_s(QSDArray<4> &,int row,int column,double);
+void insert_anni_up(QSDArray<4> &,int row,int column,double);
+void insert_anni_up_s(QSDArray<4> &,int row,int column,double);
+void insert_anni_down(QSDArray<4> &,int row,int column,double);
+void insert_anni_down_s(QSDArray<4> &,int row,int column,double);
+void insert_crea_up_crea_down(QSDArray<4> &,int row,int column,double);
+void insert_crea_up_anni_up(QSDArray<4> &,int row,int column,double);
+void insert_crea_up_anni_down(QSDArray<4> &,int row,int column,double);
+void insert_crea_down_anni_up(QSDArray<4> &,int row,int column,double);
+void insert_crea_down_anni_down(QSDArray<4> &,int row,int column,double);
+void insert_anni_up_anni_down(QSDArray<4> &,int row,int column,double);
+void insert_comp_crea_up(QSDArray<4> &,int row,int column,double,double);
+void insert_comp_crea_down(QSDArray<4> &,int row,int column,double,double);
+void insert_comp_anni_down(QSDArray<4> &,int row,int column,double,double);
+void insert_comp_anni_up(QSDArray<4> &,int row,int column,double,double);
+void insert_local(QSDArray<4> &,int row,int column,double,double);
 
 #endif
