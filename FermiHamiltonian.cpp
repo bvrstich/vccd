@@ -2512,8 +2512,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
    qi = qo;
 
    //middle tensors
-   //for(int i = 1;i < L - 1;++i){
-      int i = 1;
+   for(int i = 1;i < L - 1;++i){
 
       //first construct the ingoing and outgoing states
       ostates.clear();
@@ -2586,8 +2585,8 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
       qo.push_back(Q::zero());
 
       //doubles: a^+_up a_down
-      state.push_crea_up(0);
-      state.push_anni_down(0);
+      state.push_crea_up(i);
+      state.push_anni_down(i);
       ostates.push_back(state);
       state.clear();
 
@@ -2817,12 +2816,56 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
       }
 
       //HERE STARTS THE COMPLEMENTARY OPERATOR STUFF!
-      for(int j = i + 1;j < L;++j){
+      //for(int j = i + 1;j < L;++j){
+         int j = i + 1;
 
          //go to <j anni up>, meaning these terms will only couple to anni up on site j!
 
          //first row
          insert_comp_anni_up(mpo[i],0,column,t(i,j),V(i,i,j,i));
+
+         //singles coming in:
+         row = 1;
+         
+         while(istates[row].size() == 1){
+
+            //creator up
+            ++row;
+
+            //creator down
+            ++row;
+
+            //annihilator up
+            ++row;
+
+            //annihilator down
+            ++row;
+
+         }
+
+         //pairs coming in
+         while(istates[row].size() == 2){
+
+            double val;
+
+            std::vector<int> v = Ostate::get_single_complement(i,istates[row],ostates[column],V,val);
+
+            if(v.size() > 0){
+
+               if(v[0] == 0 && v[1] == 0)//create spin up
+                  insert_crea_up_s(mpo[i],row,column,val);
+               else if(v[0] == 1 && v[1] == 0)//create spin down
+                  insert_crea_down(mpo[i],row,column,val);
+               else if(v[0] == 0 && v[1] == 1)//annihilate spin up
+                  insert_anni_up_s(mpo[i],row,column,val);
+               else//annihilate spin down
+                  insert_anni_down(mpo[i],row,column,val);
+
+            }
+
+            ++row;
+
+         }
 
          column++;
 
@@ -2847,7 +2890,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
 
          column++;
 
-      }
+      //}
 
       //last column! closing down everything!
 
@@ -2857,60 +2900,60 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
       istates = ostates;
       qi = qo;
 
-//   }
+         }
 
-   /*
-   //merge everything together
-   TVector<Qshapes<Q>,1> qmerge;
-   TVector<Dshapes,1> dmerge;
+      /*
+      //merge everything together
+      TVector<Qshapes<Q>,1> qmerge;
+      TVector<Dshapes,1> dmerge;
 
-   qmerge[0] = mpo[0].qshape(3);
-   dmerge[0] = mpo[0].dshape(3);
+      qmerge[0] = mpo[0].qshape(3);
+      dmerge[0] = mpo[0].dshape(3);
 
-   QSTmergeInfo<1> info(qmerge,dmerge);
+      QSTmergeInfo<1> info(qmerge,dmerge);
 
-   QSDArray<4> tmp;
-   QSTmerge(mpo[0],info,tmp);
+      QSDArray<4> tmp;
+      QSTmerge(mpo[0],info,tmp);
 
-   mpo[0] = tmp;
+      mpo[0] = tmp;
 
-   for(int i = 1;i < L - 1;++i){
+      for(int i = 1;i < L - 1;++i){
 
-   //first merge the row
-   qmerge[0] = mpo[i].qshape(0);
-   dmerge[0] = mpo[i].dshape(0);
+      //first merge the row
+      qmerge[0] = mpo[i].qshape(0);
+      dmerge[0] = mpo[i].dshape(0);
 
-   info.reset(qmerge,dmerge);
+      info.reset(qmerge,dmerge);
 
-   tmp.clear();
+      tmp.clear();
 
-   QSTmerge(info,mpo[i],tmp);
+      QSTmerge(info,mpo[i],tmp);
 
-   //then merge the column
-   qmerge[0] = tmp.qshape(3);
-   dmerge[0] = tmp.dshape(3);
+      //then merge the column
+      qmerge[0] = tmp.qshape(3);
+      dmerge[0] = tmp.dshape(3);
 
-   info.reset(qmerge,dmerge);
+      info.reset(qmerge,dmerge);
 
-   mpo[i].clear();
+      mpo[i].clear();
 
-   QSTmerge(tmp,info,mpo[i]);
+      QSTmerge(tmp,info,mpo[i]);
 
-   }
+      }
 
-   //only merge row for i = L - 1
-   qmerge[0] = mpo[L - 1].qshape(0);
-   dmerge[0] = mpo[L - 1].dshape(0);
+      //only merge row for i = L - 1
+      qmerge[0] = mpo[L - 1].qshape(0);
+      dmerge[0] = mpo[L - 1].dshape(0);
 
-   info.reset(qmerge,dmerge);
+      info.reset(qmerge,dmerge);
 
-   tmp.clear();
+      tmp.clear();
 
-   QSTmerge(info,mpo[L - 1],tmp);
+      QSTmerge(info,mpo[L - 1],tmp);
 
-   mpo[L - 1] = tmp;
-    */
-   return mpo;
+      mpo[L - 1] = tmp;
+       */
+      return mpo;
 
 }
 

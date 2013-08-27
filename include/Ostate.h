@@ -48,6 +48,8 @@ class Ostate : public std::vector<int> {
 
       bool is_pair() const;
 
+      static std::vector<int> get_single_complement(int site,const Ostate &in,const Ostate &out,const DArray<4> &V,double &);
+
       static void construct_oplist(int);
 
       static void print_oplist();
