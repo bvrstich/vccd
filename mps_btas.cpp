@@ -51,6 +51,15 @@ int main(void){
 
    MPO<Quantum> O = qcham<Quantum>(t,V);
 
+   for(int i = 0;i < L;++i){
+
+      cout << "site " << i << endl;
+      cout << O[i].qshape() << endl;
+      cout << O[i].dshape() << endl;
+      cout << endl;
+
+   }
+
    return 0;
 
 }
