@@ -50,6 +50,8 @@ class Ostate : public std::vector<int> {
 
       static std::vector<int> get_single_complement(int site,const Ostate &in,const Ostate &out,const DArray<4> &V,double &);
 
+      static std::vector<int> get_double_complement(int site,const Ostate &in,const Ostate &out,const DArray<4> &V,std::vector<double> &);
+
       static void construct_oplist(int);
 
       static void print_oplist();

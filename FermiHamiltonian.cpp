@@ -2432,22 +2432,16 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
 
    qo.push_back(Q(1,1));
 
-   //complementary operators: triples
+   //complementary operators: triples: they have the state signature of the operator they are going to, but the opposite quantumnumber
    for(int j = 1;j < L;++j){
       
       state.push_crea_up(j);
       ostates.push_back(state);
       state.clear();
 
-      qo.push_back(Q(-1,0));
+      qo.push_back(Q(1,0));
 
       state.push_crea_down(j);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(0,-1));
-
-      state.push_anni_down(j);
       ostates.push_back(state);
       state.clear();
 
@@ -2457,7 +2451,13 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
       ostates.push_back(state);
       state.clear();
 
-      qo.push_back(Q(1,0));
+      qo.push_back(Q(-1,0));
+
+      state.push_anni_down(j);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Q(0,-1));
 
    }
 
@@ -2491,17 +2491,17 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
    insert_crea_up_anni_down(mpo[0],0,7,1.0);
    insert_crea_down_anni_up(mpo[0],0,8,1.0);
    insert_crea_down_anni_down(mpo[0],0,9,1.0);
-   insert_anni_up_anni_down(mpo[0],0,10,1.0);
+   insert_anni_down_anni_up(mpo[0],0,10,1.0);
 
    column = 11;
 
    //insert tripes: complementary operator
    for(int j = 1;j < L;++j){
 
-      insert_comp_anni_up(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
-      insert_comp_anni_down(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
-      insert_comp_crea_down(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
-      insert_comp_crea_up(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
+      insert_triple_crea_up_first(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
+      insert_triple_crea_down_first(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
+      insert_triple_anni_up_first(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
+      insert_triple_anni_down_first(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
 
    }
 
@@ -2701,25 +2701,25 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
          ostates.push_back(state);
          state.clear();
 
-         qo.push_back(Q(-1,0));
+         qo.push_back(Q(1,0));
 
          state.push_crea_down(j);
          ostates.push_back(state);
          state.clear();
 
-         qo.push_back(Q(0,-1));
+         qo.push_back(Q(0,1));
 
          state.push_anni_down(j);
          ostates.push_back(state);
          state.clear();
 
-         qo.push_back(Q(0,1));
+         qo.push_back(Q(-1,0));
 
          state.push_anni_up(j);
          ostates.push_back(state);
          state.clear();
 
-         qo.push_back(Q(1,0));
+         qo.push_back(Q(0,-1));
 
       }
 
@@ -2763,7 +2763,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
       insert_crea_up_anni_down(mpo[i],0,column,1.0);++column;
       insert_crea_down_anni_up(mpo[i],0,column,1.0);++column;
       insert_crea_down_anni_down(mpo[i],0,column,1.0);++column;
-      insert_anni_up_anni_down(mpo[i],0,column,1.0);++column;
+      insert_anni_down_anni_up(mpo[i],0,column,1.0);++column;
 
       //insert singles to form outgoing doubles
       row = 1;
@@ -2816,29 +2816,46 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
       }
 
       //HERE STARTS THE COMPLEMENTARY OPERATOR STUFF!
-      //for(int j = i + 1;j < L;++j){
-         int j = i + 1;
+      while(column < ostates.size() - 1){
 
-         //go to <j anni up>, meaning these terms will only couple to anni up on site j!
+         int j = ostates[column].gsite(0);
+         int sj = ostates[column].gspin(0);
+         int aj = ostates[column].gact(0);
 
          //first row
-         insert_comp_anni_up(mpo[i],0,column,t(i,j),V(i,i,j,i));
+         if(sj == 0 && aj == 0)
+            insert_triple_crea_up_first(mpo[i],0,column,t(i,j),V(i,i,j,i));
+         else if(sj == 1 && aj == 0)
+            insert_triple_crea_down_first(mpo[i],0,column,t(i,j),V(i,i,j,i));
+         else if(sj == 0 && aj == 1)
+            insert_triple_anni_up_first(mpo[i],0,column,t(i,j),V(i,i,j,i));
+         else
+            insert_triple_anni_down_first(mpo[i],0,column,t(i,j),V(i,i,j,i));
 
          //singles coming in:
          row = 1;
          
          while(istates[row].size() == 1){
 
-            //creator up
-            ++row;
+            std::vector<double> val(2);
 
-            //creator down
-            ++row;
+            std::vector<int> v = Ostate::get_double_complement(i,istates[row],ostates[column],V,val);
 
-            //annihilator up
-            ++row;
+            if(v.size() == 1){
 
-            //annihilator down
+               if(v[0] == 0)
+                  insert_anni_down_anni_up(mpo[i],row,column,val[0]);
+               else if(v[0] == 1)
+                  insert_crea_up_crea_down(mpo[i],row,column,val[0]);
+               else if(v[0] == 2)
+                  insert_crea_up_anni_down(mpo[i],row,column,val[0]);
+               else
+                  insert_crea_down_anni_up(mpo[i],row,column,val[0]);
+
+            }
+            else if(v.size() == 2)
+               insert_pair(mpo[i],row,column,val);
+
             ++row;
 
          }
@@ -2867,40 +2884,57 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
 
          }
 
-         column++;
+         //signs: find row and column which are connected
+         while(istates[row] != ostates[column])
+            ++row;
 
-         //go to <j anni down>, meaning these terms will only couple to anni down on site j!
-
-         //first row
-         insert_comp_anni_down(mpo[i],0,column,t(i,j),V(i,i,j,i));
-
-         column++;
-
-         //go to <j crea down>, meaning these terms will only couple to crea up on site j!
-
-         //first row
-         insert_comp_crea_down(mpo[i],0,column,t(i,j),V(i,i,j,i));
+         insert_sign(mpo[i],row,column);
 
          column++;
 
-         //go to <j crea up>, meaning these terms will only couple to crea down on site j!
-
-         //first row
-         insert_comp_crea_up(mpo[i],0,column,t(i,j),V(i,i,j,i));
-
-         column++;
-
-      //}
+      }
 
       //last column! closing down everything!
 
       //first row
       insert_local(mpo[i],0,column,t(i,i),V(i,i,i,i));
 
+      //close down the singles coming in with a triplet
+      row = 1;
+
+      while(istates[row].size() == 1){
+
+         //incoming operator
+         int k = istates[row].gsite(0);
+         int sk = istates[row].gspin(0);
+         int ak = istates[row].gact(0);
+
+         if(sk == 0 && ak == 0)//create up coming in
+            insert_triple_crea_up_last(mpo[i],row,column,V(k,i,i,i));
+         else if(sk == 1 && ak == 0)//create down coming in
+            insert_triple_crea_down_last(mpo[i],row,column,-V(i,k,i,i));
+         else if(sk == 0 && ak == 1)//annihilate up coming in
+            insert_triple_anni_up_last(mpo[i],row,column,V(i,i,k,i));
+         else //annihilate down coming in
+            insert_triple_anni_down_last(mpo[i],row,column,-V(i,i,i,k));
+
+         ++row;
+
+      }
+
+      //close down the doubles coming in with a pair
+      while(istates[row].size() == 2){
+
+         cout << istates[row] << endl;
+
+         ++row;
+
+      }
+
       istates = ostates;
       qi = qo;
 
-         }
+   }
 
       /*
       //merge everything together
@@ -3176,7 +3210,7 @@ void insert_crea_down_anni_down(QSDArray<4> &O,int row,int column,double value){
 /**
  * insert annihilate up annihilate down
  */
-void insert_anni_up_anni_down(QSDArray<4> &O,int row,int column,double value){
+void insert_anni_down_anni_up(QSDArray<4> &O,int row,int column,double value){
 
    DArray<4> Ip(1,1,1,1);
    Ip = value;
@@ -3188,7 +3222,7 @@ void insert_anni_up_anni_down(QSDArray<4> &O,int row,int column,double value){
 /**
  * insert complementary operator for a_up: behaves as a creator of up
  */
-void insert_comp_anni_up(QSDArray<4> &O,int row,int column,double tval,double Vval){
+void insert_triple_anni_up_first(QSDArray<4> &O,int row,int column,double tval,double Vval){
 
    DArray<4> Ip(1,1,1,1);
 
@@ -3201,9 +3235,21 @@ void insert_comp_anni_up(QSDArray<4> &O,int row,int column,double tval,double Vv
 }
 
 /**
+ * insert complementary operator for a_up: behaves as a creator of up
+ */
+void insert_triple_anni_up_last(QSDArray<4> &O,int row,int column,double Vval){
+
+   DArray<4> Ip(1,1,1,1);
+
+   Ip = Vval;
+   O.insert(shape(row,3,2,column),Ip);
+
+}
+
+/**
  * insert complementary operator for a_down: behaves as a creator of down 
  */
-void insert_comp_anni_down(QSDArray<4> &O,int row,int column,double tval,double Vval){
+void insert_triple_anni_down_first(QSDArray<4> &O,int row,int column,double tval,double Vval){
 
    DArray<4> Ip(1,1,1,1);
 
@@ -3216,9 +3262,21 @@ void insert_comp_anni_down(QSDArray<4> &O,int row,int column,double tval,double 
 }
 
 /**
+ * insert complementary operator for a_down: behaves as a creator of down 
+ */
+void insert_triple_anni_down_last(QSDArray<4> &O,int row,int column,double Vval){
+
+   DArray<4> Ip(1,1,1,1);
+
+   Ip = Vval;
+   O.insert(shape(row,3,1,column),Ip);
+
+}
+
+/**
  * insert complementary operator for a^+_down: behaves as an annihilator of down 
  */
-void insert_comp_crea_down(QSDArray<4> &O,int row,int column,double tval,double Vval){
+void insert_triple_crea_down_first(QSDArray<4> &O,int row,int column,double tval,double Vval){
 
    DArray<4> Ip(1,1,1,1);
 
@@ -3231,9 +3289,21 @@ void insert_comp_crea_down(QSDArray<4> &O,int row,int column,double tval,double 
 }
 
 /**
+ * insert complementary operator for a^+_down: behaves as an annihilator of down 
+ */
+void insert_triple_crea_down_last(QSDArray<4> &O,int row,int column,double Vval){
+
+   DArray<4> Ip(1,1,1,1);
+
+   Ip = Vval;
+   O.insert(shape(row,1,3,column),Ip);
+
+}
+
+/**
  * insert complementary operator for a^+_up: behaves as an annihilator of up
  */
-void insert_comp_crea_up(QSDArray<4> &O,int row,int column,double tval,double Vval){
+void insert_triple_crea_up_first(QSDArray<4> &O,int row,int column,double tval,double Vval){
 
    DArray<4> Ip(1,1,1,1);
 
@@ -3241,6 +3311,18 @@ void insert_comp_crea_up(QSDArray<4> &O,int row,int column,double tval,double Vv
    O.insert(shape(row,0,1,column),Ip);
 
    Ip = -tval - Vval;
+   O.insert(shape(row,2,3,column),Ip);
+
+}
+
+/**
+ * insert complementary operator for a^+_up: behaves as an annihilator of up
+ */
+void insert_triple_crea_up_last(QSDArray<4> &O,int row,int column,double Vval){
+
+   DArray<4> Ip(1,1,1,1);
+
+   Ip = Vval;
    O.insert(shape(row,2,3,column),Ip);
 
 }
@@ -3259,6 +3341,27 @@ void insert_local(QSDArray<4> &O,int row,int column,double tval,double Vval){
 
    Ip = 2*tval + Vval;
 
+   O.insert(shape(row,3,3,column),Ip);
+
+}
+
+/**
+ * insert pair val[0] a^+_up a_up (-1)^n_down + val[1] a^+_down a_down (-1)^n_up
+ */
+void insert_pair(QSDArray<4> &O,int row,int column,const std::vector<double> &val){
+
+   DArray<4> Ip(1,1,1,1);
+
+   //up up
+   Ip = val[0];
+   O.insert(shape(row,1,1,column),Ip);
+
+   //down down
+   Ip = val[1];
+   O.insert(shape(row,2,2,column),Ip);
+
+   //both
+   Ip = -val[0] - val[1];
    O.insert(shape(row,3,3,column),Ip);
 
 }

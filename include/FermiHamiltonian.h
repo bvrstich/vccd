@@ -63,10 +63,15 @@ void insert_crea_up_anni_down(QSDArray<4> &,int row,int column,double);
 void insert_crea_down_anni_up(QSDArray<4> &,int row,int column,double);
 void insert_crea_down_anni_down(QSDArray<4> &,int row,int column,double);
 void insert_anni_up_anni_down(QSDArray<4> &,int row,int column,double);
-void insert_comp_crea_up(QSDArray<4> &,int row,int column,double,double);
-void insert_comp_crea_down(QSDArray<4> &,int row,int column,double,double);
-void insert_comp_anni_down(QSDArray<4> &,int row,int column,double,double);
-void insert_comp_anni_up(QSDArray<4> &,int row,int column,double,double);
+void insert_triple_crea_up_first(QSDArray<4> &,int row,int column,double,double);
+void insert_triple_crea_up_last(QSDArray<4> &,int row,int column,double);
+void insert_triple_crea_down_first(QSDArray<4> &,int row,int column,double,double);
+void insert_triple_crea_down_last(QSDArray<4> &,int row,int column,double);
+void insert_triple_anni_down_first(QSDArray<4> &,int row,int column,double,double);
+void insert_triple_anni_down_last(QSDArray<4> &,int row,int column,double);
+void insert_triple_anni_up_first(QSDArray<4> &,int row,int column,double,double);
+void insert_triple_anni_up_last(QSDArray<4> &,int row,int column,double);
 void insert_local(QSDArray<4> &,int row,int column,double,double);
+void insert_pair(QSDArray<4> &,int row,int column,const std::vector<double> &);
 
 #endif

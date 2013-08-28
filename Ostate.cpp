@@ -798,3 +798,154 @@ std::vector<int> Ostate::get_single_complement(int site,const Ostate &in,const O
    }
 
 }
+
+/**
+ * get the complementary pair operator between in and out, when one operator is coming and one is going out.
+ * @return a vector containing the info about which operator is the complement:
+ * if vector size is zero, no complement
+ * if vector size is one: v[0] = 0 -> a_down a_up
+ *                        v[0] = 1 -> a^+_up a^+_down
+ *                        v[0] = 2 -> a^+_up a_down
+ *                        v[0] = 3 -> a^+_down a_up
+ * if vector size is 2: operator is sum of up up and down down:
+ * coefficients and signs are returned in Veff
+ */
+std::vector<int> Ostate::get_double_complement(int site,const Ostate &in,const Ostate &out,const DArray<4> &V,std::vector<double> &Veff){
+
+   //lets call in i and out l
+   int i = oplist[in[0]][0];
+   int si = oplist[in[0]][1];
+   int ai = oplist[in[0]][2];
+
+   int l = oplist[out[0]][0];
+   int sl = oplist[out[0]][1];
+   int al = oplist[out[0]][2];
+
+   vector<int> comp;
+
+   if(si == 0 && ai == 0){//in create up spin
+
+      if(sl == 0 && al == 0)//out create up spin: not possible
+         return comp;
+      else if(sl == 1 && al == 0){//out create down spin
+
+         comp.push_back(0);
+         Veff[0] = V(i,l,site,site);
+
+         return comp;
+
+      }
+      else if(sl == 0 && al == 1){//out annihilate up spin
+
+         comp.resize(2);
+         Veff[0] = V(i,site,site,l) - V(i,site,l,site);
+         Veff[1] = -V(i,site,l,site);
+
+         return comp;
+
+      }
+      else{//out anni down spin
+
+         comp.push_back(3);
+         Veff[0] = V(i,site,site,l);
+
+         return comp;
+
+      }
+
+   }
+   else if(si == 1 && ai == 0){//in create down spin
+
+      if(sl == 0 && al == 0){//out create up spin
+
+         comp.push_back(0);
+         Veff[0] = -V(l,i,site,site);
+
+         return comp;
+
+      }
+      else if(sl == 1 && al == 0)//out create down spin: no possible
+         return comp;
+      else if(sl == 0 && al == 1){//out annihilate up spin
+
+         comp.push_back(2);
+         Veff[0] = V(site,i,l,site);
+
+         return comp;
+
+      }
+      else{//out anni down spin
+
+         comp.resize(2);
+         Veff[0] = -V(site,i,site,l);
+         Veff[1] = V(i,site,site,l) - V(i,site,l,site);
+
+         return comp;
+
+      }
+
+   }
+   else if(si == 0 && ai == 1){//anni up spin
+
+      if(sl == 0 && al == 0){//out create up spin
+
+         comp.resize(2);
+         Veff[0] = V(i,site,site,l) - V(i,site,l,site);
+         Veff[1] = -V(l,site,i,site);
+
+         return comp;
+
+      }
+      else if(sl == 1 && al == 0){//out create down spin:
+
+         comp.push_back(2);
+         Veff[0] = V(site,l,i,site);
+
+         return comp;
+
+      }
+      else if(sl == 0 && al == 1)//out annihilate up spin: no possible
+         return comp;
+      else{//out anni down spin
+
+         comp.push_back(1);
+         Veff[0] = V(site,site,i,l);
+
+         return comp;
+
+      }
+
+   }
+   else{//in anni down spin
+
+      if(sl == 0 && al == 0){//out create up spin
+
+         comp.push_back(3);
+         Veff[0] = V(l,site,site,i);
+
+         return comp;
+
+      }
+      else if(sl == 1 && al == 0){//out create down spin:
+
+         comp.resize(2);
+         Veff[0] = -V(l,site,i,site);
+         Veff[1] = V(i,site,site,l) - V(i,site,l,site);
+
+         return comp;
+
+      }
+      else if(sl == 0 && al == 1){//out annihilate up spin: no possible
+
+         comp.push_back(1);
+         Veff[0] = V(site,site,i,l);
+
+         return comp;
+
+      }
+      else//out anni down spin: no possible
+         return comp;
+
+   }
+
+}
