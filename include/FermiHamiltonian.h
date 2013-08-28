@@ -73,5 +73,6 @@ void insert_triple_anni_up_first(QSDArray<4> &,int row,int column,double,double)
 void insert_triple_anni_up_last(QSDArray<4> &,int row,int column,double);
 void insert_local(QSDArray<4> &,int row,int column,double,double);
 void insert_pair(QSDArray<4> &,int row,int column,const std::vector<double> &);
+void insert_pair_s(QSDArray<4> &,int row,int column,const std::vector<double> &);
 
 #endif

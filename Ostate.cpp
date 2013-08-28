@@ -949,3 +949,153 @@ std::vector<int> Ostate::get_double_complement(int site,const Ostate &in,const O
    }
 
 }
+
+/**
+ * for an incoming pair of operators in 'in', get the complement pair that closes the expression down
+ * if vector size is zero, no complement
+ * if vector size is one: v[0] = 0 -> a_down a_up
+ *                        v[0] = 1 -> a^+_up a^+_down
+ *                        v[0] = 2 -> a^+_up a_down
+ *                        v[0] = 3 -> a^+_down a_up
+ * if vector size is 2: operator is sum of up up and down down:
+ */
+std::vector<int> Ostate::get_closing_pair(int site,const Ostate &in,const DArray<4> &V,vector<double> &val){
+
+   //lets call in i,j
+   int i = oplist[in[1]][0];
+   int j = oplist[in[0]][0];
+
+   int si = oplist[in[1]][1];
+   int sj = oplist[in[0]][1];
+
+   int ai = oplist[in[1]][2];
+   int aj = oplist[in[0]][2];
+
+   vector<int> comp;
+
+   if(si == 0 && ai == 0){//create up
+
+      if(sj == 0 && aj == 0)//create up
+         return comp;
+      else if(sj == 1 && aj == 0){//create down
+
+         comp.push_back(0);
+         val[0] = V(i,j,site,site);
+
+         return comp;
+
+      }
+      else if(sj == 0 && aj == 1){//annihilate up
+
+         comp.resize(2);
+         val[0] = V(i,site,j,site) - V(i,site,site,j);
+         val[1] = V(i,site,j,site);
+
+         return comp;
+
+      }
+      else{
+
+         comp.push_back(3);
+         val[0] = -V(i,site,site,j);
+
+         return comp;
+
+      }
+
+   }
+   else if(si == 1 && ai == 0){//create down
+
+      if(sj == 0 && aj == 0){//create up
+
+         comp.push_back(0);
+         val[0] = -V(j,i,site,site);
+
+         return comp;
+
+      }
+      else if(sj == 1 && aj == 0)//create down
+         return comp;
+      else if(sj == 0 && aj == 1){//annihilate up
+
+         comp.push_back(2);
+         val[0] = -V(site,i,site,j);
+
+         return comp;
+
+      }
+      else{
+
+         comp.resize(2);
+         val[0] = V(site,i,site,j);
+         val[1] = V(i,site,j,site) - V(i,site,site,j);
+
+         return comp;
+
+      }
+
+   }
+   else if(si == 0 && ai == 1){//annihilate up
+
+      if(sj == 0 && aj == 0){//create up
+
+         comp.resize(2);
+         val[0] = V(j,site,i,site) - V(j,site,site,i);
+         val[1] = V(j,site,i,site);
+
+         return comp;
+
+      }
+      else if(sj == 1 && aj == 0){//create down
+
+         comp.push_back(2);
+         val[0] = V(site,j,i,site);
+
+         return comp;
+
+      }
+      else if(sj == 0 && aj == 1)//annihilate up
+         return comp;
+      else{
+
+         comp.push_back(1);
+         val[0] = V(j,i,site,site);
+
+         return comp;
+
+      }
+
+   }
+   else{//annihilate down
+
+      if(sj == 0 && aj == 0){//create up
+
+         comp.push_back(3);
+         val[0] = V(j,site,i,site);
+
+         return comp;
+
+      }
+      else if(sj == 1 && aj == 0){//create down
+
+         comp.resize(2);
+         val[0] = V(site,j,site,i);
+         val[1] = V(j,site,i,site) - V(j,site,site,i);
+
+         return comp;
+
+      }
+      else if(sj == 0 && aj == 1){//annihilate up
+
+         comp.push_back(1);
+         val[0] = -V(site,site,i,j);
+
+         return comp;
+
+      }
+      else 
+         return comp;
+
+   }
+
+}

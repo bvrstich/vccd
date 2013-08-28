@@ -2853,8 +2853,8 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
                   insert_crea_down_anni_up(mpo[i],row,column,val[0]);
 
             }
-            else if(v.size() == 2)
-               insert_pair(mpo[i],row,column,val);
+            else if(v.size() == 2)//with sign because in the middle!
+               insert_pair_s(mpo[i],row,column,val);
 
             ++row;
 
@@ -2925,69 +2925,103 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
       //close down the doubles coming in with a pair
       while(istates[row].size() == 2){
 
-         cout << istates[row] << endl;
+         std::vector<double> val(2);
+
+         std::vector<int> v = Ostate::get_closing_pair(i,istates[row],V,val);
+
+         if(v.size() == 1){
+
+            if(v[0] == 0)
+               insert_anni_down_anni_up(mpo[i],row,column,val[0]);
+            else if(v[0] == 1)
+               insert_crea_up_crea_down(mpo[i],row,column,val[0]);
+            else if(v[0] == 2)
+               insert_crea_up_anni_down(mpo[i],row,column,val[0]);
+            else
+               insert_crea_down_anni_up(mpo[i],row,column,val[0]);
+
+         }
+         else if(v.size() == 2)
+            insert_pair(mpo[i],row,column,val);
 
          ++row;
 
       }
+
+      //close down the complementary operators of this site
+      //basically the first 4 incoming states should be closed down
+      insert_crea_up(mpo[i],row,column,1.0);
+      ++row;
+
+      insert_crea_down_s(mpo[i],row,column,1.0);
+      ++row;
+
+      insert_anni_up(mpo[i],row,column,1.0);
+      ++row;
+
+      insert_anni_down_s(mpo[i],row,column,1.0);
+      ++row;
+
+      //finally insert the identity on the lower right element
+      insert_id(mpo[i],istates.size() - 1,ostates.size() - 1);
 
       istates = ostates;
       qi = qo;
 
    }
 
-      /*
-      //merge everything together
-      TVector<Qshapes<Q>,1> qmerge;
-      TVector<Dshapes,1> dmerge;
+   /*
+   //merge everything together
+   TVector<Qshapes<Q>,1> qmerge;
+   TVector<Dshapes,1> dmerge;
 
-      qmerge[0] = mpo[0].qshape(3);
-      dmerge[0] = mpo[0].dshape(3);
+   qmerge[0] = mpo[0].qshape(3);
+   dmerge[0] = mpo[0].dshape(3);
 
-      QSTmergeInfo<1> info(qmerge,dmerge);
+   QSTmergeInfo<1> info(qmerge,dmerge);
 
-      QSDArray<4> tmp;
-      QSTmerge(mpo[0],info,tmp);
+   QSDArray<4> tmp;
+   QSTmerge(mpo[0],info,tmp);
 
-      mpo[0] = tmp;
+   mpo[0] = tmp;
 
-      for(int i = 1;i < L - 1;++i){
+   for(int i = 1;i < L - 1;++i){
 
-      //first merge the row
-      qmerge[0] = mpo[i].qshape(0);
-      dmerge[0] = mpo[i].dshape(0);
+//first merge the row
+qmerge[0] = mpo[i].qshape(0);
+dmerge[0] = mpo[i].dshape(0);
 
-      info.reset(qmerge,dmerge);
+info.reset(qmerge,dmerge);
 
-      tmp.clear();
+tmp.clear();
 
-      QSTmerge(info,mpo[i],tmp);
+QSTmerge(info,mpo[i],tmp);
 
-      //then merge the column
-      qmerge[0] = tmp.qshape(3);
-      dmerge[0] = tmp.dshape(3);
+//then merge the column
+qmerge[0] = tmp.qshape(3);
+dmerge[0] = tmp.dshape(3);
 
-      info.reset(qmerge,dmerge);
+info.reset(qmerge,dmerge);
 
-      mpo[i].clear();
+mpo[i].clear();
 
-      QSTmerge(tmp,info,mpo[i]);
+QSTmerge(tmp,info,mpo[i]);
 
-      }
+}
 
-      //only merge row for i = L - 1
-      qmerge[0] = mpo[L - 1].qshape(0);
-      dmerge[0] = mpo[L - 1].dshape(0);
+//only merge row for i = L - 1
+qmerge[0] = mpo[L - 1].qshape(0);
+dmerge[0] = mpo[L - 1].dshape(0);
 
-      info.reset(qmerge,dmerge);
+info.reset(qmerge,dmerge);
 
-      tmp.clear();
+tmp.clear();
 
-      QSTmerge(info,mpo[L - 1],tmp);
+QSTmerge(info,mpo[L - 1],tmp);
 
-      mpo[L - 1] = tmp;
-       */
-      return mpo;
+mpo[L - 1] = tmp;
+    */
+return mpo;
 
 }
 
@@ -3348,7 +3382,7 @@ void insert_local(QSDArray<4> &O,int row,int column,double tval,double Vval){
 /**
  * insert pair val[0] a^+_up a_up (-1)^n_down + val[1] a^+_down a_down (-1)^n_up
  */
-void insert_pair(QSDArray<4> &O,int row,int column,const std::vector<double> &val){
+void insert_pair_s(QSDArray<4> &O,int row,int column,const std::vector<double> &val){
 
    DArray<4> Ip(1,1,1,1);
 
@@ -3362,6 +3396,27 @@ void insert_pair(QSDArray<4> &O,int row,int column,const std::vector<double> &va
 
    //both
    Ip = -val[0] - val[1];
+   O.insert(shape(row,3,3,column),Ip);
+
+}
+
+/**
+ * insert pair val[0] a^+_up a_up (-1)^n_down + val[1] a^+_down a_down (-1)^n_up
+ */
+void insert_pair(QSDArray<4> &O,int row,int column,const std::vector<double> &val){
+
+   DArray<4> Ip(1,1,1,1);
+
+   //up up
+   Ip = val[0];
+   O.insert(shape(row,1,1,column),Ip);
+
+   //down down
+   Ip = val[1];
+   O.insert(shape(row,2,2,column),Ip);
+
+   //both
+   Ip = val[0] + val[1];
    O.insert(shape(row,3,3,column),Ip);
 
 }
