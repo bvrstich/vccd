@@ -196,6 +196,42 @@ class FermiQuantum
 
       }
 
+      /**
+       *  create an up particle to the quantumnumber (actually means -1 for outgoing)
+       */
+      void crea_up(){
+         
+         n_up -= 1;
+
+      }
+
+      /**
+       * crea_down an up particle to the quantumnumber (actually means -1 for outgoing)
+       */
+      void crea_down(){
+         
+         n_down -= 1;
+
+      }
+
+      /**
+       * anni_up an up particle to the quantumnumber (actually means +1 for outgoing)
+       */
+      void anni_up(){
+         
+         n_up += 1;
+
+      }
+
+      /**
+       * anni_down an down particle to the quantumnumber (actually means +1 for outgoing)
+       */
+      void anni_down(){
+         
+         n_down += 1;
+
+      }
+
    private:
 
       //! the number of up-particles
