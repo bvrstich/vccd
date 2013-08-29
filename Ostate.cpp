@@ -1099,3 +1099,62 @@ std::vector<int> Ostate::get_closing_pair(int site,const Ostate &in,const DArray
    }
 
 }
+
+/**
+ * for a one body operator, get the correct closing operator and return the value and sign
+ */
+std::vector<int> Ostate::get_closing_single(int site,const Ostate &in,const DArray<2> &t,double &val){
+
+   //lets call in i,j
+   int i = oplist[in[0]][0];
+   int si = oplist[in[0]][1];
+   int ai = oplist[in[0]][2];
+
+   vector<int> comp;
+
+   if(si == 0 && ai == 0){//create up
+
+      comp.resize(2);
+      comp[0] = 0;//up
+      comp[1] = 1;//anni
+
+      val = t(i,site);
+
+      return comp;
+
+   }
+   else if(si == 1 && ai == 0){//create down
+
+      comp.resize(2);
+      comp[0] = 1;//down
+      comp[1] = 1;//anni
+
+      val = t(i,site);
+
+      return comp;
+
+   }
+   else if(si == 0 && ai == 1){//anni up
+
+      comp.resize(2);
+      comp[0] = 0;//up
+      comp[1] = 0;//crea
+
+      val = t(site,i);
+
+      return comp;
+
+   }
+   else{//anni down
+
+      comp.resize(2);
+      comp[0] = 1;//down
+      comp[1] = 0;//crea
+
+      val = t(site,i);
+
+      return comp;
+
+   }
+
+}

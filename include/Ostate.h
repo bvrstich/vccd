@@ -54,6 +54,8 @@ class Ostate : public std::vector<int> {
       
       static std::vector<int> get_closing_pair(int site,const Ostate &in,const DArray<4> &V,std::vector<double> &);
 
+      static std::vector<int> get_closing_single(int site,const Ostate &in,const DArray<2> &t,double &);
+
       static void construct_oplist(int);
 
       static void print_oplist();

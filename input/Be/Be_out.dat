@@ -1,0 +1,59 @@
+  SCF Guess: Core (One-Electron) Hamiltonian.
+
+  Initial RHF energy:    -9.73827866452714
+
+  ==> Iterations <==
+
+                        Total Energy        Delta E     Density RMS
+
+   @RHF iter   1:   -14.40514935258561   -4.66687e+00   0.00000e+00 
+   @RHF iter   2:   -14.55888366845782   -1.53734e-01   1.93408e-01 DIIS
+   @RHF iter   3:   -14.57231936405273   -1.34357e-02   5.21308e-02 DIIS
+   @RHF iter   4:   -14.57233744581086   -1.80818e-05   2.00216e-03 DIIS
+   @RHF iter   5:   -14.57233763091839   -1.85108e-07   1.86714e-04 DIIS
+   @RHF iter   6:   -14.57233763088339    3.50031e-11   6.11609e-06 DIIS
+   @RHF iter   7:   -14.57233763095142   -6.80291e-11   2.98394e-06 DIIS
+
+  ==> Post-Iterations <==
+
+	Orbital Energies (a.u.)
+	-----------------------
+
+	Doubly Occupied:                                                      
+
+	   1Ag    -4.732326     2Ag    -0.309038  
+
+	Virtual:                                                              
+
+	   1B3u    0.058259     1B2u    0.058259     1B1u    0.058259  
+	   3Ag     0.298823     2B3u    0.350180     2B2u    0.350180  
+	   2B1u    0.350180     1B2g    0.650773     1B3g    0.650773  
+	   1B1g    0.650773     4Ag     0.650773     5Ag     0.650773  
+
+	Final Occupation by Irrep:
+	         Ag   B1g   B2g   B3g    Au   B1u   B2u   B3u 
+	DOCC [     2,    0,    0,    0,    0,    0,    0,    0 ]
+
+  Energy converged.
+
+  @RHF Final Energy:   -14.57233763095142
+
+   => Energetics <=
+
+    Nuclear Repulsion Energy =              0.0000000000000000
+    One-Electron Energy =                 -19.0619482818595749
+    Two-Electron Energy =                   4.4896106509081557
+    DFT Exchange-Correlation Energy =       0.0000000000000000
+    Empirical Dispersion Energy =           0.0000000000000000
+    Total Energy =                        -14.5723376309514201
+
+****  Molecular Integrals For CheMPS Start Here 
+Symmetry Label = d2h 
+Nirreps = 8 
+Nuclear Repulsion Energy = 0.000000000000000000000000000000000000000000000000 
+Number Of Molecular Orbitals = 14 
+Irreps Of Molecular Orbitals = 
+0 0 0 0 0 1 2 3 5 5 6 6 7 7 
+
+DOCC =  2  0  0  0  0  0  0  0 
+SOCC =  0  0  0  0  0  0  0  0 

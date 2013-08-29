@@ -1972,12 +1972,6 @@ MPO<Q> one_body(const DArray<2> &t){
 
    qo.push_back(Q(0,0));//a^+_up a_up + a^+_down a_down
 
-   DArray<4> Ip(1,1,1,1);
-   Ip = 1;
-
-   DArray<4> Im(1,1,1,1);
-   Im = -1;
-
    mpo[0].resize(Q::zero(),make_array(qz,qp,-qp,qo));
 
    std::vector< Ostate > ostates;
@@ -1988,60 +1982,44 @@ MPO<Q> one_body(const DArray<2> &t){
    ostates.push_back(state);
    state.clear();
 
-   mpo[0].insert(shape(0,0,0,0),Ip);
-   mpo[0].insert(shape(0,1,1,0),Ip);
-   mpo[0].insert(shape(0,2,2,0),Ip);
-   mpo[0].insert(shape(0,3,3,0),Ip);
-
-
    //a^+_up (-1)^n_down
    state.push_crea_up(0);
    ostates.push_back(state);
    state.clear();
 
-   mpo[0].insert(shape(0,1,0,1),Ip);
-   mpo[0].insert(shape(0,3,2,1),Im);
 
    //a^dagger_down 
    state.push_crea_down(0);
    ostates.push_back(state);
    state.clear();
 
-   mpo[0].insert(shape(0,2,0,2),Ip);
-   mpo[0].insert(shape(0,3,1,2),Ip);
-
    //a_up (-1)^n_down
    state.push_anni_up(0);
    ostates.push_back(state);
    state.clear();
-
-   mpo[0].insert(shape(0,0,1,3),Ip);
-   mpo[0].insert(shape(0,2,3,3),Im);
 
    //a_down
    state.push_anni_down(0);
    ostates.push_back(state);
    state.clear();
 
-   mpo[0].insert(shape(0,0,2,4),Ip);
-   mpo[0].insert(shape(0,1,3,4),Ip);
-
    //local term
    state.push_id();
    ostates.push_back(state);
    state.clear();
 
-   DArray<4> Tloc(1,1,1,1);
-   Tloc = t(0,0);
-
-   mpo[0].insert(shape(0,1,1,5),Tloc);
-   mpo[0].insert(shape(0,2,2,5),Tloc);
-
-   Tloc = 2.0*t(0,0);
-   mpo[0].insert(shape(0,3,3,5),Tloc);
+   insert_id(mpo[0],0,0);
+   insert_crea_up_s(mpo[0],0,1,1.0);
+   insert_crea_down(mpo[0],0,2,1.0);
+   insert_anni_up_s(mpo[0],0,3,1.0);
+   insert_anni_down(mpo[0],0,4,1.0);
+   insert_local_ob(mpo[0],0,5,t(0,0));
 
    std::vector< Ostate > istates;
    istates = ostates;
+
+   Qshapes<Quantum> qi;
+   qi = qo;
 
    //all middle tensors
    for(int i = 1;i < L - 1;++i){
@@ -2081,19 +2059,10 @@ MPO<Q> one_body(const DArray<2> &t){
       ostates.push_back(state);
       state.clear();
 
-      for(int j = 0;j < i;++j){
+      for(int j = 1;j < istates.size() - 1;++j){
 
-         qo.push_back(Q(-1,0));//a^+_up
-         ostates.push_back(istates[4*j + 1]);
-
-         qo.push_back(Q(0,-1));//a^+_down
-         ostates.push_back(istates[4*j + 2]);
-
-         qo.push_back(Q(1,0));//a_up
-         ostates.push_back(istates[4*j + 3]);
-
-         qo.push_back(Q(0,1));//a_down
-         ostates.push_back(istates[4*j + 4]);
+         qo.push_back(qi[j]);
+         ostates.push_back(istates[j]);
 
       }
 
@@ -2104,96 +2073,60 @@ MPO<Q> one_body(const DArray<2> &t){
       state.clear();
 
       //fill the mpo!
-      mpo[i].resize(Q::zero(),make_array(-mpo[i - 1].qshape(3),qp,-qp,qo));
+      mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+      int row = 0;
+      int column = 0;
 
       //identity
-      mpo[i].insert(shape(0,0,0,0),Ip);
-      mpo[i].insert(shape(0,1,1,0),Ip);
-      mpo[i].insert(shape(0,2,2,0),Ip);
-      mpo[i].insert(shape(0,3,3,0),Ip);
+      insert_id(mpo[i],0,0);
+      insert_crea_up_s(mpo[i],0,1,1.0);
+      insert_crea_down(mpo[i],0,2,1.0);
+      insert_anni_up_s(mpo[i],0,3,1.0);
+      insert_anni_down(mpo[i],0,4,1.0);
 
-      //a^+_up (-1)^n_down
-      mpo[i].insert(shape(0,1,0,1),Ip);
-      mpo[i].insert(shape(0,3,2,1),Im);
-
-      //a^dagger_down 
-      mpo[i].insert(shape(0,2,0,2),Ip);
-      mpo[i].insert(shape(0,3,1,2),Ip);
-
-      //a_up (-1)^n_down
-      mpo[i].insert(shape(0,0,1,3),Ip);
-      mpo[i].insert(shape(0,2,3,3),Im);
-
-      //a_down
-      mpo[i].insert(shape(0,0,2,4),Ip);
-      mpo[i].insert(shape(0,1,3,4),Ip);
+      row = 1;
+      column = 5;
 
       //signs
-      for(int j = 1;j < 4*i + 1;++j){
+      for(int j = 1;j < istates.size() - 1;++j){
 
-         mpo[i].insert(shape(j,0,0,j+4),Ip);
-         mpo[i].insert(shape(j,1,1,j+4),Im);
-         mpo[i].insert(shape(j,2,2,j+4),Im);
-         mpo[i].insert(shape(j,3,3,j+4),Ip);
+         insert_sign(mpo[i],row,column);
+         ++row;
+         ++column;
 
       }
 
       //last column: first local term
-      Tloc = t(i,i);
+      insert_local_ob(mpo[i],0,column,t(i,i));
 
-      mpo[i].insert(shape(0,1,1,5),Tloc);
-      mpo[i].insert(shape(0,2,2,5),Tloc);
+      row = 1;
 
-      Tloc = 2.0*t(i,i);
-      mpo[i].insert(shape(0,3,3,5),Tloc);
+      while(row < istates.size() - 1){
 
-      int row = 1;
-      int column = ostates.size() - 1;
+         std::vector<int> v;
+         double val;
 
-      for(int j = i - 1;j >= 0;--j){
+         v = Ostate::get_closing_single(i,istates[row],t,val);
 
-         DArray<4> Tp(1,1,1,1);
-         Tp  = t(j,i);
-
-         DArray<4> Tm(1,1,1,1);
-         Tm = -t(j,i);
-
-         //a_up
-         mpo[i].insert(shape(row,0,1,column),Tp);
-         mpo[i].insert(shape(row,2,3,column),Tp);
-
-         ++row;
-
-         //a_down 
-         mpo[i].insert(shape(row,0,2,column),Tp);
-         mpo[i].insert(shape(row,1,3,column),Tm);
-
-         ++row;
-
-         Tp = t(i,j);
-         Tm = -t(i,j);
-
-         //a^+_up
-         mpo[i].insert(shape(row,1,0,column),Tp);
-         mpo[i].insert(shape(row,3,2,column),Tp);
-
-         ++row;
-
-         //a^+_down
-         mpo[i].insert(shape(row,2,0,column),Tp);
-         mpo[i].insert(shape(row,3,1,column),Tm);
+         if(v[0] == 0 && v[1] == 0)//crea up
+            insert_crea_up(mpo[i],row,column,val);
+         else if(v[0] == 1 && v[1] == 0)//crea down
+            insert_crea_down_s(mpo[i],row,column,val);
+         else if(v[0] == 0 && v[1] == 1)//anni up
+            insert_anni_up(mpo[i],row,column,val);
+         else
+            insert_anni_down_s(mpo[i],row,column,val);
 
          ++row;
 
       }
 
       //finally identity
-      mpo[i].insert(shape(row,0,0,column),Ip);
-      mpo[i].insert(shape(row,1,1,column),Ip);
-      mpo[i].insert(shape(row,2,2,column),Ip);
-      mpo[i].insert(shape(row,3,3,column),Ip);
+      insert_id(mpo[i],row,column);
 
       istates = ostates;
+      qi = qo;
 
    }
 
@@ -2206,60 +2139,35 @@ MPO<Q> one_body(const DArray<2> &t){
    ostates.push_back(state);
    state.clear();
 
-   mpo[L-1].resize(Q::zero(),make_array(-mpo[L - 2].qshape(3),qp,-qp,qo));
+   mpo[L-1].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
 
-   //last column: first local term
-   Tloc = t(L-1,L-1);
-
-   mpo[L-1].insert(shape(0,1,1,0),Tloc);
-   mpo[L-1].insert(shape(0,2,2,0),Tloc);
-
-   Tloc = 2.0*t(L-1,L-1);
-   mpo[L-1].insert(shape(0,3,3,0),Tloc);
+   //first local term
+   insert_local_ob(mpo[L - 1],0,0,t(L - 1,L - 1));
 
    int row = 1;
 
-   for(int j = L - 2;j >= 0;--j){
+   while(row < istates.size() - 1){
 
-      DArray<4> Tp(1,1,1,1);
-      Tp  = t(j,L-1);
+      std::vector<int> v;
+      double val;
 
-      DArray<4> Tm(1,1,1,1);
-      Tm = -t(j,L-1);
+      v = Ostate::get_closing_single(L - 1,istates[row],t,val);
 
-      //a_up
-      mpo[L-1].insert(shape(row,0,1,0),Tp);
-      mpo[L-1].insert(shape(row,2,3,0),Tp);
-
-      ++row;
-
-      //a_down 
-      mpo[L-1].insert(shape(row,0,2,0),Tp);
-      mpo[L-1].insert(shape(row,1,3,0),Tm);
-
-      ++row;
-
-      Tp = t(L-1,j);
-      Tm = -t(L-1,j);
-
-      //a^+_up
-      mpo[L-1].insert(shape(row,1,0,0),Tp);
-      mpo[L-1].insert(shape(row,3,2,0),Tp);
-
-      ++row;
-
-      //a^+_down
-      mpo[L-1].insert(shape(row,2,0,0),Tp);
-      mpo[L-1].insert(shape(row,3,1,0),Tm);
+      if(v[0] == 0 && v[1] == 0)//crea up
+         insert_crea_up(mpo[L - 1],row,0,val);
+      else if(v[0] == 1 && v[1] == 0)//crea down
+         insert_crea_down_s(mpo[L - 1],row,0,val);
+      else if(v[0] == 0 && v[1] == 1)//anni up
+         insert_anni_up(mpo[L - 1],row,0,val);
+      else
+         insert_anni_down_s(mpo[L - 1],row,0,val);
 
       ++row;
 
    }
 
-   mpo[L-1].insert(shape(row,0,0,0),Ip);
-   mpo[L-1].insert(shape(row,1,1,0),Ip);
-   mpo[L-1].insert(shape(row,2,2,0),Ip);
-   mpo[L-1].insert(shape(row,3,3,0),Ip);
+   //finally identity
+   insert_id(mpo[L - 1],row,0);
 
    //merge everything together
    TVector<Qshapes<Q>,1> qmerge;
@@ -2385,48 +2293,48 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
    //doubles:
 
    //a^+_up a^+_down
-   state.push_crea_up(0);
    state.push_crea_down(0);
+   state.push_crea_up(0);
    ostates.push_back(state);
    state.clear();
 
    qo.push_back(Q(-1,-1));
 
    //doubles: a^+_up a_up
-   state.push_crea_up(0);
    state.push_anni_up(0);
+   state.push_crea_up(0);
    ostates.push_back(state);
    state.clear();
 
    qo.push_back(Q::zero());
 
    //doubles: a^+_up a_down
-   state.push_crea_up(0);
    state.push_anni_down(0);
+   state.push_crea_up(0);
    ostates.push_back(state);
    state.clear();
 
    qo.push_back(Q(-1,1));
 
    //doubles: a^+_down a_up
-   state.push_crea_down(0);
    state.push_anni_up(0);
+   state.push_crea_down(0);
    ostates.push_back(state);
    state.clear();
 
    qo.push_back(Q(1,-1));
 
    //doubles: a^+_down a_down
-   state.push_crea_down(0);
    state.push_anni_down(0);
+   state.push_crea_down(0);
    ostates.push_back(state);
    state.clear();
 
    qo.push_back(Q::zero());
 
    //doubles: a_up a_down
-   state.push_anni_up(0);
    state.push_anni_down(0);
+   state.push_anni_up(0);
    ostates.push_back(state);
    state.clear();
 
@@ -2569,48 +2477,48 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
       //doubles:
 
       //a^+_up a^+_down
-      state.push_crea_up(i);
       state.push_crea_down(i);
+      state.push_crea_up(i);
       ostates.push_back(state);
       state.clear();
 
       qo.push_back(Q(-1,-1));
 
       //doubles: a^+_up a_up
-      state.push_crea_up(i);
       state.push_anni_up(i);
+      state.push_crea_up(i);
       ostates.push_back(state);
       state.clear();
 
       qo.push_back(Q::zero());
 
       //doubles: a^+_up a_down
-      state.push_crea_up(i);
       state.push_anni_down(i);
+      state.push_crea_up(i);
       ostates.push_back(state);
       state.clear();
 
       qo.push_back(Q(-1,1));
 
       //doubles: a^+_down a_up
-      state.push_crea_down(i);
       state.push_anni_up(i);
+      state.push_crea_down(i);
       ostates.push_back(state);
       state.clear();
 
       qo.push_back(Q(1,-1));
 
       //doubles: a^+_down a_down
-      state.push_crea_down(i);
       state.push_anni_down(i);
+      state.push_crea_down(i);
       ostates.push_back(state);
       state.clear();
 
       qo.push_back(Q::zero());
 
       //doubles: a_up a_down
-      state.push_anni_up(i);
       state.push_anni_down(i);
+      state.push_anni_up(i);
       ostates.push_back(state);
       state.clear();
 
@@ -2709,13 +2617,13 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
 
          qo.push_back(Q(0,1));
 
-         state.push_anni_down(j);
+         state.push_anni_up(j);
          ostates.push_back(state);
          state.clear();
 
          qo.push_back(Q(-1,0));
 
-         state.push_anni_up(j);
+         state.push_anni_down(j);
          ostates.push_back(state);
          state.clear();
 
@@ -3489,6 +3397,39 @@ void insert_pair(QSDArray<4> &O,int row,int column,const std::vector<double> &va
    //both
    Ip = val[0] + val[1];
    O.insert(shape(row,3,3,column),Ip);
+
+}
+
+/**
+ * insert general local term for one body operator
+ */
+void insert_local_ob(QSDArray<4> &O,int row,int column,double val){
+
+   DArray<4> Tloc(1,1,1,1);
+   Tloc = val;
+
+   O.insert(shape(row,1,1,column),Tloc);
+   O.insert(shape(row,2,2,column),Tloc);
+
+   Tloc = 2.0*val;
+   O.insert(shape(row,3,3,column),Tloc);
+
+}
+
+/**
+ * fill the T2 array with the mp2 ansatz
+ */
+void fill_mp2(DArray<4> &T,const DArray<4> &V,const std::vector<double> &e){
+
+   int no = T.shape(0);
+   int nv = T.shape(2);
+   int L = no + nv;
+
+   for(int i = 0;i < no;++i)
+      for(int j = 0;j < no;++j)
+         for(int a = no;a < L;++a)
+            for(int b = no;b < L;++b)
+               T(i,j,a - no,b - no) += V(i,j,a,b) / ( e[i] + e[j] - e[a] - e[b] );
 
 }
 
