@@ -84,27 +84,16 @@ int main(void){
 
    MPS<Quantum> T2A = gemv(T2_op,A);
 
-   //bra
-   for(int i = 0;i < L;++i)
-      occ[i] = 0;
-
-   occ[1] = 3;
-   occ[3] = 3;
-
    double mp2 = 0.0;
 
    for(int i = 0;i < no;++i)
       for(int j = 0;j < no;++j)
          for(int a = no;a < L;++a)
             for(int b = no;b < L;++b)
-               mp2 += V(i,j,a,b) * V(i,j,a,b) / ( e[i] + e[j] - e[a] - e[b] );
+               mp2 += 2.0 * V(i,j,a,b) * V(i,j,a,b) / ( e[i] + e[j] - e[a] - e[b] ) - V(i,j,a,b) * V(i,j,b,a) / ( e[i] + e[j] - e[a] - e[b] );
 
    cout << mp2 << endl;
-
-   MPS<Quantum> B = product_state(L,qp,occ);
-   cout << inprod(mps::Left,A,O,B) << endl;
-
-   cout << inprod(mps::Left,A,O,T2A) << endl;
+   cout << inprod(mps::Left,A,O,A) + inprod(mps::Left,A,O,T2A) << endl;
 
    return 0;
 
