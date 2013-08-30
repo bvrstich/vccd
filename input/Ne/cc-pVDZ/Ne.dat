@@ -1,0 +1,30 @@
+	Orbital Energies (a.u.)
+	-----------------------
+
+	Doubly Occupied:                                                      
+
+	   1Ag   -32.765641     2Ag    -1.918801     1B3u   -0.832099  
+	   1B1u   -0.832099     1B2u   -0.832099  
+
+	Virtual:                                                              
+
+	   2B3u    1.694557     2B1u    1.694557     2B2u    1.694557  
+	   3Ag     2.159424     1B3g    5.196710     4Ag     5.196710  
+	   1B2g    5.196710     1B1g    5.196710     5Ag     5.196710  
+
+	Final Occupation by Irrep:
+	         Ag   B1g   B2g   B3g    Au   B1u   B2u   B3u 
+	DOCC [     2,    0,    0,    0,    0,    1,    1,    1 ]
+
+  Energy converged.
+
+  @RHF Final Energy:  -128.48877555173212
+
+   => Energetics <=
+
+    Nuclear Repulsion Energy =              0.0000000000000000
+    One-Electron Energy =                -182.6161241191389308
+    Two-Electron Energy =                  54.1273485674067842
+    DFT Exchange-Correlation Energy =       0.0000000000000000
+    Empirical Dispersion Energy =           0.0000000000000000
+    Total Energy =                       -128.4887755517321466

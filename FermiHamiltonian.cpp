@@ -2949,7 +2949,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
 
    //finally insert the identity for all the previously closed terms
    insert_id(mpo[L - 1],istates.size() - 1,0);
-
+   /*
    //merge everything together
    TVector<Qshapes<Q>,1> qmerge;
    TVector<Dshapes,1> dmerge;
@@ -2966,25 +2966,25 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
 
    for(int i = 1;i < L - 1;++i){
 
-      //first merge the row
-      qmerge[0] = mpo[i].qshape(0);
-      dmerge[0] = mpo[i].dshape(0);
+   //first merge the row
+   qmerge[0] = mpo[i].qshape(0);
+   dmerge[0] = mpo[i].dshape(0);
 
-      info.reset(qmerge,dmerge);
+   info.reset(qmerge,dmerge);
 
-      tmp.clear();
+   tmp.clear();
 
-      QSTmerge(info,mpo[i],tmp);
+   QSTmerge(info,mpo[i],tmp);
 
-      //then merge the column
-      qmerge[0] = tmp.qshape(3);
-      dmerge[0] = tmp.dshape(3);
+   //then merge the column
+   qmerge[0] = tmp.qshape(3);
+   dmerge[0] = tmp.dshape(3);
 
-      info.reset(qmerge,dmerge);
+   info.reset(qmerge,dmerge);
 
-      mpo[i].clear();
+   mpo[i].clear();
 
-      QSTmerge(tmp,info,mpo[i]);
+   QSTmerge(tmp,info,mpo[i]);
 
    }
 
@@ -2999,7 +2999,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V){
    QSTmerge(info,mpo[L - 1],tmp);
 
    mpo[L - 1] = tmp;
-
+    */
    return mpo;
 
 }

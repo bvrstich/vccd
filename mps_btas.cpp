@@ -31,8 +31,8 @@ int main(void){
    int L = 14;
 
    //number of particles
-   int n_u = 2;
-   int n_d = 2;
+   int n_u = 5;
+   int n_d = 5;
 
    int no = n_u;
    int nv = L - no;
@@ -42,56 +42,71 @@ int main(void){
    Qshapes<Quantum> qp;
    physical(qp);
 
-   std::vector<int> order = {0,1,5,12,13,9,10,11,2,6,3,7,4,8};
+   std::vector<int> order(L);
+
+   ifstream in_order("input/Ne/cc-pVDZ/order.in");
+
+   for(int i = 0;i < L;++i)
+      in_order >> i >> order[i]; 
 
    DArray<2> t(L,L);
    t = 0;
-   read_oei("input/Be/cc-pVDZ/OEI.in",t,order);
+   read_oei("input/Ne/cc-pVDZ/OEI.in",t,order);
 
    DArray<4> V(L,L,L,L);
    V = 0.0;
-   read_tei("input/Be/cc-pVDZ/TEI.in",V,order);
+   read_tei("input/Ne/cc-pVDZ/TEI.in",V,order);
 
    std::vector<double> e(L);
 
-   ifstream input("input/Be/cc-pVDZ/ener.in");
+   ifstream in_ener("input/Ne/cc-pVDZ/ener.in");
 
    for(int i = 0;i < L;++i)
-      input >> i >> e[i]; 
+      in_ener >> i >> e[i]; 
 
-   MPO<Quantum> O = qcham<Quantum>(t,V);
-   compress(O,mps::Right,0);
-   compress(O,mps::Left,0);
+   //construct quantum chemistry MPO
+   MPO<Quantum> qc = qcham<Quantum>(t,V);
+   compress(qc,mps::Right,0);
+   compress(qc,mps::Left,0);
 
+   //input HF state
    std::vector<int> occ(L);
 
    //bra
    for(int i = 0;i < L;++i)
       occ[i] = 0;
 
-   occ[0] = 3;
-   occ[1] = 3;
+   for(int i = 0;i < no;++i)
+      occ[i] = 3;
 
    MPS<Quantum> A = product_state(L,qp,occ);
 
+   double hf = inprod(mps::Left,A,qc,A);
+
+   double mp2 = 0.0;
+
+   for(int i = 0;i < no;++i)
+      for(int j = 0;j < no;++j)
+         for(int a = no;a < L;++a)
+            for(int b = no;b < L;++b)
+               mp2 += 2.0 * V(i,j,a,b) * V(i,j,a,b) / (e[i] + e[j] - e[a] - e[b]) - V(i,j,b,a) * V(i,j,a,b) / (e[i] + e[j] - e[a] - e[b]);
+
+   cout << hf <<endl;
+   cout << hf + mp2 << endl;
+
+   //T2 operator: fill with MP2 input
    DArray<4> t2(no,no,nv,nv);
    fill_mp2(t2,V,e);
 
+   //construct T2 MPO
    MPO<Quantum> T2_op = T2<Quantum>(t2);
    compress(T2_op,mps::Right,0);
    compress(T2_op,mps::Left,0);
 
-   MPS<Quantum> T2A = gemv(T2_op,A);
+   MPS<Quantum> eTA = exp(T2_op,A,no);
 
-   double mp2 = 0.0;
-
-   for(int j = 0;j < no;++j)
-      for(int a = no;a < L;++a)
-         for(int b = no;b < L;++b)
-            mp2 += 2.0 * V(i,j,a,b) * V(i,j,a,b) / ( e[i] + e[j] - e[a] - e[b] ) - V(i,j,a,b) * V(i,j,b,a) / ( e[i] + e[j] - e[a] - e[b] );
-
-   cout << mp2 << endl;
-   cout << inprod(mps::Left,A,O,A) + inprod(mps::Left,A,O,T2A) << endl;
+   normalize(eTA);
+   cout << dot(mps::Left,eTA,eTA) << "\t" << inprod(mps::Left,eTA,qc,eTA) << endl;
 
    return 0;
 

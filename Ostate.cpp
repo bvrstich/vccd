@@ -375,9 +375,9 @@ std::vector<int> Ostate::get_single_complement(int site,const Ostate &in,const O
          if(al == 1){//only coupling if annihilator 
 
             if(sl == 0){//if spin up
-
+               
                comp.resize(2);
-               comp[0] = 0;
+               comp[0] = 1;
                comp[1] = 1;
 
                Veff = V(i,j,site,l);
@@ -388,6 +388,7 @@ std::vector<int> Ostate::get_single_complement(int site,const Ostate &in,const O
             else{//if spin down output
 
                comp.resize(2);
+
                comp[0] = 0;
                comp[1] = 1;
 
