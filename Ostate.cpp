@@ -346,12 +346,12 @@ std::vector<int> Ostate::get_single_complement(int site,const Ostate &in,const O
 
 
          }
-         else if(al == 1 && sl == 0){
+         else if(al == 1 && sl == 0){//out is anni up
 
-            //put in anni up
+            //put in crea down
             comp.resize(2);
-            comp[0] = 0;
-            comp[1] = 1;
+            comp[0] = 1;
+            comp[1] = 0;
 
             Veff = -V(i,site,l,j);
 
@@ -516,7 +516,7 @@ std::vector<int> Ostate::get_single_complement(int site,const Ostate &in,const O
 
    }//end first site
    else if(si == 0 && ai == 1){//first site anni up spin
-
+ 
       if(sj == 0 && aj == 0){//second site create up spin
 
          if(al == 1 && sl == 0){//out anni up spin

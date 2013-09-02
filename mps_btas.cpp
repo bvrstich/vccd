@@ -31,8 +31,8 @@ int main(void){
    int L = 14;
 
    //number of particles
-   int n_u = 5;
-   int n_d = 5;
+   int n_u = 2;
+   int n_d = 2;
 
    int no = n_u;
    int nv = L - no;
@@ -44,22 +44,22 @@ int main(void){
 
    std::vector<int> order(L);
 
-   ifstream in_order("input/Ne/cc-pVDZ/order.in");
+   ifstream in_order("input/Be/cc-pVDZ/order.in");
 
    for(int i = 0;i < L;++i)
       in_order >> i >> order[i]; 
 
    DArray<2> t(L,L);
    t = 0;
-   read_oei("input/Ne/cc-pVDZ/OEI.in",t,order);
+   read_oei("input/Be/cc-pVDZ/OEI.in",t,order);
 
    DArray<4> V(L,L,L,L);
    V = 0.0;
-   read_tei("input/Ne/cc-pVDZ/TEI.in",V,order);
+   read_tei("input/Be/cc-pVDZ/TEI.in",V,order);
 
    std::vector<double> e(L);
 
-   ifstream in_ener("input/Ne/cc-pVDZ/ener.in");
+   ifstream in_ener("input/Be/cc-pVDZ/ener.in");
 
    for(int i = 0;i < L;++i)
       in_ener >> i >> e[i]; 
@@ -81,18 +81,8 @@ int main(void){
 
    MPS<Quantum> A = product_state(L,qp,occ);
 
-   double hf = inprod(mps::Left,A,qc,A);
-
-   double mp2 = 0.0;
-
-   for(int i = 0;i < no;++i)
-      for(int j = 0;j < no;++j)
-         for(int a = no;a < L;++a)
-            for(int b = no;b < L;++b)
-               mp2 += 2.0 * V(i,j,a,b) * V(i,j,a,b) / (e[i] + e[j] - e[a] - e[b]) - V(i,j,b,a) * V(i,j,a,b) / (e[i] + e[j] - e[a] - e[b]);
-
-   cout << hf <<endl;
-   cout << hf + mp2 << endl;
+   /*
+      double hf = inprod(mps::Left,A,qc,A);
 
    //T2 operator: fill with MP2 input
    DArray<4> t2(no,no,nv,nv);
@@ -104,10 +94,13 @@ int main(void){
    compress(T2_op,mps::Left,0);
 
    MPS<Quantum> eTA = exp(T2_op,A,no);
+   cout << inprod(mps::Left,A,qc,eTA) << endl;
 
    normalize(eTA);
    cout << dot(mps::Left,eTA,eTA) << "\t" << inprod(mps::Left,eTA,qc,eTA) << endl;
 
+   cout << eTA << endl;
+    */
    return 0;
 
 }
