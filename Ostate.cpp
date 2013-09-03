@@ -1159,3 +1159,106 @@ std::vector<int> Ostate::get_closing_single(int site,const Ostate &in,const DArr
    }
 
 }
+
+/**
+ * get the complementary operator between in and out, when a pair is coming and one is going out and give the correct sign to rearrange to normal order: for the T2 operator
+ */
+int Ostate::get_single_complement_T2(int site,const Ostate &in,const Ostate &out,const DArray<4> &t,double &teff){
+
+   int no = t.shape(0);
+
+   //lets call in i,j and out l
+   int i = oplist[in[1]][0];
+   int j = oplist[in[0]][0];
+
+   int si = oplist[in[1]][1];
+   int sj = oplist[in[0]][1];
+
+   int l = oplist[out[0]][0];
+   int sl = oplist[out[0]][1];
+
+   //in virtual notation that is:
+   int a = site - no;
+   int b = l - no;
+
+   int comp;
+
+   if(si == 0){//first site anni up spin
+
+      if(sj == 0){//second site anni up spin
+
+         if(sl == 0){//only coupling with crea up spin
+
+            comp = 0;//create up
+            teff = t(i,j,a,b) - t(i,j,b,a);
+
+            return comp;
+
+         }
+         else//no possible
+            return -1;
+
+      }
+      else{//second site anni down spin
+
+         if(sl == 0){//out crea up
+
+            comp = 1;//crea down
+            teff = -t(i,j,b,a);
+
+            return comp;
+
+         }
+         else{//out crea down
+
+            comp = 0;//crea up
+            teff = t(i,j,a,b);
+
+            return comp;
+
+         }
+
+      }
+
+   }
+   else{//first site anni down
+
+      if(sj == 0){//second site anni up
+
+         if(sl == 0){//out crea up
+
+            comp = 1;//crea down
+            teff = t(i,j,a,b);
+
+            return comp;
+
+         }
+         else{//out crea down
+
+            comp = 0;//crea up
+            teff = -t(i,j,b,a);
+
+            return comp;
+
+         }
+
+      }
+      else{//second site anni down
+
+         //only coupling with crea down
+         if(sl == 1){
+
+            comp = 1;//create down
+            teff = t(i,j,a,b) - t(i,j,b,a);
+
+            return comp;
+
+         }
+         else
+            return -1;
+
+      }
+
+   }
+
+}

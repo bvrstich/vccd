@@ -30,13 +30,16 @@ template<class Q>
 MPO<Q> E(int,int,int,double);
 
 template<class Q>
+MPO<Q> E(int,int,int,int,int,double);
+
+template<class Q>
 MPO<Q> T2(const DArray<4> &);
 
 template<class Q>
-MPO<Q> one_body(const DArray<2> &);
+MPO<Q> T2_test(const DArray<4> &);
 
 template<class Q>
-MPO<Q> one_body_test(const DArray<2> &);
+MPO<Q> one_body(const DArray<2> &);
 
 template<class Q>
 MPO<Q> qcham(const DArray<2> &,const DArray<4> &);

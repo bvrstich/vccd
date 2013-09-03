@@ -52,40 +52,29 @@ int main(void){
    mps::compress(B,mps::Left,100);
    mps::normalize(B);
 
-   MPO<Quantum> Eop = E<Quantum>(L,2,2,1.0);
-
-   cout << mps::dot(mps::Left,A,B) << "\t" << mps::inprod(mps::Left,A,Eop,B) << endl;
-   cout << mps::dot(mps::Left,A,B) << "\t" << mps::inprod(mps::Left,B,Eop,A) << endl;
-
-/*
-   DArray<2> t(L,L);
+   DArray<4> t(no,no,nv,nv);
    t.generate(rgen);
 
-   for(int i = 0;i < L;++i)
-      for(int j = i + 1;j < L;++j)
-         t(i,j) = t(j,i);
+   for(int i = 0;i < no;++i)
+      for(int j = 0;j < no;++j)
+         for(int a = 0;a < nv;++a)
+            for(int b = 0;b < nv;++b)
+               t(i,j,a,b) = t(j,i,b,a);
 
-   MPO<Quantum> OT = one_body<Quantum>(t);
-   compress(OT,mps::Right,0);
-   compress(OT,mps::Left,0);
 
-   MPO<Quantum> OT_test = one_body_test<Quantum>(t);
-   compress(OT_test,mps::Right,0);
-   compress(OT_test,mps::Left,0);
+   MPO<Quantum> T2op = T2<Quantum>(t);
+   mps::compress(T2op,mps::Right,0);
+   mps::compress(T2op,mps::Left,0);
 
-   for(int i = 0;i < L;++i){
+   MPO<Quantum> T2op_test = T2_test<Quantum>(t);
+   mps::compress(T2op_test,mps::Right,0);
+   mps::compress(T2op_test,mps::Left,0);
 
-      cout << i << endl;
-      cout << endl;
-      cout << OT[i].qshape() << endl;
-      cout << OT[i].dshape() << endl;
-      cout << endl;
+   cout << inprod(mps::Left,A,T2op,B) << endl;
+   cout << inprod(mps::Left,B,T2op,A) << endl;
+   cout << inprod(mps::Left,A,T2op_test,B)/2.0 << endl;
+   cout << inprod(mps::Left,B,T2op_test,A)/2.0 << endl;
 
-   }
-
-   cout << dot(mps::Left,A,B) << "\t" << inprod(mps::Left,A,OT,B) << endl;
-   cout << dot(mps::Left,A,B) << "\t" << inprod(mps::Left,A,OT_test,B) << endl;
-*/
    return 0;
 
 }
