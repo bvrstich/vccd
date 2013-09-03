@@ -31,8 +31,8 @@ int main(void){
    int L = 8;
 
    //number of particles
-   int n_u = 4;
-   int n_d = 4;
+   int n_u = 3;
+   int n_d = 3;
 
    int no = n_u;
    int nv = L - no;
