@@ -1,5 +1,5 @@
-#ifndef SPINHAMILTONIAN_H
-#define SPINHAMILTONIAN_H
+#ifndef FERMIHAMILTONIAN_H
+#define FERMIHAMILTONIAN_H
 
 #include <iostream>
 #include <iomanip>
@@ -13,6 +13,18 @@ using namespace mps;
 
 template<class Q>
 void physical(Qshapes<Q> &qp);
+
+template<class Q>
+MPO<Q> crea_up(int,int);
+
+template<class Q>
+MPO<Q> crea_down(int,int);
+
+template<class Q>
+MPO<Q> anni_up(int,int);
+
+template<class Q>
+MPO<Q> anni_down(int,int);
 
 template<class Q>
 MPO<Q> E(int,int,int,double);

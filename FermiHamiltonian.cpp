@@ -23,6 +23,170 @@ void physical(Qshapes<Q> &qp){
 }
 
 /**
+ * MPO representing creation operator of up spin paritcle on site i
+ */
+template<class Q>
+MPO<Q> crea_up(int L,int i){
+
+   MPO<Q> mpo(L);
+
+   Qshapes<Q> qp;
+   physical(qp);
+
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q::zero());
+
+   //signs before the up
+   for(int site = 0;site < i;++site){
+
+      mpo[site].resize(Q::zero(),make_array(qz,qp,-qp,qz));
+      insert_sign(mpo[site],0,0);
+
+   }
+
+   //create up spin on site i
+   Qshapes<Q> qo; 
+   qo.push_back(Q(-1,0));
+
+   mpo[i].resize(Q::zero(),make_array(qz,qp,-qp,qo));
+   insert_crea_up(mpo[i],0,0,1.0);
+
+   //identitity after the operator
+   for(int site = i + 1;site < L;++site){
+
+      mpo[site].resize(Q::zero(),make_array(-qo,qp,-qp,qo));
+      insert_id(mpo[site],0,0);
+
+   }
+
+   return mpo;
+
+}
+
+/**
+ * MPO representing creation operator of a down spin paritcle on site i
+ */
+template<class Q>
+MPO<Q> crea_down(int L,int i){
+
+   MPO<Q> mpo(L);
+
+   Qshapes<Q> qp;
+   physical(qp);
+
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q::zero());
+
+   //signs before the up
+   for(int site = 0;site < i;++site){
+
+      mpo[site].resize(Q::zero(),make_array(qz,qp,-qp,qz));
+      insert_sign(mpo[site],0,0);
+
+   }
+
+   //create down spin on site i
+   Qshapes<Q> qo; 
+   qo.push_back(Q(0,-1));
+
+   mpo[i].resize(Q::zero(),make_array(qz,qp,-qp,qo));
+   insert_crea_down_s(mpo[i],0,0,1.0);
+
+   //identitity after the operator
+   for(int site = i + 1;site < L;++site){
+
+      mpo[site].resize(Q::zero(),make_array(-qo,qp,-qp,qo));
+      insert_id(mpo[site],0,0);
+
+   }
+
+   return mpo;
+
+}
+
+/**
+ * MPO representing annihilation operator of up spin paritcle on site i
+ */
+template<class Q>
+MPO<Q> anni_up(int L,int i){
+
+   MPO<Q> mpo(L);
+
+   Qshapes<Q> qp;
+   physical(qp);
+
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q::zero());
+
+   //signs before the up
+   for(int site = 0;site < i;++site){
+
+      mpo[site].resize(Q::zero(),make_array(qz,qp,-qp,qz));
+      insert_sign(mpo[site],0,0);
+
+   }
+
+   //anni up spin on site i
+   Qshapes<Q> qo; 
+   qo.push_back(Q(1,0));
+
+   mpo[i].resize(Q::zero(),make_array(qz,qp,-qp,qo));
+   insert_anni_up(mpo[i],0,0,1.0);
+
+   //identitity after the operator
+   for(int site = i + 1;site < L;++site){
+
+      mpo[site].resize(Q::zero(),make_array(-qo,qp,-qp,qo));
+      insert_id(mpo[site],0,0);
+
+   }
+
+   return mpo;
+
+}
+
+/**
+ * MPO representing annihilation operator of a down spin paritcle on site i
+ */
+template<class Q>
+MPO<Q> anni_down(int L,int i){
+
+   MPO<Q> mpo(L);
+
+   Qshapes<Q> qp;
+   physical(qp);
+
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q::zero());
+
+   //signs before the down
+   for(int site = 0;site < i;++site){
+
+      mpo[site].resize(Q::zero(),make_array(qz,qp,-qp,qz));
+      insert_sign(mpo[site],0,0);
+
+   }
+
+   //annihilate down spin on site i
+   Qshapes<Q> qo; 
+   qo.push_back(Q(0,1));
+
+   mpo[i].resize(Q::zero(),make_array(qz,qp,-qp,qo));
+   insert_anni_down_s(mpo[i],0,0,1.0);
+
+   //identitity after the operator
+   for(int site = i + 1;site < L;++site){
+
+      mpo[site].resize(Q::zero(),make_array(-qo,qp,-qp,qo));
+      insert_id(mpo[site],0,0);
+
+   }
+
+   return mpo;
+
+}
+
+/**
  * elementary excitation operator:E^i_j: \sum_s a^+_{i,s} a_{js}
  */
 template<class Q>
@@ -1066,19 +1230,28 @@ template<class Q>
 MPO<Q> one_body_test(const DArray<2> &t){
 
    int L = t.shape(0);
-/*
+
    MPO<Q> mpo = E<Q>(L,0,0,t(0,0));
 
    MPO<Q> tmp;
    MPO<Q> sum;
 
-   tmp = E<Q>(L,0,1,t(0,1));
+   for(int i = 0;i < L;++i)
+      for(int j = 0;j < L;++j){
 
-   sum = add(tmp,mpo);
-   mpo = sum;
+         if(i != 0 || j != 0){
+
+            tmp = E<Q>(L,i,j,t(i,j));
+
+            sum = add(tmp,mpo);
+            mpo = sum;
+
+         }
+
+      }
 
    return mpo;
-*/
+
 }
 
 /**
@@ -2575,3 +2748,7 @@ template MPO<Quantum> T2(const DArray<4> &);
 template MPO<Quantum> one_body(const DArray<2> &);
 template MPO<Quantum> one_body_test(const DArray<2> &);
 template MPO<Quantum> qcham(const DArray<2> &,const DArray<4> &);
+template MPO<Quantum> crea_up(int L,int i);
+template MPO<Quantum> crea_down(int L,int i);
+template MPO<Quantum> anni_up(int L,int i);
+template MPO<Quantum> anni_down(int L,int i);

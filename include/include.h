@@ -18,3 +18,4 @@ namespace btas { typedef FermiQuantum Quantum; };
 #include "FermiHamiltonian.h"
 #include "Ostate.h"
 #include "input.h"
+#include "vccd.h"

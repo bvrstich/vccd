@@ -28,11 +28,11 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 14;
+   int L = 8;
 
    //number of particles
-   int n_u = 2;
-   int n_d = 2;
+   int n_u = 4;
+   int n_d = 4;
 
    int no = n_u;
    int nv = L - no;
@@ -42,65 +42,50 @@ int main(void){
    Qshapes<Quantum> qp;
    physical(qp);
 
-   std::vector<int> order(L);
+   MPS<Quantum> A =  mps::create(L,Quantum(n_u,n_d),qp,40,rgen); 
+   mps::compress(A,mps::Right,100);
+   mps::compress(A,mps::Left,100);
+   mps::normalize(A);
 
-   ifstream in_order("input/Be/cc-pVDZ/order.in");
+   MPS<Quantum> B =  mps::create(L,Quantum(n_u,n_d),qp,40,rgen); 
+   mps::compress(B,mps::Right,100);
+   mps::compress(B,mps::Left,100);
+   mps::normalize(B);
 
-   for(int i = 0;i < L;++i)
-      in_order >> i >> order[i]; 
+   MPO<Quantum> Eop = E<Quantum>(L,2,2,1.0);
 
+   cout << mps::dot(mps::Left,A,B) << "\t" << mps::inprod(mps::Left,A,Eop,B) << endl;
+   cout << mps::dot(mps::Left,A,B) << "\t" << mps::inprod(mps::Left,B,Eop,A) << endl;
+
+/*
    DArray<2> t(L,L);
-   t = 0;
-   read_oei("input/Be/cc-pVDZ/OEI.in",t,order);
-
-   DArray<4> V(L,L,L,L);
-   V = 0.0;
-   read_tei("input/Be/cc-pVDZ/TEI.in",V,order);
-
-   std::vector<double> e(L);
-
-   ifstream in_ener("input/Be/cc-pVDZ/ener.in");
+   t.generate(rgen);
 
    for(int i = 0;i < L;++i)
-      in_ener >> i >> e[i]; 
+      for(int j = i + 1;j < L;++j)
+         t(i,j) = t(j,i);
 
-   //construct quantum chemistry MPO
-   MPO<Quantum> qc = qcham<Quantum>(t,V);
-   compress(qc,mps::Right,0);
-   compress(qc,mps::Left,0);
+   MPO<Quantum> OT = one_body<Quantum>(t);
+   compress(OT,mps::Right,0);
+   compress(OT,mps::Left,0);
 
-   //input HF state
-   std::vector<int> occ(L);
+   MPO<Quantum> OT_test = one_body_test<Quantum>(t);
+   compress(OT_test,mps::Right,0);
+   compress(OT_test,mps::Left,0);
 
-   //bra
-   for(int i = 0;i < L;++i)
-      occ[i] = 0;
+   for(int i = 0;i < L;++i){
 
-   for(int i = 0;i < no;++i)
-      occ[i] = 3;
+      cout << i << endl;
+      cout << endl;
+      cout << OT[i].qshape() << endl;
+      cout << OT[i].dshape() << endl;
+      cout << endl;
 
-   MPS<Quantum> A = product_state(L,qp,occ);
+   }
 
-   /*
-      double hf = inprod(mps::Left,A,qc,A);
-
-   //T2 operator: fill with MP2 input
-   DArray<4> t2(no,no,nv,nv);
-   fill_mp2(t2,V,e);
-
-   //construct T2 MPO
-   MPO<Quantum> T2_op = T2<Quantum>(t2);
-   compress(T2_op,mps::Right,0);
-   compress(T2_op,mps::Left,0);
-
-   MPS<Quantum> eTA = exp(T2_op,A,no);
-   cout << inprod(mps::Left,A,qc,eTA) << endl;
-
-   normalize(eTA);
-   cout << dot(mps::Left,eTA,eTA) << "\t" << inprod(mps::Left,eTA,qc,eTA) << endl;
-
-   cout << eTA << endl;
-    */
+   cout << dot(mps::Left,A,B) << "\t" << inprod(mps::Left,A,OT,B) << endl;
+   cout << dot(mps::Left,A,B) << "\t" << inprod(mps::Left,A,OT_test,B) << endl;
+*/
    return 0;
 
 }
