@@ -415,7 +415,7 @@ std::vector<int> Ostate::get_single_complement(int site,const Ostate &in,const O
             comp[0] = 1;
             comp[1] = 1;
 
-            Veff = V(l,i,j,site);
+            Veff = -V(l,i,j,site);
 
             return comp;
 
@@ -939,7 +939,7 @@ std::vector<int> Ostate::get_double_complement(int site,const Ostate &in,const O
       else if(sl == 0 && al == 1){//out annihilate up spin: no possible
 
          comp.push_back(1);
-         Veff[0] = V(site,site,i,l);
+         Veff[0] = -V(site,site,i,l);
 
          return comp;
 
@@ -1019,8 +1019,8 @@ std::vector<int> Ostate::get_closing_pair(int site,const Ostate &in,const DArray
          return comp;
       else if(sj == 0 && aj == 1){//annihilate up
 
-         comp.push_back(2);
-         val[0] = -V(site,i,site,j);
+         comp.push_back(2);//cu ad
+         val[0] = -V(site,i,j,site);
 
          return comp;
 
@@ -1050,7 +1050,7 @@ std::vector<int> Ostate::get_closing_pair(int site,const Ostate &in,const DArray
       else if(sj == 1 && aj == 0){//create down
 
          comp.push_back(2);
-         val[0] = V(site,j,i,site);
+         val[0] = -V(site,j,i,site);
 
          return comp;
 
@@ -1072,7 +1072,7 @@ std::vector<int> Ostate::get_closing_pair(int site,const Ostate &in,const DArray
       if(sj == 0 && aj == 0){//create up
 
          comp.push_back(3);
-         val[0] = V(j,site,i,site);
+         val[0] = -V(j,site,site,i);
 
          return comp;
 

@@ -28,11 +28,11 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 8;
+   int L = 4;
 
    //number of particles
-   int n_u = 3;
-   int n_d = 3;
+   int n_u = 2;
+   int n_d = 2;
 
    int no = n_u;
    int nv = L - no;
@@ -47,33 +47,72 @@ int main(void){
    mps::compress(A,mps::Left,100);
    mps::normalize(A);
 
-   MPS<Quantum> B =  mps::create(L,Quantum(n_u,n_d),qp,40,rgen); 
+   MPS<Quantum> B = mps::create(L,Quantum(n_u,n_d),qp,40,rgen); 
    mps::compress(B,mps::Right,100);
    mps::compress(B,mps::Left,100);
    mps::normalize(B);
 
-   DArray<4> t(no,no,nv,nv);
+   DArray<2> t(L,L);
    t.generate(rgen);
 
-   for(int i = 0;i < no;++i)
-      for(int j = 0;j < no;++j)
-         for(int a = 0;a < nv;++a)
-            for(int b = 0;b < nv;++b)
-               t(i,j,a,b) = t(j,i,b,a);
+   for(int i = 0;i < L;++i)
+      for(int j = i + 1;j < L;++j)
+         t(i,j) = t(j,i);
+
+   t = 0.0;
+
+   DArray<4> V(L,L,L,L);
+
+   for(int i = 0;i < L;++i)
+      for(int j = 0;j < L;++j)
+         for(int k = 0;k < L;++k)
+            for(int l = 0;l < L;++l){
+
+               double value = rgen();
+
+               V(i,j,k,l) = value;
+               V(j,i,l,k) = value;
+               V(k,j,i,l) = value;
+               V(j,k,l,i) = value;
+               V(i,l,k,j) = value;
+               V(l,i,j,k) = value;
+               V(k,l,i,j) = value;
+               V(l,k,j,i) = value;
+
+            }
 
 
-   MPO<Quantum> T2op = T2<Quantum>(t);
-   mps::compress(T2op,mps::Right,0);
-   mps::compress(T2op,mps::Left,0);
 
-   MPO<Quantum> T2op_test = T2_test<Quantum>(t);
-   mps::compress(T2op_test,mps::Right,0);
-   mps::compress(T2op_test,mps::Left,0);
+   V = 0.0;
 
-   cout << inprod(mps::Left,A,T2op,B) << endl;
-   cout << inprod(mps::Left,B,T2op,A) << endl;
-   cout << inprod(mps::Left,A,T2op_test,B)/2.0 << endl;
-   cout << inprod(mps::Left,B,T2op_test,A)/2.0 << endl;
+   for(int i = 0;i < L;++i)
+      for(int j = 0;j < L;++j)
+         for(int k = 0;k < L;++k){
+
+            double value = rgen();
+
+            V(i,i,j,k) = value;
+            V(i,i,k,j) = value;
+            V(j,k,i,i) = value;
+            V(k,j,i,i) = value;
+            V(j,i,i,k) = value;
+            V(i,k,j,i) = value;
+            V(i,j,k,i) = value;
+            V(k,i,i,j) = value;
+
+         }
+   MPO<Quantum> qc_test = qcham_test<Quantum>(t,V);
+   compress(qc_test,mps::Right,0);
+   compress(qc_test,mps::Left,0);
+
+   MPO<Quantum> qc = qcham<Quantum>(t,V);
+   compress(qc,mps::Right,0);
+   compress(qc,mps::Left,0);
+
+   cout << inprod(mps::Left,A,qc,B) << endl;
+   cout << inprod(mps::Left,B,qc,A) << endl;
+   cout << 0.5 * inprod(mps::Left,A,qc_test,B) << endl;
+   cout << 0.5 * inprod(mps::Left,B,qc_test,A) << endl;
 
    return 0;
 

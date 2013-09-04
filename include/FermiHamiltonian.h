@@ -27,16 +27,43 @@ template<class Q>
 MPO<Q> anni_down(int,int);
 
 template<class Q>
+MPO<Q> crea_up_crea_up(int,int,int,double);
+
+template<class Q>
+MPO<Q> crea_up_crea_down(int,int,int,double);
+
+template<class Q>
+MPO<Q> crea_down_crea_up(int,int,int,double);
+
+template<class Q>
+MPO<Q> crea_down_crea_down(int,int,int,double);
+
+template<class Q>
+MPO<Q> anni_up_anni_up(int,int,int,double);
+
+template<class Q>
+MPO<Q> anni_down_anni_up(int,int,int,double);
+
+template<class Q>
+MPO<Q> anni_up_anni_down(int,int,int,double);
+
+template<class Q>
+MPO<Q> anni_down_anni_down(int,int,int,double);
+
+template<class Q>
 MPO<Q> E(int,int,int,double);
 
 template<class Q>
 MPO<Q> E(int,int,int,int,int,double);
 
 template<class Q>
+MPO<Q> tpint(int,int,int,int,int,double);
+
+template<class Q>
 MPO<Q> T2(const DArray<4> &);
 
 template<class Q>
-MPO<Q> T2_test(const DArray<4> &);
+MPO<Q> qcham_test(const DArray<2> &,const DArray<4> &);
 
 template<class Q>
 MPO<Q> one_body(const DArray<2> &);
@@ -45,6 +72,7 @@ template<class Q>
 MPO<Q> qcham(const DArray<2> &,const DArray<4> &);
 
 void insert_id(QSDArray<4> &,int row,int column);
+void insert_zero(QSDArray<4> &,int row,int column);
 void insert_sign(QSDArray<4> &,int row,int column);
 void insert_crea_up(QSDArray<4> &,int row,int column,double);
 void insert_crea_up_s(QSDArray<4> &,int row,int column,double);
