@@ -499,7 +499,7 @@ std::vector<int> Ostate::get_single_complement(int site,const Ostate &in,const O
             return comp;
 
          }
-         else if(al == 1 && sl == 0){//crea up
+         else if(al == 0 && sl == 0){//crea up
 
             //put in anni up 
             comp.resize(2);
@@ -767,7 +767,7 @@ std::vector<int> Ostate::get_single_complement(int site,const Ostate &in,const O
             comp[0] = 0;
             comp[1] = 0;
 
-            Veff = V(site,j,i,l);
+            Veff = V(site,j,l,i);
 
             return comp;
 

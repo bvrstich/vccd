@@ -81,26 +81,6 @@ int main(void){
 
             }
 
-
-
-   V = 0.0;
-
-   for(int i = 0;i < L;++i)
-      for(int j = 0;j < L;++j)
-         for(int k = 0;k < L;++k){
-
-            double value = rgen();
-
-            V(i,i,j,k) = value;
-            V(i,i,k,j) = value;
-            V(j,k,i,i) = value;
-            V(k,j,i,i) = value;
-            V(j,i,i,k) = value;
-            V(i,k,j,i) = value;
-            V(i,j,k,i) = value;
-            V(k,i,i,j) = value;
-
-         }
    MPO<Quantum> qc_test = qcham_test<Quantum>(t,V);
    compress(qc_test,mps::Right,0);
    compress(qc_test,mps::Left,0);
