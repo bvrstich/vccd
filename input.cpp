@@ -19,6 +19,8 @@ void read_oei(const char *filename,DArray<2> &t,const std::vector<int> &order){
    int i,j;
    double value;
 
+   t = 0.0;
+
    while(input >> i >> j >> value){
 
       t(order[i],order[j]) = value;
@@ -37,6 +39,8 @@ void read_tei(const char *filename,DArray<4> &V,const std::vector<int> &order){
 
    int a,b,c,d;
    double value;
+
+   V = 0.0;
 
    while(input >> a >> c >> b >> d >> value){
 

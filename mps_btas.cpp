@@ -28,7 +28,7 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 4;
+   int L = 14;
 
    //number of particles
    int n_u = 2;
@@ -42,57 +42,48 @@ int main(void){
    Qshapes<Quantum> qp;
    physical(qp);
 
-   MPS<Quantum> A =  mps::create(L,Quantum(n_u,n_d),qp,40,rgen); 
-   mps::compress(A,mps::Right,100);
-   mps::compress(A,mps::Left,100);
-   mps::normalize(A);
+   std::vector<int> order(L);
 
-   MPS<Quantum> B = mps::create(L,Quantum(n_u,n_d),qp,40,rgen); 
-   mps::compress(B,mps::Right,100);
-   mps::compress(B,mps::Left,100);
-   mps::normalize(B);
+   ifstream ord_in("input/Be/cc-pVDZ/order.in");
+
+   for(int i = 0;i < L;++i)
+      ord_in >> i >> order[i];
+
+   std::vector<double> e(L);
+
+   ifstream ener_in("input/Be/cc-pVDZ/ener.in");
+
+   for(int i = 0;i < L;++i)
+      ener_in >> i >> e[i];
 
    DArray<2> t(L,L);
-   t.generate(rgen);
-
-   for(int i = 0;i < L;++i)
-      for(int j = i + 1;j < L;++j)
-         t(i,j) = t(j,i);
-
-   t = 0.0;
-
+   read_oei("input/Be/cc-pVDZ/OEI.in",t,order);
+ 
    DArray<4> V(L,L,L,L);
-
-   for(int i = 0;i < L;++i)
-      for(int j = 0;j < L;++j)
-         for(int k = 0;k < L;++k)
-            for(int l = 0;l < L;++l){
-
-               double value = rgen();
-
-               V(i,j,k,l) = value;
-               V(j,i,l,k) = value;
-               V(k,j,i,l) = value;
-               V(j,k,l,i) = value;
-               V(i,l,k,j) = value;
-               V(l,i,j,k) = value;
-               V(k,l,i,j) = value;
-               V(l,k,j,i) = value;
-
-            }
-
-   MPO<Quantum> qc_test = qcham_test<Quantum>(t,V);
-   compress(qc_test,mps::Right,0);
-   compress(qc_test,mps::Left,0);
+   read_tei("input/Be/cc-pVDZ/TEI.in",V,order);
 
    MPO<Quantum> qc = qcham<Quantum>(t,V);
    compress(qc,mps::Right,0);
    compress(qc,mps::Left,0);
 
-   cout << inprod(mps::Left,A,qc,B) << endl;
-   cout << inprod(mps::Left,B,qc,A) << endl;
-   cout << 0.5 * inprod(mps::Left,A,qc_test,B) << endl;
-   cout << 0.5 * inprod(mps::Left,B,qc_test,A) << endl;
+   std::vector<int> occ(L);
+
+   for(int i = 0;i < no;++i)
+      occ[i] = 3;
+
+   for(int i = no;i < L;++i)
+      occ[i] = 0;
+
+   MPS<Quantum> hf = product_state(L,qp,occ);
+
+   cout << endl;
+   cout << "Hartree-Fock " << inprod(mps::Left,hf,qc,hf) << endl;
+   cout << endl;
+
+   DArray<4> t2(no,no,nv,nv);
+   fill_mp2(t2,V,e);
+
+   vccd::steepest_descent(t2,qc,hf);
 
    return 0;
 
