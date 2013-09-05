@@ -42,30 +42,11 @@ int main(void){
    Qshapes<Quantum> qp;
    physical(qp);
 
-   std::vector<int> order(L);
+   //read in the qc ham
+   MPO<Quantum> qc(L);
+   load(qc,"input/Be/cc-pVDZ/MPO/qcham");
 
-   ifstream ord_in("input/Be/cc-pVDZ/order.in");
-
-   for(int i = 0;i < L;++i)
-      ord_in >> i >> order[i];
-
-   std::vector<double> e(L);
-
-   ifstream ener_in("input/Be/cc-pVDZ/ener.in");
-
-   for(int i = 0;i < L;++i)
-      ener_in >> i >> e[i];
-
-   DArray<2> t(L,L);
-   read_oei("input/Be/cc-pVDZ/OEI.in",t,order);
- 
-   DArray<4> V(L,L,L,L);
-   read_tei("input/Be/cc-pVDZ/TEI.in",V,order);
-
-   MPO<Quantum> qc = qcham<Quantum>(t,V);
-   compress(qc,mps::Right,0);
-   compress(qc,mps::Left,0);
-
+   //make the HF state
    std::vector<int> occ(L);
 
    for(int i = 0;i < no;++i)
@@ -80,8 +61,11 @@ int main(void){
    cout << "Hartree-Fock " << inprod(mps::Left,hf,qc,hf) << endl;
    cout << endl;
 
-   DArray<4> t2(no,no,nv,nv);
-   fill_mp2(t2,V,e);
+   //read in the initial guess
+   std::ifstream fin("input/Be/cc-pVDZ/mp2.in");
+   boost::archive::binary_iarchive iar(fin);
+   DArray<4> t2;
+   iar >> t2;
 
    vccd::steepest_descent(t2,qc,hf);
 
