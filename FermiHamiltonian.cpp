@@ -1049,6 +1049,7 @@ MPO<Q> anni_down_anni_down(int L,int i,int j,double val){
 /**
  * general two-particle interaction term: represent as MPO
  */
+ /*
 template<class Q>
 MPO<Q> tpint(int L,int i,int j,int k,int l,double V){
 
@@ -1110,10 +1111,11 @@ MPO<Q> tpint(int L,int i,int j,int k,int l,double V){
    }
 
 }
-
+*/
 /**
  * elementary double excitation operator:E^i_k E^j_l
  */
+ /*
 template<class Q>
 MPO<Q> E(int L,int i,int j,int k,int l,double t){
 
@@ -1123,7 +1125,7 @@ MPO<Q> E(int L,int i,int j,int k,int l,double t){
    return gemm(Eik,Ejl);
 
 }
-
+*/
 /**
  * elementary excitation operator:E^i_j: \sum_s a^+_{i,s} a_{js}
  */
@@ -1313,7 +1315,7 @@ MPO<Q> E(int L,int i,int j,double t){
  */
 template<class Q>
 MPO<Q> qcham_test(const DArray<2> &t,const DArray<4> &V){
-
+/*
    int L = t.shape(0);//number of orbitals
 
    MPO<Q> mpo = E<Q>(L,0,0,t(0,0));
@@ -1345,7 +1347,7 @@ MPO<Q> qcham_test(const DArray<2> &t,const DArray<4> &V){
             }
 
    return mpo;
-
+*/
 }
 
 /**
@@ -3438,8 +3440,8 @@ void fill_mp2(DArray<4> &T,const DArray<4> &V,const std::vector<double> &e){
 
 template void physical<Quantum>(Qshapes<Quantum> &);
 template MPO<Quantum> E(int,int,int,double);
-template MPO<Quantum> E(int,int,int,int,int,double);
-template MPO<Quantum> tpint(int,int,int,int,int,double);
+//template MPO<Quantum> E(int,int,int,int,int,double);
+//template MPO<Quantum> tpint(int,int,int,int,int,double);
 template MPO<Quantum> T2(const DArray<4> &);
 template MPO<Quantum> qcham_test(const DArray<2> &,const DArray<4> &);
 template MPO<Quantum> one_body(const DArray<2> &);

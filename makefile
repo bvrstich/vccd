@@ -11,8 +11,6 @@ BINNAME = mps_btas
 CPPSRC	= mps_btas.cpp\
            FermiHamiltonian.cpp\
            Ostate.cpp\
-           input.cpp\
-           vccd.cpp
 
 
 OBJ	= $(CPPSRC:.cpp=.o)
