@@ -31,8 +31,8 @@ int main(void){
    int L = 14;
 
    //number of particles
-   int n_u = 1;
-   int n_d = 1;
+   int n_u = 2;
+   int n_d = 2;
 
    int no = n_u;
    int nv = L - no;
@@ -47,89 +47,62 @@ int main(void){
    MPS<Quantum> Y = create(L,Quantum(n_u,n_d),qp,100,rgen);
    normalize(Y);
 
-   DArray<2> t(L,L);
+   DArray<2> tA(L,L);
 
    for(int i = 0;i < L;++i)
       for(int j = 0;j < L;++j){
 
          double value = rgen();
 
-         t(i,j) = value;
-         t(j,i) = value;
+         tA(i,j) = value;
+         tA(j,i) = value;
 
       }
 
 
-   MPO<Quantum> T = one_body<Quantum>(t);
-   compress(T,mps::Right,0);
-   compress(T,mps::Left,0);
+   MPO<Quantum> A = one_body<Quantum>(tA);
+   compress(A,mps::Right,0);
+   compress(A,mps::Left,0);
 
-   MPS<Quantum> TX = T*X;
+   for(int i = 0;i < L;++i)
+      for(int j = 0;j < L;++j){
 
-   SDArray<1> S;//singular values
-   QSDArray<2> V;//V^T
-   QSDArray<3> U;//U --> unitary left normalized matrix
+         double value = rgen();
 
-   for(int i = 0;i < L - 1;++i){
+         tA(i,j) = value;
+         tA(j,i) = value;
 
-      //then svd
-      QSDgesvd(RightArrow,TX[i],S,U,V,0);
+      }
 
-      //copy unitary to mpx
-      QSDcopy(U,TX[i]);
+   MPO<Quantum> B = one_body<Quantum>(tA);
+   compress(B,mps::Right,0);
+   compress(B,mps::Left,0);
 
-      //paste S and V together
-      SDdidm(S,V);
+   for(int i = 0;i < L;++i)
+      for(int j = 0;j < L;++j){
 
-      //and multiply with mpx on the next site
-      U = TX[i + 1];
+         double value = rgen();
 
-      //when compressing dimensions will change, so reset:
-      TX[i + 1].clear();
+         tA(i,j) = value;
+         tA(j,i) = value;
 
-      QSDcontract(1.0,V,shape(1),U,shape(0),0.0,TX[i + 1]);
+      }
 
-      cout << i << "\t" << dot(mps::Left,TX,TX) << endl;
+   MPO<Quantum> C = one_body<Quantum>(tA);
+   compress(C,mps::Right,0);
+   compress(C,mps::Left,0);
 
-   }
+   MPO<Quantum> C_copy(C);
 
-   int i = L - 1;
+   double alpha = 0.62734;
+   double beta = 0.12349;
 
-   cout << endl;
-   cout << TX[i].qshape() << endl;
-   cout << TX[i].dshape() << endl;
-   cout << endl;
+   MPO<Quantum> AB = A*B;
 
-   //then svd
-   QSDgesvd(RightArrow,TX[i],S,U,V,0);
+   gemm(alpha,A,B,beta,C);
 
-   //reverse the svd
-   SDdimd(U,S);
+   cout << alpha * inprod(mps::Left,X,AB,Y) + beta * inprod(mps::Left,X,C_copy,Y) << "\t" << inprod(mps::Left,X,C,Y) << endl;
 
-   QSDArray<3> tmp;
-
-   QSDcontract(1.0,U,shape(2),V,shape(0),0.0,tmp);
-
-   QSDaxpy(-1.0,TX[i],tmp);
-   cout << QSDdotc(tmp,tmp) << endl;
-
-/*
-   //copy unitary to mpx
-   QSDcopy(U,TX[i]);
-
-   //paste S and V together
-   SDdidm(S,V);
-
-   //and multiply with mpx on the next site
-   U = TX[i + 1];
-
-   //when compressing dimensions will change, so reset:
-   TX[i + 1].clear();
-
-   QSDcontract(1.0,V,shape(1),U,shape(0),0.0,TX[i + 1]);
-
-   cout << i << "\t" << dot(mps::Left,TX,TX) << endl;
-*/
    /*
    //make the HF state
    std::vector<int> occ(L);
