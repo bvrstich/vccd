@@ -31,8 +31,8 @@ int main(void){
    int L = 14;
 
    //number of particles
-   int n_u = 2;
-   int n_d = 2;
+   int n_u = 1;
+   int n_d = 1;
 
    int no = n_u;
    int nv = L - no;
@@ -47,22 +47,20 @@ int main(void){
    MPS<Quantum> Y = create(L,Quantum(n_u,n_d),qp,100,rgen);
    normalize(Y);
 
-   DArray<4> t(no,no,nv,nv);
+   DArray<2> t(L,L);
 
-   for(int i = 0;i < no;++i)
-      for(int j = 0;j < no;++j)
-         for(int a = 0;a < nv;++a)
-            for(int b = 0;b < nv;++b){
+   for(int i = 0;i < L;++i)
+      for(int j = 0;j < L;++j){
 
-               double value = rgen();
+         double value = rgen();
 
-               t(i,j,a,b) = value;
-               t(j,i,b,a) = value;
+         t(i,j) = value;
+         t(j,i) = value;
 
-            }
+      }
 
 
-   MPO<Quantum> T = T2<Quantum>(t);
+   MPO<Quantum> T = one_body<Quantum>(t);
    compress(T,mps::Right,0);
    compress(T,mps::Left,0);
 
@@ -72,7 +70,7 @@ int main(void){
    QSDArray<2> V;//V^T
    QSDArray<3> U;//U --> unitary left normalized matrix
 
-   for(int i = 0;i < 6;++i){
+   for(int i = 0;i < L - 1;++i){
 
       //then svd
       QSDgesvd(RightArrow,TX[i],S,U,V,0);
@@ -95,27 +93,12 @@ int main(void){
 
    }
 
-   int i = 6;
+   int i = L - 1;
 
    cout << endl;
    cout << TX[i].qshape() << endl;
    cout << TX[i].dshape() << endl;
    cout << endl;
-
-   Qshapes<Quantum> qo = TX[i].qshape(2);
-
-   for(int j = 0;j < qo.size();++j){
-
-      if(qo[j].gn_up() > 0 || qo[j].gn_down() > 0)
-         cout << j << "\t" << qo[j] <<endl;
-
-   }
-
-   for(SDArray<3>::const_iterator it = TX[i].begin();it != TX[i].end();++it){
-
-      cout << TX[i].index(it->first) << endl;
-
-   }
 
    //then svd
    QSDgesvd(RightArrow,TX[i],S,U,V,0);
