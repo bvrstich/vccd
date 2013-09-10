@@ -74,7 +74,12 @@ int main(void){
 
    MPO<Quantum> T = T2<Quantum>(t);
 
-   ro::RO rol = ro::construct(mps::Left,hf,T,hf);
+   MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,10);
+   compress(A,mps::Left,0);
+   MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,10);
+   compress(B,mps::Left,0);
+
+   MPS<Quantum> rol = ro::construct(mps::Left,A,T,B);
 
    return 0;
 

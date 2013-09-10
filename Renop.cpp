@@ -12,20 +12,22 @@ using std::ifstream;
 using namespace btas;
 using namespace mps;
 
-namespace ro{
+namespace ro {
 
    /**
-    * construct a renormalized operator for <B|O|A>
+    * construct a renormalized operator for <B|O|A> and store it in an MPS
     * @param dir left renormalized or right renormalized
     * @param A input MPS
     * @param O input MPO
     * @param B input MPS
     */
-   RO construct(const MPS_DIRECTION &dir,const MPS<Quantum> &A,const MPO<Quantum> &O,const MPS<Quantum> &B){
+   MPS<Quantum> construct(const MPS_DIRECTION &dir,const MPS<Quantum> &A,const MPO<Quantum> &O,const MPS<Quantum> &B){
 
-      RO renop(O.size());
+      int L = O.size();
 
-      if(dir == Left){
+      MPS<Quantum> RO(L - 1);
+
+      if(dir == mps::Left){
 
          enum {j,k,l,m,n,o};
 
@@ -35,7 +37,7 @@ namespace ro{
          QSDindexed_contract(1.0,O[0],shape(m,n,k,o),A[0],shape(j,k,l),0.0,loc,shape(j,m,n,l,o));
 
          //merge 2 rows together
-         TVector<Qshapes<Q>,2> qmerge;
+         TVector<Qshapes<Quantum>,2> qmerge;
          TVector<Dshapes,2> dmerge;
 
          for(int i = 0;i < 2;++i){
@@ -51,30 +53,22 @@ namespace ro{
          QSTmerge(info,loc,tmp);
 
          //this will contain the right going part
-         QSDArray<3> EO;
-
-         QSDindexed_contract(1.0,B[0].conjugate(),shape(j,k,l),tmp,shape(j,k,m,n),0.0,EO,shape(m,n,l));
+         QSDindexed_contract(1.0,B[0].conjugate(),shape(j,k,l),tmp,shape(j,k,m,n),0.0,RO[0],shape(m,n,l));
 
          QSDArray<4> I1;
          QSDArray<4> I2;
 
-         for(int i = 1;i < L;++i){
+         for(int i = 1;i < L - 1;++i){
 
             I1.clear();
 
-            QSDindexed_contract(1.0,EO,shape(j,k,l),A[i],shape(j,m,n),0.0,I1,shape(k,l,n,m));
+            QSDindexed_contract(1.0,RO[i - 1],shape(j,k,l),A[i],shape(j,m,n),0.0,I1,shape(k,l,n,m));
 
             I2.clear();
 
             QSDindexed_contract(1.0,I1,shape(k,l,n,m),O[i],shape(k,j,m,o),0.0,I2,shape(l,j,n,o));
 
-            EO.clear();
-
-            QSDindexed_contract(1.0,I2,shape(l,j,n,o),B[i].conjugate(),shape(l,j,k),0.0,EO,shape(n,o,k));
-
-            //bad style: if no blocks remain, return zero
-            if(EO.begin() == EO.end())
-               return 0.0;
+            QSDindexed_contract(1.0,I2,shape(l,j,n,o),B[i].conjugate(),shape(l,j,k),0.0,RO[i],shape(n,o,k));
 
          }
 
@@ -89,7 +83,7 @@ namespace ro{
          QSDindexed_contract(1.0,O[L - 1],shape(j,k,l,m),A[L - 1],shape(o,l,n),0.0,loc,shape(o,j,k,n,m));
 
          //merge 2 columns together
-         TVector<Qshapes<Q>,2> qmerge;
+         TVector<Qshapes<Quantum>,2> qmerge;
          TVector<Dshapes,2> dmerge;
 
          for(int i = 0;i < 2;++i){
@@ -105,35 +99,28 @@ namespace ro{
          QSTmerge(loc,info,tmp);
 
          //this will contain the left going part
-         QSDArray<3> EO;
-         QSDindexed_contract(1.0,tmp,shape(j,k,l,m),B[L-1].conjugate(),shape(n,l,m),0.0,EO,shape(j,k,n));
+         QSDindexed_contract(1.0,tmp,shape(j,k,l,m),B[L-1].conjugate(),shape(n,l,m),0.0,RO[L - 2],shape(j,k,n));
 
          QSDArray<4> I1;
          QSDArray<4> I2;
 
-         for(int i = L - 2;i >= 0;--i){
+         for(int i = L - 2;i > 0;--i){
 
             I1.clear();
 
-            QSDindexed_contract(1.0,A[i],shape(j,k,l),EO,shape(l,m,n),0.0,I1,shape(j,k,m,n));
+            QSDindexed_contract(1.0,A[i],shape(j,k,l),RO[i],shape(l,m,n),0.0,I1,shape(j,k,m,n));
 
             I2.clear();
 
             QSDindexed_contract(1.0,O[i],shape(l,o,k,m),I1,shape(j,k,m,n),0.0,I2,shape(j,l,o,n));
 
-            EO.clear();
-
-            QSDindexed_contract(1.0,B[i].conjugate(),shape(k,o,n),I2,shape(j,l,o,n),0.0,EO,shape(j,l,k));
-
-            //bad style: if no blocks remain, return zero
-            if(EO.begin() == EO.end())
-               return 0.0;
+            QSDindexed_contract(1.0,B[i].conjugate(),shape(k,o,n),I2,shape(j,l,o,n),0.0,RO[i - 1],shape(j,l,k));
 
          }
 
       }
 
-      return renop;
+      return RO;
 
    }
 

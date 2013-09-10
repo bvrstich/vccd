@@ -17,10 +17,8 @@ using namespace btas;
  */
 namespace ro {
 
-      using RO = MPX<6,Quantum>;
-
       //constructor
-      RO construct(const MPS_DIRECTION &dir,const MPS<Quantum> &,const MPO<Quantum> &,const MPS<Quantum> &);
+      MPS<Quantum> construct(const MPS_DIRECTION &dir,const MPS<Quantum> &,const MPO<Quantum> &,const MPS<Quantum> &);
 
 }
 
