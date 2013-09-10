@@ -19,7 +19,7 @@ namespace vccd {
       void gradient(const MPO<Q> &qcham,const MPS<Q> &wccd,DArray<4> &grad){
 
          double norm_ccd = dot(mps::Left,wccd,wccd);
-         MPS<Q> Hccd = gemv(qcham,wccd);
+         MPS<Q> Hccd = qcham*wccd;
          compress(Hccd,mps::Right,0);
          compress(Hccd,mps::Left,0);
 
@@ -42,7 +42,7 @@ namespace vccd {
                      grad(i,j,a,b) = 0.0;
 
                      Eabij = E<Quantum>(L,a+no,b+no,i,j,1.0);
-                     tmp = gemv(Eabij,wccd);
+                     tmp = Eabij*wccd;
 
                      grad(i,j,a,b) = 2.0 * (dot(mps::Left,tmp,Hccd) - E_ccd * dot(mps::Left,tmp,wccd))/norm_ccd;
 
@@ -55,7 +55,7 @@ namespace vccd {
     * find the minimum of the function in the direction dir
     */
    template<class Q>
-      double line_search(const MPO<Q> &qc,const MPS<Q> &hf,const DArray<4> &t,const DArray<4> &dir,double guess){
+      double line_search(const MPO<Q> &qc,const MPS<Q> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,const std::vector<int> &cutoff){
 
       double phi = 0.5 * (1.0 + std::sqrt(5.0));
 
@@ -64,8 +64,8 @@ namespace vccd {
       double c = guess;
       double b = c*(1.0 + phi);
 
-      double fb = line_search_func(b,t,dir,qc,hf);
-      double fc = line_search_func(c,t,dir,qc,hf);
+      double fb = line_search_func(b,t,dir,qc,hf,cutoff);
+      double fc = line_search_func(c,t,dir,qc,hf,cutoff);
 
       while(fc > fb){
 
@@ -74,7 +74,7 @@ namespace vccd {
 
          b = c * (1.0 + phi);
 
-         fb = line_search_func(b,t,dir,qc,hf);
+         fb = line_search_func(b,t,dir,qc,hf,cutoff);
 
       }
 
@@ -83,7 +83,7 @@ namespace vccd {
 
       while(b - a > 1.0e-4){
 
-         fd = line_search_func(d,t,dir,qc,hf);
+         fd = line_search_func(d,t,dir,qc,hf,cutoff);
 
          if(c < d){
 
@@ -127,16 +127,16 @@ namespace vccd {
     * find the minimum of the function in the direction dir
     */
    template<class Q>
-      double line_search_func(double a,const DArray<4> &t,const DArray<4> &dir,const MPO<Q> &qc,const MPS<Q> &hf){
+      double line_search_func(double a,const DArray<4> &t,const DArray<4> &dir,const MPO<Q> &qc,const MPS<Q> &hf,const std::vector<int> &cutoff){
 
          DArray<4> newt(t);
          Daxpy(-a,dir,newt);
 
          MPO<Q> T2op = T2<Quantum>(newt);
-         compress(T2op,mps::Right,0);
-         compress(T2op,mps::Left,0);
+         compress(T2op,mps::Right,cutoff[0]);
+         compress(T2op,mps::Left,cutoff[0]);
 
-         MPS<Q> eTA = exp(T2op,hf,t.shape(0));
+         MPS<Q> eTA = exp(T2op,hf,cutoff);
          normalize(eTA);
 
          return inprod(mps::Left,eTA,qc,eTA);
@@ -144,7 +144,7 @@ namespace vccd {
       }
 
    template<class Q>
-      void steepest_descent(DArray<4> &t,const MPO<Q> &qc,const MPS<Q> &hf){
+      void steepest_descent(DArray<4> &t,const MPO<Q> &qc,const MPS<Q> &hf,const std::vector<int> &cutoff){
 
          int no = t.shape(0);
          int nv = t.shape(2);
@@ -153,13 +153,13 @@ namespace vccd {
          compress(T2op,mps::Right,0);
          compress(T2op,mps::Left,0);
 
-         MPS<Quantum> eTA = exp(T2op,hf,no);
+         MPS<Quantum> eTA = exp(T2op,hf,cutoff);
          normalize(eTA);
 
          DArray<4> grad(no,no,nv,nv);
          gradient(qc,eTA,grad);
 
-         double step = line_search(qc,hf,t,grad,0.4);
+         double step = line_search(qc,hf,t,grad,0.4,cutoff);
 
          double convergence = 1.0;
 
@@ -171,7 +171,7 @@ namespace vccd {
             compress(T2op,mps::Right,0);
             compress(T2op,mps::Left,0);
 
-            eTA = exp(T2op,hf,no);
+            eTA = exp(T2op,hf,cutoff);
             normalize(eTA);
 
             convergence = Ddot(grad,grad);
@@ -179,15 +179,15 @@ namespace vccd {
             cout << convergence << "\t" << inprod(mps::Left,eTA,qc,eTA) << endl;
 
             gradient(qc,eTA,grad);
-            step = line_search(qc,hf,t,grad,0.2);
+            step = line_search(qc,hf,t,grad,0.2,cutoff);
 
          }
 
       }
 
    template void gradient<Quantum>(const MPO<Quantum> &,const MPS<Quantum> &wccd,DArray<4> &grad);
-   template double line_search<Quantum>(const MPO<Quantum> &,const MPS<Quantum> &,const DArray<4> &,const DArray<4> &,double);
-   template double line_search_func<Quantum>(double a,const DArray<4> &t,const DArray<4> &dir,const MPO<Quantum> &qc,const MPS<Quantum> &hf);
-   template void steepest_descent<Quantum>(DArray<4>  &,const MPO<Quantum> &qc,const MPS<Quantum> &hf);
+   template double line_search<Quantum>(const MPO<Quantum> &,const MPS<Quantum> &,const DArray<4> &,const DArray<4> &,double,const std::vector<int> &cutoff);
+   template double line_search_func<Quantum>(double a,const DArray<4> &t,const DArray<4> &dir,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);
+   template void steepest_descent<Quantum>(DArray<4>  &,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);
 
 }

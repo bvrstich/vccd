@@ -15,13 +15,13 @@ namespace vccd{
       void gradient(const MPO<Q> &qcham,const MPS<Q> &wccd,DArray<4> &grad);
 
    template<class Q>
-      double line_search(const MPO<Q> &qcham,const MPS<Q> &hf,const DArray<4> &t,const DArray<4> &dir,double guess);
+      double line_search(const MPO<Q> &qcham,const MPS<Q> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,const std::vector<int> &cutoff);
 
    template<class Q>
-      double line_search_func(double,const DArray<4> &t,const DArray<4> &dir,const MPO<Q> &qcham,const MPS<Q> &hf);
+      double line_search_func(double,const DArray<4> &t,const DArray<4> &dir,const MPO<Q> &qcham,const MPS<Q> &hf,const std::vector<int> &cutoff);
 
    template<class Q>
-      void steepest_descent(DArray<4> &,const MPO<Q> &qcham,const MPS<Q> &hf);
+      void steepest_descent(DArray<4> &,const MPO<Q> &qcham,const MPS<Q> &hf,const std::vector<int> &cutoff);
 
 }
 

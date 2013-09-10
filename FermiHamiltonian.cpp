@@ -1049,7 +1049,6 @@ MPO<Q> anni_down_anni_down(int L,int i,int j,double val){
 /**
  * general two-particle interaction term: represent as MPO
  */
- /*
 template<class Q>
 MPO<Q> tpint(int L,int i,int j,int k,int l,double V){
 
@@ -1061,33 +1060,27 @@ MPO<Q> tpint(int L,int i,int j,int k,int l,double V){
       MPO<Q> c = crea_up_crea_up<Q>(L,i,j,1.0);
       MPO<Q> a = anni_up_anni_up<Q>(L,l,k,V);
 
-      MPO<Q> tmp = gemm(c,a);
-      mpo = tmp;
+      mpo = c * a;
 
       //down down down down
       c = crea_down_crea_down<Q>(L,i,j,1.0);
       a = anni_down_anni_down<Q>(L,l,k,V);
 
-      tmp = gemm(c,a);
-      c = add(mpo,tmp);
-      mpo = c;
+      gemm(1.0,c,a,1.0,mpo);
 
       //down up up down
       c = crea_down_crea_up<Q>(L,i,j,1.0);
       a = anni_up_anni_down<Q>(L,l,k,V);
 
-      tmp = gemm(c,a);
-      c = add(mpo,tmp);
-      mpo = c;
+      gemm(1.0,c,a,1.0,mpo);
 
       //down up up down
       c = crea_up_crea_down<Q>(L,i,j,1.0);
       a = anni_down_anni_up<Q>(L,l,k,V);
 
-      tmp = gemm(c,a);
-      c = add(mpo,tmp);
+      gemm(1.0,c,a,1.0,mpo);
 
-      return c;
+      return mpo;
 
    }
    else{
@@ -1096,36 +1089,33 @@ MPO<Q> tpint(int L,int i,int j,int k,int l,double V){
       MPO<Q> c = crea_down_crea_up<Q>(L,i,j,1.0);
       MPO<Q> a = anni_up_anni_down<Q>(L,l,k,V);
 
-      MPO<Q> tmp = gemm(c,a);
-      MPO<Q> mpo = tmp;
+      mpo = c*a;
 
       //down up up down
       c = crea_up_crea_down<Q>(L,i,j,1.0);
       a = anni_down_anni_up<Q>(L,l,k,V);
 
-      tmp = gemm(c,a);
-      c = add(mpo,tmp);
+      gemm(1.0,c,a,1.0,mpo);
 
-      return c;
+      return mpo;
 
    }
 
 }
-*/
+
 /**
  * elementary double excitation operator:E^i_k E^j_l
  */
- /*
 template<class Q>
 MPO<Q> E(int L,int i,int j,int k,int l,double t){
 
    MPO<Q> Eik = E<Q>(L,i,k,1.0);
    MPO<Q> Ejl = E<Q>(L,j,l,t);
 
-   return gemm(Eik,Ejl);
+   return Eik*Ejl;
 
 }
-*/
+
 /**
  * elementary excitation operator:E^i_j: \sum_s a^+_{i,s} a_{js}
  */
@@ -1315,39 +1305,39 @@ MPO<Q> E(int L,int i,int j,double t){
  */
 template<class Q>
 MPO<Q> qcham_test(const DArray<2> &t,const DArray<4> &V){
-/*
-   int L = t.shape(0);//number of orbitals
+   /*
+      int L = t.shape(0);//number of orbitals
 
-   MPO<Q> mpo = E<Q>(L,0,0,t(0,0));
+      MPO<Q> mpo = E<Q>(L,0,0,t(0,0));
 
-   for(int i = 0;i < L;++i)
+      for(int i = 0;i < L;++i)
       for(int j = 0;j < L;++j){
 
-         if(i != 0 || j != 0){
+      if(i != 0 || j != 0){
 
-            MPO<Q> Eop = E<Q>(L,i,j,t(i,j));
-            MPO<Q> tmp = add(mpo,Eop);
+      MPO<Q> Eop = E<Q>(L,i,j,t(i,j));
+      MPO<Q> tmp = add(mpo,Eop);
 
-            mpo = tmp;
-
-         }
+      mpo = tmp;
 
       }
 
-   for(int i = 0;i < L;++i)
+      }
+
+      for(int i = 0;i < L;++i)
       for(int j = 0;j < L;++j)
-         for(int k = 0;k < L;++k)
-            for(int l = 0;l < L;++l){
+      for(int k = 0;k < L;++k)
+      for(int l = 0;l < L;++l){
 
-               MPO<Q> Eop = tpint<Q>(L,i,j,k,l,V(i,j,k,l));
-               MPO<Q> tmp = add(mpo,Eop);
+      MPO<Q> Eop = tpint<Q>(L,i,j,k,l,V(i,j,k,l));
+      MPO<Q> tmp = add(mpo,Eop);
 
-               mpo = tmp;
+      mpo = tmp;
 
-            }
+      }
 
-   return mpo;
-*/
+      return mpo;
+    */
 }
 
 /**
@@ -3440,8 +3430,8 @@ void fill_mp2(DArray<4> &T,const DArray<4> &V,const std::vector<double> &e){
 
 template void physical<Quantum>(Qshapes<Quantum> &);
 template MPO<Quantum> E(int,int,int,double);
-//template MPO<Quantum> E(int,int,int,int,int,double);
-//template MPO<Quantum> tpint(int,int,int,int,int,double);
+template MPO<Quantum> E(int,int,int,int,int,double);
+template MPO<Quantum> tpint(int,int,int,int,int,double);
 template MPO<Quantum> T2(const DArray<4> &);
 template MPO<Quantum> qcham_test(const DArray<2> &,const DArray<4> &);
 template MPO<Quantum> one_body(const DArray<2> &);

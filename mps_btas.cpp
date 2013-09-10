@@ -42,80 +42,40 @@ int main(void){
    Qshapes<Quantum> qp;
    physical(qp);
 
-   MPS<Quantum> X = create(L,Quantum(n_u,n_d),qp,100,rgen);
-   normalize(X);
-   MPS<Quantum> Y = create(L,Quantum(n_u,n_d),qp,100,rgen);
-   normalize(Y);
-
-   DArray<2> tA(L,L);
-
-   for(int i = 0;i < L;++i)
-      for(int j = 0;j < L;++j){
-
-         double value = rgen();
-
-         tA(i,j) = value;
-         tA(j,i) = value;
-
-      }
-
-
-   MPO<Quantum> A = one_body<Quantum>(tA);
-   compress(A,mps::Right,0);
-   compress(A,mps::Left,0);
-
-   for(int i = 0;i < L;++i)
-      for(int j = 0;j < L;++j){
-
-         double value = rgen();
-
-         tA(i,j) = value;
-         tA(j,i) = value;
-
-      }
-
-   MPO<Quantum> B = one_body<Quantum>(tA);
-   compress(B,mps::Right,0);
-   compress(B,mps::Left,0);
-
-   for(int i = 0;i < L;++i)
-      for(int j = 0;j < L;++j){
-
-         double value = rgen();
-
-         tA(i,j) = value;
-         tA(j,i) = value;
-
-      }
-
-   MPO<Quantum> C = one_body<Quantum>(tA);
-   compress(C,mps::Right,0);
-   compress(C,mps::Left,0);
-
-   MPO<Quantum> C_copy(C);
-
-   double alpha = 0.62734;
-   double beta = 0.12349;
-
-   MPO<Quantum> AB = A*B;
-
-   gemm(alpha,A,B,beta,C);
-
-   cout << alpha * inprod(mps::Left,X,AB,Y) + beta * inprod(mps::Left,X,C_copy,Y) << "\t" << inprod(mps::Left,X,C,Y) << endl;
-
-   /*
    //make the HF state
    std::vector<int> occ(L);
 
    for(int i = 0;i < no;++i)
-   occ[i] = 3;
+      occ[i] = 3;
 
    for(int i = no;i < L;++i)
-   occ[i] = 0;
+      occ[i] = 0;
 
    MPS<Quantum> hf = product_state(L,qp,occ);
-   MPS<Quantum> HA = qc*hf;
-    */
+
+   //load the qc hamiltonian
+   MPO<Quantum> qc(L);
+   load(qc,"input/Be/cc-pVDZ/MPO/qcham");
+
+   //hartree fock energy
+   cout << inprod(mps::Left,hf,qc,hf) << endl;
+
+   //the cutoff vector for the exponential
+   std::vector<int> cutoff(no);
+   
+   for(int i = 0;i < no;++i)
+      cutoff[i] = 0;
+
+   //read in the mp2 guess
+   DArray<4> t;
+   std::ifstream fin("input/Be/cc-pVDZ/mp2.in");
+   boost::archive::binary_iarchive iar(fin);
+   iar >> t;
+
+   MPO<Quantum> T = T2<Quantum>(t);
+
+   ro::RO rol = ro::construct(mps::Left,hf,T,hf);
+
    return 0;
 
 }
