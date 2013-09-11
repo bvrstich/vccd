@@ -24,4 +24,4 @@ namespace btas { typedef FermiQuantum Quantum; };
 #include "Ostate.h"
 #include "input.h"
 #include "vccd.h"
-#include "Renop.h"
+#include "ro.h"

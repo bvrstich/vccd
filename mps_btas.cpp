@@ -74,12 +74,17 @@ int main(void){
 
    MPO<Quantum> T = T2<Quantum>(t);
 
-   MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,10);
-   compress(A,mps::Left,0);
-   MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,10);
-   compress(B,mps::Left,0);
+   MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,20,rgen);
+   compress(A,mps::Left,100);
+   MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,20,rgen);
+   compress(B,mps::Left,100);
+
+   cout << inprod(mps::Left,A,T,B) << endl;
 
    MPS<Quantum> rol = ro::construct(mps::Left,A,T,B);
+   MPS<Quantum> ror = ro::construct(mps::Right,A,T,B);
+
+   ro::check(rol,ror,A,T,B);
 
    return 0;
 
