@@ -127,7 +127,7 @@ namespace ro {
    /**
     * check if the renormalized operators are correctly constructed
     */
-   void check(const MPS<Quantum> &ror,const MPS<Quantum> &rol,const MPS<Quantum> &A,const MPO<Quantum> &O,const MPS<Quantum> &B){
+   void check(const MPS<Quantum> &ror,const MPS<Quantum> &rol){
 
       for(int i = 0;i < ror.size();++i)
          cout << QSDdotc(rol[i],ror[i].conjugate()) << endl;

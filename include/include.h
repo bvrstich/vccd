@@ -25,3 +25,4 @@ namespace btas { typedef FermiQuantum Quantum; };
 #include "input.h"
 #include "vccd.h"
 #include "ro.h"
+#include "grad.h"

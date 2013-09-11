@@ -84,7 +84,7 @@ int main(void){
    MPS<Quantum> rol = ro::construct(mps::Left,A,T,B);
    MPS<Quantum> ror = ro::construct(mps::Right,A,T,B);
 
-   ro::check(rol,ror,A,T,B);
+   ro::check(rol,ror);
 
    return 0;
 

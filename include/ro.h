@@ -20,7 +20,7 @@ namespace ro {
       //constructor
       MPS<Quantum> construct(const MPS_DIRECTION &dir,const MPS<Quantum> &,const MPO<Quantum> &,const MPS<Quantum> &);
 
-      void check(const MPS<Quantum> &ror,const MPS<Quantum> &rol,const MPS<Quantum> &A,const MPO<Quantum> &O,const MPS<Quantum> &B);
+      void check(const MPS<Quantum> &ror,const MPS<Quantum> &rol);
 
 }
 
