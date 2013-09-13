@@ -37,7 +37,7 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
          s2ia[s][0] = i;
          s2ia[s][1] = a;
 
-         ++s
+         ++s;
 
       }
 

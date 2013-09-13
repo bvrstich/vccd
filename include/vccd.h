@@ -7,7 +7,7 @@
 class Ostate;
 
 using namespace btas;
-using namespace mps;
+using namespace mpsxx;
 
 namespace vccd{
 

@@ -10,7 +10,7 @@ using std::ifstream;
 #include "include.h"
 
 using namespace btas;
-using namespace mps;
+using namespace mpsxx;
 
 namespace grad {
 

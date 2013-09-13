@@ -10,7 +10,7 @@ using std::ifstream;
 #include "include.h"
 
 using namespace btas;
-using namespace mps;
+using namespace mpsxx;
 
 namespace ro {
 
@@ -27,7 +27,7 @@ namespace ro {
 
       MPS<Quantum> RO(L - 1);
 
-      if(dir == mps::Left){
+      if(dir == mpsxx::Left){
 
          enum {j,k,l,m,n,o};
 

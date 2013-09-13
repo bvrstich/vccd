@@ -7,7 +7,7 @@
 
 using std::ostream;
 
-using namespace mps;
+using namespace mpsxx;
 using namespace btas;
 
 /**

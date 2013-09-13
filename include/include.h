@@ -18,7 +18,7 @@ namespace btas { typedef FermiQuantum Quantum; };
 #include <btas/QSPARSE/QSDArray.h>
 #include <btas/QSPARSE/QSDcontract.h>
 
-#include "btas/MPS/MPSblas.h"
+#include "MPSblas.h"
 
 #include "FermiHamiltonian.h"
 #include "Ostate.h"

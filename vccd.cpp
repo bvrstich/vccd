@@ -7,7 +7,7 @@ using std::ostream;
 
 #include "include.h"
 
-using namespace mps;
+using namespace mpsxx;
 using namespace btas;
 
 namespace vccd {
@@ -18,12 +18,12 @@ namespace vccd {
    template<class Q>
       void gradient(const MPO<Q> &qcham,const MPS<Q> &wccd,DArray<4> &grad){
 
-         double norm_ccd = dot(mps::Left,wccd,wccd);
+         double norm_ccd = dot(mpsxx::Left,wccd,wccd);
          MPS<Q> Hccd = qcham*wccd;
-         compress(Hccd,mps::Right,0);
-         compress(Hccd,mps::Left,0);
+         compress(Hccd,mpsxx::Right,0);
+         compress(Hccd,mpsxx::Left,0);
 
-         double E_ccd = dot(mps::Left,wccd,Hccd)/norm_ccd;
+         double E_ccd = dot(mpsxx::Left,wccd,Hccd)/norm_ccd;
 
          int no = grad.shape(0);//number of occupied orbitals
          int nv = grad.shape(2);//number of virtual orbitals
@@ -44,7 +44,7 @@ namespace vccd {
                      Eabij = E<Quantum>(L,a+no,b+no,i,j,1.0);
                      tmp = Eabij*wccd;
 
-                     grad(i,j,a,b) = 2.0 * (dot(mps::Left,tmp,Hccd) - E_ccd * dot(mps::Left,tmp,wccd))/norm_ccd;
+                     grad(i,j,a,b) = 2.0 * (dot(mpsxx::Left,tmp,Hccd) - E_ccd * dot(mpsxx::Left,tmp,wccd))/norm_ccd;
 
                   }
 
@@ -133,13 +133,13 @@ namespace vccd {
          Daxpy(-a,dir,newt);
 
          MPO<Q> T2op = T2<Quantum>(newt);
-         compress(T2op,mps::Right,cutoff[0]);
-         compress(T2op,mps::Left,cutoff[0]);
+         compress(T2op,mpsxx::Right,cutoff[0]);
+         compress(T2op,mpsxx::Left,cutoff[0]);
 
          MPS<Q> eTA = exp(T2op,hf,cutoff);
          normalize(eTA);
 
-         return inprod(mps::Left,eTA,qc,eTA);
+         return inprod(mpsxx::Left,eTA,qc,eTA);
 
       }
 
@@ -150,8 +150,8 @@ namespace vccd {
          int nv = t.shape(2);
 
          MPO<Quantum> T2op = T2<Quantum>(t);
-         compress(T2op,mps::Right,0);
-         compress(T2op,mps::Left,0);
+         compress(T2op,mpsxx::Right,0);
+         compress(T2op,mpsxx::Left,0);
 
          MPS<Quantum> eTA = exp(T2op,hf,cutoff);
          normalize(eTA);
@@ -168,15 +168,15 @@ namespace vccd {
             Daxpy(-step,grad,t);
 
             T2op = T2<Quantum>(t);
-            compress(T2op,mps::Right,0);
-            compress(T2op,mps::Left,0);
+            compress(T2op,mpsxx::Right,0);
+            compress(T2op,mpsxx::Left,0);
 
             eTA = exp(T2op,hf,cutoff);
             normalize(eTA);
 
             convergence = Ddot(grad,grad);
 
-            cout << convergence << "\t" << inprod(mps::Left,eTA,qc,eTA) << endl;
+            cout << convergence << "\t" << inprod(mpsxx::Left,eTA,qc,eTA) << endl;
 
             gradient(qc,eTA,grad);
             step = line_search(qc,hf,t,grad,0.2,cutoff);

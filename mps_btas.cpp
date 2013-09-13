@@ -20,7 +20,7 @@ double rgen() { return 2.0*(static_cast<double>(rand())/RAND_MAX) - 1.0; }
 #include "include.h"
 
 using namespace btas;
-using namespace mps;
+using namespace mpsxx;
 
 int main(void){
 
@@ -28,11 +28,11 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 8;
+   int L = 14;
 
    //number of particles
-   int n_u = 4;
-   int n_d = 4;
+   int n_u = 2;
+   int n_d = 2;
 
    int no = n_u;
    int nv = L - no;
@@ -55,10 +55,10 @@ int main(void){
 
    //load the qc hamiltonian
    MPO<Quantum> qc(L);
-   load(qc,"input/Be/cc-pVDZ/MPO/qcham");
+   load_mpx(qc,"input/Be/cc-pVDZ/MPO/qcham");
 
    //hartree fock energy
-   cout << inprod(mps::Left,hf,qc,hf) << endl;
+   cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
 
    //the cutoff vector for the exponential
    std::vector<int> cutoff(no);
@@ -73,24 +73,30 @@ int main(void){
    iar >> t;
 
    MPO<Quantum> T = T2<Quantum>(t);
-*/
+   compress(T,mpsxx::Right,0);
+   compress(T,mpsxx::Left,0);
+
+   MPS<Quantum> eTA = exp(T,hf,cutoff);
+   cout << inprod(mpsxx::Left,hf,qc,eTA) << endl;
+   cout << (qc*eTA) *hf << endl;
+   */
 
    DArray<2> t(no,nv);
    t.generate(rgen);
 
    MPO<Quantum> T = T1<Quantum>(t);
-   compress(T,mps::Right,0);
-   compress(T,mps::Left,0);
+   compress(T,mpsxx::Right,0);
+   compress(T,mpsxx::Left,0);
 
    MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,20,rgen);
-   compress(A,mps::Left,100);
+   compress(A,mpsxx::Left,100);
    MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,20,rgen);
-   compress(B,mps::Left,100);
+   compress(B,mpsxx::Left,100);
 
-   cout << inprod(mps::Left,A,T,B) << endl;
+   cout << inprod(mpsxx::Left,A,T,B) << endl;
 
-   MPS<Quantum> rol = ro::construct(mps::Left,A,T,B);
-   MPS<Quantum> ror = ro::construct(mps::Right,A,T,B);
+   MPS<Quantum> rol = ro::construct(mpsxx::Left,A,T,B);
+   MPS<Quantum> ror = ro::construct(mpsxx::Right,A,T,B);
 
    MPO<Quantum> grad = grad::construct(rol,ror,A,B);
 
