@@ -28,11 +28,11 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 14;
+   int L = 8;
 
    //number of particles
-   int n_u = 2;
-   int n_d = 2;
+   int n_u = 4;
+   int n_d = 4;
 
    int no = n_u;
    int nv = L - no;
@@ -41,7 +41,7 @@ int main(void){
 
    Qshapes<Quantum> qp;
    physical(qp);
-
+/*
    //make the HF state
    std::vector<int> occ(L);
 
@@ -73,6 +73,14 @@ int main(void){
    iar >> t;
 
    MPO<Quantum> T = T2<Quantum>(t);
+*/
+
+   DArray<2> t(no,nv);
+   t.generate(rgen);
+
+   MPO<Quantum> T = T1<Quantum>(t);
+   compress(T,mps::Right,0);
+   compress(T,mps::Left,0);
 
    MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,20,rgen);
    compress(A,mps::Left,100);
@@ -84,7 +92,7 @@ int main(void){
    MPS<Quantum> rol = ro::construct(mps::Left,A,T,B);
    MPS<Quantum> ror = ro::construct(mps::Right,A,T,B);
 
-   ro::check(rol,ror);
+   MPO<Quantum> grad = grad::construct(rol,ror,A,B);
 
    return 0;
 

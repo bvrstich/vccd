@@ -1305,39 +1305,365 @@ MPO<Q> E(int L,int i,int j,double t){
  */
 template<class Q>
 MPO<Q> qcham_test(const DArray<2> &t,const DArray<4> &V){
-   /*
-      int L = t.shape(0);//number of orbitals
 
-      MPO<Q> mpo = E<Q>(L,0,0,t(0,0));
+   int L = t.shape(0);//number of orbitals
 
-      for(int i = 0;i < L;++i)
+   MPO<Q> mpo = E<Q>(L,0,0,t(0,0));
+
+   for(int i = 0;i < L;++i)
       for(int j = 0;j < L;++j){
 
-      if(i != 0 || j != 0){
-
-      MPO<Q> Eop = E<Q>(L,i,j,t(i,j));
-      MPO<Q> tmp = add(mpo,Eop);
-
-      mpo = tmp;
+         if(i != 0 || j != 0)
+            axpy(1.0,E<Q>(L,i,j,t(i,j)),mpo);
 
       }
 
-      }
-
-      for(int i = 0;i < L;++i)
+   for(int i = 0;i < L;++i)
       for(int j = 0;j < L;++j)
-      for(int k = 0;k < L;++k)
-      for(int l = 0;l < L;++l){
+         for(int k = 0;k < L;++k)
+            for(int l = 0;l < L;++l)
+               axpy(1.0,tpint<Q>(L,i,j,k,l,V(i,j,k,l)),mpo);
 
-      MPO<Q> Eop = tpint<Q>(L,i,j,k,l,V(i,j,k,l));
-      MPO<Q> tmp = add(mpo,Eop);
+   return mpo;
 
-      mpo = tmp;
+}
+
+template<class Q>
+MPO<Q> T1_test(const DArray<2> &t){
+
+   int no = t.shape(0);//number of occupied
+   int nv = t.shape(1);//number of virtuals
+   int L = no+nv;
+
+   MPO<Q> mpo = E<Q>(L,no,0,t(0,0));
+
+   for(int i = 0;i < no;++i)
+      for(int a = 0;a < nv;++a){
+
+         if(i != 0 || a != 0)
+            axpy(1.0,E<Q>(L,a+no,i,t(i,a)),mpo);
 
       }
 
-      return mpo;
-    */
+   return mpo;
+
+}
+
+/**
+ * @return MPO object of length L containing the T1 operator with coefficients passed through the DArray<2> object t
+ */
+template<class Q>
+MPO<Q> T1(const DArray<2> &t){
+
+   int no = t.shape(0);//number of occupied orbitals
+   int nv = t.shape(1);//number of virtual orbitals
+
+   int L = no + nv;
+
+   MPO<Q> mpo(L);
+
+   Qshapes<Q> qp;
+   physical(qp);
+
+   Qshapes<Q> qz; // 0 quantum number
+   qz.push_back(Q::zero());
+
+   Qshapes<Q> qo;
+   qo.push_back(Q::zero());//I
+   qo.push_back(Q(0,1));//a_down
+   qo.push_back(Q(1,0));//a_up
+
+   std::vector< Ostate > ostates;
+   Ostate state;
+
+   state.push_id();
+   ostates.push_back(state);
+   state.clear();
+
+   state.push_anni_down(0);
+   ostates.push_back(state);
+   state.clear();
+
+   state.push_anni_up(0);
+   ostates.push_back(state);
+   state.clear();
+
+   mpo[0].resize(Q::zero(),make_array(qz,qp,-qp,qo));
+
+   insert_id(mpo[0],0,0);
+   insert_anni_down(mpo[0],0,1,1.0);
+   insert_anni_up_s(mpo[0],0,2,1.0);
+
+   std::vector< Ostate > istates;
+   istates = ostates;
+
+   Qshapes<Quantum> qi = qo;
+
+   for(int i = 1;i < no - 1;++i){
+
+      ostates.clear();
+      qo.clear();
+
+      qo.push_back(Q::zero());//I
+
+      ostates.push_back(istates[0]);
+
+      qo.push_back(Q(0,1));//a_down
+      qo.push_back(Q(1,0));//a_up
+
+      state.push_anni_down(i);
+      ostates.push_back(state);
+      state.clear();
+
+      state.push_anni_up(i);
+      ostates.push_back(state);
+      state.clear();
+
+      int row = 1;
+
+      while(row < istates.size()){
+
+         qo.push_back(qi[row]);//a_down
+         ostates.push_back(istates[row]);
+
+         ++row;
+
+      }
+
+      mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+      int column = 0;
+
+      insert_id(mpo[i],0,0);
+      insert_anni_down(mpo[i],0,1,1.0);
+      insert_anni_up_s(mpo[i],0,2,1.0);
+
+      row = 1;
+      column = 3;
+
+      //signs!
+      while(row < istates.size()){
+
+         //fermion sign!
+         insert_sign(mpo[i],row,column);
+         column++;
+         row++;
+
+      }
+
+      istates = ostates;
+      qi = qo;
+
+   }
+
+   //final occupied
+   ostates.clear();
+   qo.clear();
+
+   qo.push_back(Q(0,1));//a_down
+   qo.push_back(Q(1,0));//a_up
+
+   state.push_anni_down(no - 1);
+   ostates.push_back(state);
+   state.clear();
+
+   state.push_anni_up(no - 1);
+   ostates.push_back(state);
+   state.clear();
+
+   int row = 1;
+
+   while(row < istates.size()){
+
+      qo.push_back(qi[row]);//a_down
+      ostates.push_back(istates[row]);
+
+      ++row;
+
+   }
+
+   mpo[no - 1].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+   int column = 0;
+
+   insert_anni_down(mpo[no - 1],0,0,1.0);
+   insert_anni_up_s(mpo[no - 1],0,1,1.0);
+
+   row = 1;
+   column = 2;
+
+   //signs!
+   while(row < istates.size()){
+
+      //fermion sign!
+      insert_sign(mpo[no - 1],row,column);
+      column++;
+      row++;
+
+   }
+
+   istates = ostates;
+   qi = qo;
+
+   //first virtual: first no states are the same: so no change in ostates and qo, only id added at the end for closing terms
+   state.push_id();
+   ostates.push_back(state);
+   state.clear();
+
+   qo.push_back(Q::zero());//I
+
+   mpo[no].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+   //signs for the singles being copied!
+   row = 0;
+
+   while(row < istates.size()){
+
+      //fermion sign!
+      insert_sign(mpo[no],row,row);
+      row++;
+
+   }
+
+   //insert the t's for the last column
+   row = 0;
+   column = istates.size();
+
+   while(row < istates.size()){
+
+      int j = istates[row].gsite(0);
+      int sj = istates[row].gspin(0);
+
+      //fermion sign!
+      if(sj == 0)
+         insert_crea_up(mpo[no],row,column,t(j,0));
+      else
+         insert_crea_down_s(mpo[no],row,column,t(j,0));
+
+      ++row;
+
+   }
+
+   istates = ostates;
+   qi = qo;
+
+   //all but the last virtual
+   for(int i = no + 1;i < L - 1;++i){
+
+      int vind = i - no;
+
+      mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+      //signs for the singles being copied!
+      row = 0;
+
+      while(row < istates.size() - 1){
+
+         //fermion sign!
+         insert_sign(mpo[i],row,row);
+         row++;
+
+      }
+
+      //insert the t's for the last column
+      row = 0;
+      column = istates.size() - 1;
+
+      while(row < istates.size() - 1){
+
+         int j = istates[row].gsite(0);
+         int sj = istates[row].gspin(0);
+
+         //fermion sign!
+         if(sj == 0)
+            insert_crea_up(mpo[i],row,column,t(j,vind));
+         else
+            insert_crea_down_s(mpo[i],row,column,t(j,vind));
+
+         ++row;
+
+      }
+
+      //last id for already closed terms
+      insert_id(mpo[i],column,column);
+
+   }
+
+   //last virtual
+   mpo[L-1].resize(Q::zero(),make_array(-qi,qp,-qp,qz));
+   
+   row = 0;
+
+   while(row < istates.size() - 1){
+
+      int j = istates[row].gsite(0);
+      int sj = istates[row].gspin(0);
+
+      //fermion sign!
+      if(sj == 0)
+         insert_crea_up(mpo[L-1],row,0,t(j,nv-1));
+      else
+         insert_crea_down_s(mpo[L-1],row,0,t(j,nv-1));
+
+      ++row;
+
+   }
+
+   //last id for already closed terms
+   insert_id(mpo[L-1],row,0);
+
+   //merge everything together
+   TVector<Qshapes<Q>,1> qmerge;
+   TVector<Dshapes,1> dmerge;
+
+   qmerge[0] = mpo[0].qshape(3);
+   dmerge[0] = mpo[0].dshape(3);
+
+   QSTmergeInfo<1> info(qmerge,dmerge);
+
+   QSDArray<4> tmp;
+   QSTmerge(mpo[0],info,tmp);
+
+   mpo[0] = tmp;
+
+   for(int i = 1;i < L - 1;++i){
+
+      //first merge the row
+      qmerge[0] = mpo[i].qshape(0);
+      dmerge[0] = mpo[i].dshape(0);
+
+      info.reset(qmerge,dmerge);
+
+      tmp.clear();
+
+      QSTmerge(info,mpo[i],tmp);
+
+      //then merge the column
+      qmerge[0] = tmp.qshape(3);
+      dmerge[0] = tmp.dshape(3);
+
+      info.reset(qmerge,dmerge);
+
+      mpo[i].clear();
+
+      QSTmerge(tmp,info,mpo[i]);
+
+   }
+
+   //only merge row for i = L - 1
+   qmerge[0] = mpo[L - 1].qshape(0);
+   dmerge[0] = mpo[L - 1].dshape(0);
+
+   info.reset(qmerge,dmerge);
+
+   tmp.clear();
+
+   QSTmerge(info,mpo[L - 1],tmp);
+
+   mpo[L - 1] = tmp;
+
+   return mpo;
+
 }
 
 /**
@@ -3432,6 +3758,8 @@ template void physical<Quantum>(Qshapes<Quantum> &);
 template MPO<Quantum> E(int,int,int,double);
 template MPO<Quantum> E(int,int,int,int,int,double);
 template MPO<Quantum> tpint(int,int,int,int,int,double);
+template MPO<Quantum> T1(const DArray<2> &);
+template MPO<Quantum> T1_test(const DArray<2> &);
 template MPO<Quantum> T2(const DArray<4> &);
 template MPO<Quantum> qcham_test(const DArray<2> &,const DArray<4> &);
 template MPO<Quantum> one_body(const DArray<2> &);

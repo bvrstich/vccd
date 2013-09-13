@@ -1,5 +1,5 @@
-#ifndef RENOP_H
-#define RENOP_H
+#ifndef GRAD_H
+#define GRAD_H
 
 #include <iostream>
 #include <cstdlib>

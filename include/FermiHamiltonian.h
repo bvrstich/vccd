@@ -55,10 +55,16 @@ MPO<Q> E(int,int,int,double);
 
 template<class Q>
 MPO<Q> E(int,int,int,int,int,double);
-/*
+
 template<class Q>
 MPO<Q> tpint(int,int,int,int,int,double);
-*/
+
+template<class Q>
+MPO<Q> T1(const DArray<2> &);
+
+template<class Q>
+MPO<Q> T1_test(const DArray<2> &);
+
 template<class Q>
 MPO<Q> T2(const DArray<4> &);
 

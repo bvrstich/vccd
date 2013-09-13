@@ -1,5 +1,5 @@
-#ifndef RENOP_H
-#define RENOP_H
+#ifndef RO_H
+#define RO_H
 
 #include <iostream>
 #include <cstdlib>
