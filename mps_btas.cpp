@@ -20,7 +20,7 @@ double rgen() { return 2.0*(static_cast<double>(rand())/RAND_MAX) - 1.0; }
 #include "include.h"
 
 using namespace btas;
-using namespace mps;
+using namespace mpsxx;
 
 int main(void){
 
@@ -31,8 +31,8 @@ int main(void){
    int L = 14;
 
    //number of particles
-   int n_u = 5;
-   int n_d = 5;
+   int n_u = 2;
+   int n_d = 2;
 
    int no = n_u;
    int nv = L - no;
@@ -44,30 +44,30 @@ int main(void){
 
    std::vector<int> order(L);
 
-   ifstream in_order("input/Ne/cc-pVDZ/order.in");
+   ifstream in_order("input/Be/cc-pVDZ/order.in");
 
    for(int i = 0;i < L;++i)
       in_order >> i >> order[i]; 
 
    DArray<2> t(L,L);
    t = 0;
-   read_oei("input/Ne/cc-pVDZ/OEI.in",t,order);
+   read_oei("input/Be/cc-pVDZ/OEI.in",t,order);
 
    DArray<4> V(L,L,L,L);
    V = 0.0;
-   read_tei("input/Ne/cc-pVDZ/TEI.in",V,order);
+   read_tei("input/Be/cc-pVDZ/TEI.in",V,order);
 
    std::vector<double> e(L);
 
-   ifstream in_ener("input/Ne/cc-pVDZ/ener.in");
+   ifstream in_ener("input/Be/cc-pVDZ/ener.in");
 
    for(int i = 0;i < L;++i)
       in_ener >> i >> e[i]; 
 
    //construct quantum chemistry MPO
    MPO<Quantum> qc = qcham<Quantum>(t,V);
-   compress(qc,mps::Right,0);
-   compress(qc,mps::Left,0);
+   compress(qc,mpsxx::Right,0);
+   compress(qc,mpsxx::Left,0);
 
    //input HF state
    std::vector<int> occ(L);
@@ -81,7 +81,7 @@ int main(void){
 
    MPS<Quantum> A = product_state(L,qp,occ);
 
-   double hf = inprod(mps::Left,A,qc,A);
+   double hf = inprod(mpsxx::Left,A,qc,A);
 
    double mp2 = 0.0;
 
@@ -100,13 +100,17 @@ int main(void){
 
    //construct T2 MPO
    MPO<Quantum> T2_op = T2<Quantum>(t2);
-   compress(T2_op,mps::Right,0);
-   compress(T2_op,mps::Left,0);
+   compress(T2_op,mpsxx::Right,0);
+   compress(T2_op,mpsxx::Left,0);
 
-   MPS<Quantum> eTA = exp(T2_op,A,no);
+   std::vector<int> cutoff(no);
+   for(int i = 0;i < no;++i)
+      cutoff[i] = 0;
+
+   MPS<Quantum> eTA = exp(T2_op,A,cutoff);
 
    normalize(eTA);
-   cout << dot(mps::Left,eTA,eTA) << "\t" << inprod(mps::Left,eTA,qc,eTA) << endl;
+   cout << dot(mpsxx::Left,eTA,eTA) << "\t" << inprod(mpsxx::Left,eTA,qc,eTA) << endl;
 
    return 0;
 

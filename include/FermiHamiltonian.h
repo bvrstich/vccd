@@ -9,7 +9,7 @@ class Ostate;
 //some functions which initialize an MPO to a certian Hamiltonian
 
 using namespace btas;
-using namespace mps;
+using namespace mpsxx;
 
 template<class Q>
 void physical(Qshapes<Q> &qp);

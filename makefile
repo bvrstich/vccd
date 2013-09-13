@@ -25,9 +25,10 @@ BRIGHT_ROOT= .
 BOOSTLIB= -lboost_serialization
 
 BTASINC=-I/home/bright/bestanden/programmas/btas/include
+MPSINC=-I/home/bright/bestanden/programmas/mpsxx
 BTASLIB= /home/bright/bestanden/programmas/btas/c++11/lib
 
-INCLUDE = ./include $(BTASINC)
+INCLUDE = ./include $(BTASINC) $(MPSINC)
 
 LIBS= -lpthread -lmkl_intel_lp64 -lmkl_sequential -lmkl_core $(BOOSTLIB) $(BTASLIB)/libbtas.a 
 
