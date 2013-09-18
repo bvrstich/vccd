@@ -28,9 +28,9 @@ BRIGHT_ROOT= .
 
 BOOSTLIB= -lboost_serialization
 
-BTASINC=-I/home/bright/bestanden/programmas/btas/include
+BTASINC=-I/home/bright/btas/include
 MPSINC=-I/home/bright/bestanden/programmas/mpsxx
-BTASLIB= /home/bright/bestanden/programmas/btas/lib
+BTASLIB= /home/bright/btas/lib
 
 INCLUDE = ./include $(BTASINC) $(MPSINC)
 

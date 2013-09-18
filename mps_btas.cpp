@@ -28,11 +28,11 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 14;
+   int L = 8;
 
    //number of particles
-   int n_u = 2;
-   int n_d = 2;
+   int n_u = 3;
+   int n_d = 3;
 
    int no = n_u;
    int nv = L - no;
@@ -75,16 +75,13 @@ int main(void){
    MPO<Quantum> T = T2<Quantum>(t);
    compress(T,mpsxx::Right,0);
    compress(T,mpsxx::Left,0);
-
-   MPS<Quantum> eTA = exp(T,hf,cutoff);
-   cout << inprod(mpsxx::Left,hf,qc,eTA) << endl;
-   cout << (qc*eTA) *hf << endl;
    */
 
    DArray<2> t(no,nv);
    t.generate(rgen);
 
    MPO<Quantum> T = T1<Quantum>(t);
+
    compress(T,mpsxx::Right,0);
    compress(T,mpsxx::Left,0);
 
@@ -94,6 +91,10 @@ int main(void){
    compress(B,mpsxx::Left,100);
 
    cout << inprod(mpsxx::Left,A,T,B) << endl;
+
+   MPO<Quantum> T_test = T1_test<Quantum>(t);
+
+   cout << inprod(mpsxx::Left,A,T_test,B) << endl;
 
    MPS<Quantum> rol = ro::construct(mpsxx::Left,A,T,B);
    MPS<Quantum> ror = ro::construct(mpsxx::Right,A,T,B);

@@ -26,9 +26,11 @@ class T1_2_mpo : public std::vector<int> {
       //destructor
       virtual ~T1_2_mpo();
 
+      void push_crea_up(int,int,int);
+
    private:
 
-      std::vector<int*> *list;
+      std::vector< vector<int> > *list;
 
       int **ia2s;
 

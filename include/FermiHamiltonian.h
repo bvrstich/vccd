@@ -79,7 +79,7 @@ MPO<Q> qcham(const DArray<2> &,const DArray<4> &);
 
 void insert_id(QSDArray<4> &,int row,int column);
 void insert_zero(QSDArray<4> &,int row,int column);
-void insert_sign(QSDArray<4> &,int row,int column);
+void insert_sign(QSDArray<4> &,int row,int column,double value = 1.0);
 void insert_crea_up(QSDArray<4> &,int row,int column,double);
 void insert_crea_up_s(QSDArray<4> &,int row,int column,double);
 void insert_crea_down(QSDArray<4> &,int row,int column,double);
