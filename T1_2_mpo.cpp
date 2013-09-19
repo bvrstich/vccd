@@ -17,6 +17,8 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
    this->no = no;
    this->nv = nv;
 
+   int L = no + nv;
+
    s2ia = new int * [no*nv];
 
    for(int i = 0;i < no*nv;++i)
@@ -43,20 +45,6 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
 
    list = new std::vector< vector<int> > [no*nv];
 
-   //now construct the list
-   vector<int> mpodat(5);
-
-   Qshapes<Q> qp;
-   physical(qp);
-
-   Qshapes<Q> qz; // 0 quantum number
-   qz.push_back(Q::zero());
-
-   Qshapes<Q> qo;
-   qo.push_back(Q::zero());//I
-   qo.push_back(Q(0,1));//a_down
-   qo.push_back(Q(1,0));//a_up
-
    std::vector< Ostate > ostates;
    Ostate state;
 
@@ -75,19 +63,11 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
    std::vector< Ostate > istates;
    istates = ostates;
 
-   Qshapes<Quantum> qi = qo;
-
    for(int i = 1;i < no - 1;++i){
 
       ostates.clear();
-      qo.clear();
-
-      qo.push_back(Q::zero());//I
 
       ostates.push_back(istates[0]);
-
-      qo.push_back(Q(0,1));//a_down
-      qo.push_back(Q(1,0));//a_up
 
       state.push_anni_down(i);
       ostates.push_back(state);
@@ -101,21 +81,18 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
 
       while(row < istates.size()){
 
-         qo.push_back(qi[row]);//a_down
          ostates.push_back(istates[row]);
 
          ++row;
 
       }
 
+      istates = ostates;
+
    }
 
    //final occupied
    ostates.clear();
-   qo.clear();
-
-   qo.push_back(Q(0,1));//a_down
-   qo.push_back(Q(1,0));//a_up
 
    state.push_anni_down(no - 1);
    ostates.push_back(state);
@@ -129,27 +106,23 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
 
    while(row < istates.size()){
 
-      qo.push_back(qi[row]);//a_down
       ostates.push_back(istates[row]);
 
       ++row;
 
    }
 
+   istates = ostates;
+
    if(no == nv){
 
       ostates.clear();
-      qo.clear();
 
-      qo.push_back(Q::zero());//I
       state.push_id();
       ostates.push_back(state);
       state.clear();
 
       for(int i = no + 1;i < L;++i){
-
-         qo.push_back(Q(0,1));//complementary of a^\dagger_down
-         qo.push_back(Q(1,0));//complementary of a^\dagger_up
 
          state.push_crea_down(i);
          ostates.push_back(state);
@@ -167,21 +140,10 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
          int ii = istates[row].gsite(0);
          int si = istates[row].gspin(0);
 
-         if(si == 0){
-
-            int s = ia2s[ii][0];
-
-            mpodat[0] = no;//site
-            mpodat[1] = row;//left virtual
-            mpodat[2] = ;//physical outgoing
-            mpodat[3] = ;//physical incoming
-            mpodat[4] = 0;//right virtual
-
-            insert_crea_up(s,row,0,t(ii,0));
-
-         }
+         if(si == 0)
+            push_crea_up(ia2s[ii][0],no,row,0);
          else
-            insert_crea_down_s(mpo[no],row,0,t(ii,0));
+            push_crea_down_s(ia2s[ii][0],no,row,0);
 
       }
 
@@ -197,61 +159,13 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
             int sa = ostates[col].gspin(0);
 
             if(si == sa)
-               insert_sign(mpo[no],row,col,t(ii,ia - no));
+               push_sign(ia2s[ii][ia - no],no,row,col);
 
          }
 
       }
 
       istates = ostates;
-      qi = qo;
-
-      //rest of the virtuals
-      for(int i = no + 1;i < L - 1;++i){
-
-         ostates.clear();
-         qo.clear();
-
-         qo.push_back(Q::zero());//I
-         state.push_id();
-         ostates.push_back(state);
-         state.clear();
-
-         for(int row = 3;row < istates.size();++row){
-
-            qo.push_back(qi[row]);
-            ostates.push_back(istates[row]);
-
-         }
-
-         mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
-
-         //first row closed
-         insert_id(mpo[i],0,0);
-         insert_crea_down_s(mpo[i],1,0,1.0);
-         insert_crea_up(mpo[i],2,0,1.0);
-
-         //rest signs
-         for(int row = 3;row < istates.size();++row)
-            insert_sign(mpo[i],row,row-2);
-
-         istates = ostates;
-         qi = qo;
-
-      }
-
-      //last site
-      ostates.clear();
-      qo.clear();
-
-      qo.push_back(Q::zero());//I
-
-      mpo[L-1].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
-
-      //only closed terms
-      insert_id(mpo[L-1],0,0);
-      insert_crea_down_s(mpo[L-1],1,0,1.0);
-      insert_crea_up(mpo[L-1],2,0,1.0);
 
    }
    else{//no < nv
@@ -261,60 +175,30 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
       ostates.push_back(state);
       state.clear();
 
-      qo.push_back(Q::zero());//I
-
-      mpo[no].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
-
-      //signs for the singles being copied!
-      row = 0;
-
-      while(row < istates.size()){
-
-         //fermion sign!
-         insert_sign(mpo[no],row,row);
-         row++;
-
-      }
-
       //insert the t's for the last column
       row = 0;
-      column = istates.size();
+      int column = istates.size();
 
       while(row < istates.size()){
 
          int j = istates[row].gsite(0);
          int sj = istates[row].gspin(0);
 
-         //fermion sign!
          if(sj == 0)
-            insert_crea_up(mpo[no],row,column,t(j,0));
+            push_crea_up(ia2s[j][0],no,row,column);
          else
-            insert_crea_down_s(mpo[no],row,column,t(j,0));
+            push_crea_down_s(ia2s[j][0],no,row,column);
 
          ++row;
 
       }
 
       istates = ostates;
-      qi = qo;
 
       //all virtuals until nv
       for(int i = no + 1;i < nv - 1;++i){
 
          int vind = i - no;
-
-         mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
-
-         //signs for the singles being copied!
-         row = 0;
-
-         while(row < istates.size() - 1){
-
-            //fermion sign!
-            insert_sign(mpo[i],row,row);
-            row++;
-
-         }
 
          //insert the t's for the last column
          row = 0;
@@ -327,34 +211,28 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
 
             //fermion sign!
             if(sj == 0)
-               insert_crea_up(mpo[i],row,column,t(j,vind));
+               push_crea_up(ia2s[j][vind],i,row,column);
             else
-               insert_crea_down_s(mpo[i],row,column,t(j,vind));
+               push_crea_down_s(ia2s[j][vind],i,row,column);
 
             ++row;
 
          }
 
-         //last id for already closed terms
-         insert_id(mpo[i],column,column);
-
       }
 
+      istates = ostates;
+
       ostates.clear();
-      qo.clear();
 
       //switch to virtuals outgoing
       int vind = nv - no - 1;
 
-      qo.push_back(Q::zero());//I
       state.push_id();
       ostates.push_back(state);
       state.clear();
 
       for(int i = nv;i < L;++i){
-
-         qo.push_back(Q(0,1));//complementary of a^\dagger_down
-         qo.push_back(Q(1,0));//complementary of a^\dagger_up
 
          state.push_crea_down(i);
          ostates.push_back(state);
@@ -366,8 +244,6 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
 
       }
 
-      mpo[nv-1].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
-
       //first column is closed
       for(int row = 0;row < istates.size()-1;++row){
 
@@ -375,14 +251,11 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
          int si = istates[row].gspin(0);
 
          if(si == 0)
-            insert_crea_up(mpo[nv-1],row,0,t(ii,vind));
+            push_crea_up(ia2s[ii][vind],nv-1,row,0);
          else
-            insert_crea_down_s(mpo[nv-1],row,0,t(ii,vind));
+            push_crea_down_s(ia2s[ii][vind],nv-1,row,0);
 
       }
-
-      //insert id for the terms that are already closed
-      insert_id(mpo[nv-1],istates.size() - 1,0);
 
       //insert the rest of the matrix: t's!
       for(int row = 0;row < istates.size();++row){
@@ -396,61 +269,11 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
             int sa = ostates[col].gspin(0);
 
             if(si == sa)
-               insert_sign(mpo[nv-1],row,col,t(ii,ia - no));
+               push_sign(ia2s[ii][ia - no],nv-1,row,col);
 
          }
 
       }
-
-      istates = ostates;
-      qi = qo;
-
-      //rest of the virtuals
-      for(int i = nv;i < L - 1;++i){
-
-         ostates.clear();
-         qo.clear();
-
-         qo.push_back(Q::zero());//I
-         state.push_id();
-         ostates.push_back(state);
-         state.clear();
-
-         for(int row = 3;row < istates.size();++row){
-
-            qo.push_back(qi[row]);
-            ostates.push_back(istates[row]);
-
-         }
-
-         mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
-
-         //first row closed
-         insert_id(mpo[i],0,0);
-         insert_crea_down_s(mpo[i],1,0,1.0);
-         insert_crea_up(mpo[i],2,0,1.0);
-
-         //rest signs
-         for(int row = 3;row < istates.size();++row)
-            insert_sign(mpo[i],row,row-2);
-
-         istates = ostates;
-         qi = qo;
-
-      }
-
-      //last site
-      ostates.clear();
-      qo.clear();
-
-      qo.push_back(Q::zero());//I
-
-      mpo[L-1].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
-
-      //only closed terms
-      insert_id(mpo[L-1],0,0);
-      insert_crea_down_s(mpo[L-1],1,0,1.0);
-      insert_crea_up(mpo[L-1],2,0,1.0);
 
    }
 
@@ -459,15 +282,178 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
 /**
  * copy constructor
  */
-T1_2_mpo::T1_2_mpo(const T1_2_mpo &copy){
-
-}
+T1_2_mpo::T1_2_mpo(const T1_2_mpo &copy){ }
 
 /**
  * destructor
  */
-T1_2_mpo::~T1_2_mpo(){ }
+T1_2_mpo::~T1_2_mpo(){ 
+
+   for(int i = 0;i < no;++i)
+      delete [] ia2s[i];
+
+   delete [] ia2s;
+
+   for(int s = 0;s < no*nv;++s)
+      delete [] s2ia[s];
+
+   delete [] s2ia;
+
+   delete [] list;
+   
+}
 
 /**
- * 
+ * add a crea up to the list: on site with row and column and 
  */
+void T1_2_mpo::push_crea_up(int s,int site,int row,int col){
+
+   std::vector<int> mpoind(6);
+
+   mpoind[0] = site;
+   mpoind[1] = row;//incoming virtual
+   mpoind[4] = col;//outgoing virtual
+
+   //0-> up
+   mpoind[2] = 1;//physical incoming
+   mpoind[3] = 0;//physical outgoing
+   mpoind[5] = 1;//sign
+
+   list[s].push_back(mpoind);
+
+   //down-> up down
+   mpoind[2] = 3;//physical incoming
+   mpoind[3] = 2;//physical outgoing
+   mpoind[5] = 1;//sign
+
+   list[s].push_back(mpoind);
+
+}
+
+/**
+ * add a crea up to the list: on site with row and column and 
+ */
+void T1_2_mpo::push_crea_down_s(int s,int site,int row,int col){
+
+   std::vector<int> mpoind(6);
+
+   mpoind[0] = site;
+   mpoind[1] = row;//incoming virtual
+   mpoind[4] = col;//outgoing virtual
+
+   //0-> down 
+   mpoind[2] = 2;//physical incoming
+   mpoind[3] = 0;//physical outgoing
+   mpoind[5] = 1;//sign
+
+   list[s].push_back(mpoind);
+
+   //up-> up down
+   mpoind[2] = 3;//physical incoming
+   mpoind[3] = 1;//physical outgoing
+   mpoind[5] = -1;//sign
+
+   list[s].push_back(mpoind);
+
+}
+
+/**
+ * add an id to the list: on site with row and column and index s(ia)
+ */
+void T1_2_mpo::push_sign(int s,int site,int row,int col){
+
+   std::vector<int> mpoind(6);
+
+   mpoind[0] = site;
+   mpoind[1] = row;//incoming virtual
+   mpoind[4] = col;//outgoing virtual
+
+   //0-> 0
+   mpoind[2] = 0;//physical incoming
+   mpoind[3] = 0;//physical outgoing
+   mpoind[5] = 1;//sign
+
+   list[s].push_back(mpoind);
+
+   //1->1
+   mpoind[2] = 1;//physical incoming
+   mpoind[3] = 1;//physical outgoing
+   mpoind[5] = -1;//sign
+
+   list[s].push_back(mpoind);
+
+   //2->2
+   mpoind[2] = 2;//physical incoming
+   mpoind[3] = 2;//physical outgoing
+   mpoind[5] = -1;//sign
+
+   list[s].push_back(mpoind);
+
+   //3->3
+   mpoind[2] = 3;//physical incoming
+   mpoind[3] = 3;//physical outgoing
+   mpoind[5] = 1;//sign
+
+   list[s].push_back(mpoind);
+
+}
+
+
+ostream &operator<<(ostream &output,const T1_2_mpo &list_p){
+
+   for(int s = 0;s < list_p.no*list_p.nv;++s){
+
+      int i = list_p.s2ia[s][0];
+      int a = list_p.s2ia[s][1];
+      
+      output << std::endl;
+      output << "element t(" << i << "," << a << ")" << std::endl;
+      output << std::endl;
+
+      for(int ind = 0;ind < list_p.list[s].size();++ind){
+
+         output << list_p.list[s][ind][0] << "\t(" << list_p.list[s][ind][1] << "," << list_p.list[s][ind][2] << "," << list_p.list[s][ind][3] << 
+         
+            "," << list_p.list[s][ind][4] << ")\tsign = " << list_p.list[s][ind][5] << std::endl;
+
+      }
+
+   }
+
+   return output;
+
+}
+
+/**
+ * get the sum of the elements from input MPO corresponding to the t1 element t(i,a).
+ */
+template <class Q>
+double T1_2_mpo::get(const MPO<Q> &grad,int i,int a){
+
+   int s = ia2s[i][a];
+
+   vector<int> v;
+   IVector<4> ind;
+   QSDArray<4>::const_iterator it;
+
+   double sum = 0.0;
+
+   for(int n = 0;n < list[s].size();++n){
+
+      v = list[s][n];
+
+      ind[0] = v[1];
+      ind[1] = v[2];
+      ind[2] = v[3];
+      ind[3] = v[4];
+
+      it = grad[v[0]].find(ind);
+      sum += (*it->second).at(0,0,0,0) * v[5];
+
+   }
+
+   return sum;
+
+}
+
+template double T1_2_mpo::get(const MPO<Quantum> &,int,int);

@@ -31,8 +31,8 @@ int main(void){
    int L = 8;
 
    //number of particles
-   int n_u = 3;
-   int n_d = 3;
+   int n_u = 4;
+   int n_d = 4;
 
    int no = n_u;
    int nv = L - no;
@@ -82,24 +82,27 @@ int main(void){
 
    MPO<Quantum> T = T1<Quantum>(t);
 
-   compress(T,mpsxx::Right,0);
-   compress(T,mpsxx::Left,0);
-
    MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,20,rgen);
    compress(A,mpsxx::Left,100);
    MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,20,rgen);
    compress(B,mpsxx::Left,100);
 
-   cout << inprod(mpsxx::Left,A,T,B) << endl;
-
-   MPO<Quantum> T_test = T1_test<Quantum>(t);
-
-   cout << inprod(mpsxx::Left,A,T_test,B) << endl;
-
    MPS<Quantum> rol = ro::construct(mpsxx::Left,A,T,B);
    MPS<Quantum> ror = ro::construct(mpsxx::Right,A,T,B);
 
    MPO<Quantum> grad = grad::construct(rol,ror,A,B);
+
+   T1_2_mpo list(no,nv);
+
+   int i = 2;
+   int a = 1;
+
+   cout << list.get(grad,i,a) << endl;
+
+   //E^0_0
+   MPO<Quantum> E_op = E<Quantum>(L,a+no,i,1.0);
+
+   cout << inprod(mpsxx::Left,A,E_op,B) << endl;
 
    return 0;
 

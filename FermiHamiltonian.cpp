@@ -1328,27 +1328,6 @@ MPO<Q> qcham_test(const DArray<2> &t,const DArray<4> &V){
 
 }
 
-template<class Q>
-MPO<Q> T1_test(const DArray<2> &t){
-
-   int no = t.shape(0);//number of occupied
-   int nv = t.shape(1);//number of virtuals
-   int L = no+nv;
-
-   MPO<Q> mpo = E<Q>(L,no,0,t(0,0));
-
-   for(int i = 0;i < no;++i)
-      for(int a = 0;a < nv;++a){
-
-         if(i != 0 || a != 0)
-            axpy(1.0,E<Q>(L,a+no,i,t(i,a)),mpo);
-
-      }
-
-   return mpo;
-
-}
-
 /**
  * @return MPO object of length L containing the T1 operator with coefficients passed through the DArray<2> object t
  */
@@ -1813,56 +1792,6 @@ MPO<Q> T1(const DArray<2> &t){
       insert_crea_up(mpo[L-1],2,0,1.0);
 
    }
-
-   //merge everything together
-   TVector<Qshapes<Q>,1> qmerge;
-   TVector<Dshapes,1> dmerge;
-
-   qmerge[0] = mpo[0].qshape(3);
-   dmerge[0] = mpo[0].dshape(3);
-
-   QSTmergeInfo<1> info(qmerge,dmerge);
-
-   QSDArray<4> tmp;
-   QSTmerge(mpo[0],info,tmp);
-
-   mpo[0] = tmp;
-
-   for(int i = 1;i < L - 1;++i){
-
-      //first merge the row
-      qmerge[0] = mpo[i].qshape(0);
-      dmerge[0] = mpo[i].dshape(0);
-
-      info.reset(qmerge,dmerge);
-
-      tmp.clear();
-
-      QSTmerge(info,mpo[i],tmp);
-
-      //then merge the column
-      qmerge[0] = tmp.qshape(3);
-      dmerge[0] = tmp.dshape(3);
-
-      info.reset(qmerge,dmerge);
-
-      mpo[i].clear();
-
-      QSTmerge(tmp,info,mpo[i]);
-
-   }
-
-   //only merge row for i = L - 1
-   qmerge[0] = mpo[L - 1].qshape(0);
-   dmerge[0] = mpo[L - 1].dshape(0);
-
-   info.reset(qmerge,dmerge);
-
-   tmp.clear();
-
-   QSTmerge(info,mpo[L - 1],tmp);
-
-   mpo[L - 1] = tmp;
 
    return mpo;
 
@@ -3961,7 +3890,6 @@ template MPO<Quantum> E(int,int,int,double);
 template MPO<Quantum> E(int,int,int,int,int,double);
 template MPO<Quantum> tpint(int,int,int,int,int,double);
 template MPO<Quantum> T1(const DArray<2> &);
-template MPO<Quantum> T1_test(const DArray<2> &);
 template MPO<Quantum> T2(const DArray<4> &);
 template MPO<Quantum> qcham_test(const DArray<2> &,const DArray<4> &);
 template MPO<Quantum> one_body(const DArray<2> &);

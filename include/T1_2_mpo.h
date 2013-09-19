@@ -13,7 +13,7 @@ using std::ostream;
  */
 class T1_2_mpo : public std::vector<int> {
 
-   friend ostream &operator<<(ostream &output,const T1_2_mpo &ostate_p);
+   friend ostream &operator<<(ostream &output,const T1_2_mpo &list_p);
 
    public:
 
@@ -26,7 +26,14 @@ class T1_2_mpo : public std::vector<int> {
       //destructor
       virtual ~T1_2_mpo();
 
-      void push_crea_up(int,int,int);
+      void push_crea_up(int,int,int,int);
+
+      void push_crea_down_s(int,int,int,int);
+
+      void push_sign(int,int,int,int);
+
+      template<class Q>
+         double get(const MPO<Q> &,int,int);
 
    private:
 
