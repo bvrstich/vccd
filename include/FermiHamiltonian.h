@@ -72,6 +72,9 @@ template<class Q>
 MPO<Q> one_body(const DArray<2> &);
 
 template<class Q>
+MPO<Q> one_body_new(const DArray<2> &);
+
+template<class Q>
 MPO<Q> qcham(const DArray<2> &,const DArray<4> &);
 
 void insert_id(QSDArray<4> &,int row,int column);

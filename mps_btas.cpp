@@ -77,16 +77,24 @@ int main(void){
    compress(T,mpsxx::Left,0);
    */
 
-   DArray<2> t(no,nv);
-   t.generate(rgen);
+   DArray<2> t(L,L);
 
-   MPO<Quantum> T = T1<Quantum>(t);
+   t = 0.0;
+
+   t(L-1,L-1) = rgen();
+
+   MPO<Quantum> T = one_body<Quantum>(t);
 
    MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,20,rgen);
    compress(A,mpsxx::Left,100);
    MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,20,rgen);
    compress(B,mpsxx::Left,100);
 
+   MPO<Quantum> T_new = one_body_new<Quantum>(t);
+
+   cout << inprod(mpsxx::Left,A,T,B) << endl;
+   cout << inprod(mpsxx::Left,A,T_new,B) << endl;
+/*
    MPS<Quantum> rol = ro::construct(mpsxx::Left,A,T,B);
    MPS<Quantum> ror = ro::construct(mpsxx::Right,A,T,B);
 
@@ -103,7 +111,7 @@ int main(void){
    MPO<Quantum> E_op = E<Quantum>(L,a+no,i,1.0);
 
    cout << inprod(mpsxx::Left,A,E_op,B) << endl;
-
+*/
    return 0;
 
 }
