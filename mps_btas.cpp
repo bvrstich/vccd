@@ -81,7 +81,14 @@ int main(void){
 
    t = 0.0;
 
-   t(L-1,L-1) = rgen();
+   for(int i = 0;i < L;++i){
+
+      t(i,i) = rgen();
+
+      for(int j = i + 1;j < L;++j)
+         t(i,j) = t(j,i) = rgen();
+
+   }
 
    MPO<Quantum> T = one_body<Quantum>(t);
 
@@ -94,6 +101,7 @@ int main(void){
 
    cout << inprod(mpsxx::Left,A,T,B) << endl;
    cout << inprod(mpsxx::Left,A,T_new,B) << endl;
+
 /*
    MPS<Quantum> rol = ro::construct(mpsxx::Left,A,T,B);
    MPS<Quantum> ror = ro::construct(mpsxx::Right,A,T,B);

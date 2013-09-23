@@ -2683,7 +2683,8 @@ MPO<Q> one_body_new(const DArray<2> &t){
       }
    }
 
-   insert_id(mpo[L/2],istates.size() - 1,ostates.size() - 1);
+   //id for last column
+   insert_id(mpo[L/2],0,ostates.size() - 1);
 
    istates = ostates;
    qi = qo;
@@ -2747,26 +2748,46 @@ MPO<Q> one_body_new(const DArray<2> &t){
       //insert correct operators for incoming complementaries
       for(int row = 1;row < istates.size() - 1;++row){
 
+         int ri = istates[row].gsite(0);
          int rs = istates[row].gspin(0);
          int ra = istates[row].gact(0);
 
-         if(rs == 0 && ra == 0)//crea up
-            insert_crea_up(mpo[i],row,0,1.0);
-         else if(rs == 1 && ra == 0)//crea down
-            insert_crea_down_s(mpo[i],row,0,1.0);
-         else if(rs == 0 && ra == 1)//anni up
-            insert_anni_up(mpo[i],row,0,1.0);
-         else
-            insert_anni_down_s(mpo[i],row,0,1.0);
+         if(ri == i){
+
+            if(rs == 0 && ra == 0)//crea up
+               insert_crea_up(mpo[i],row,0,1.0);
+            else if(rs == 1 && ra == 0)//crea down
+               insert_crea_down_s(mpo[i],row,0,1.0);
+            else if(rs == 0 && ra == 1)//anni up
+               insert_anni_up(mpo[i],row,0,1.0);
+            else
+               insert_anni_down_s(mpo[i],row,0,1.0);
+
+         }
 
       }
 
       //insert local term
       insert_local_ob(mpo[i],istates.size() - 1,0,t(i,i));
-
+      
       //signs!
-      for(int col = 1;col < ostates.size() - 1;++col)
-         insert_sign(mpo[i],col + 4,col);
+      for(int row = 1;row < istates.size() - 1;++row){
+
+         int ri = istates[row].gsite(0);
+         int rs = istates[row].gspin(0);
+         int ra = istates[row].gact(0);
+
+         for(int col = 1;col < ostates.size() - 1;++col){
+
+            int ci = ostates[col].gsite(0);
+            int cs = ostates[col].gspin(0);
+            int ca = ostates[col].gact(0);
+
+            if(ri == ci && rs == cs && ra == ca)
+               insert_sign(mpo[i],row,col);
+
+         }
+      }
 
       //last row, creation and annihilation operators
       int row = istates.size() - 1;
@@ -2829,7 +2850,7 @@ MPO<Q> one_body_new(const DArray<2> &t){
 
    //insert local term
    insert_local_ob(mpo[L-1],istates.size() - 1,0,t(L-1,L-1));
-
+   /*
    //merge everything together
    TVector<Qshapes<Q>,1> qmerge;
    TVector<Dshapes,1> dmerge;
@@ -2846,25 +2867,25 @@ MPO<Q> one_body_new(const DArray<2> &t){
 
    for(int i = 1;i < L - 1;++i){
 
-      //first merge the row
-      qmerge[0] = mpo[i].qshape(0);
-      dmerge[0] = mpo[i].dshape(0);
+   //first merge the row
+   qmerge[0] = mpo[i].qshape(0);
+   dmerge[0] = mpo[i].dshape(0);
 
-      info.reset(qmerge,dmerge);
+   info.reset(qmerge,dmerge);
 
-      tmp.clear();
+   tmp.clear();
 
-      QSTmerge(info,mpo[i],tmp);
+   QSTmerge(info,mpo[i],tmp);
 
-      //then merge the column
-      qmerge[0] = tmp.qshape(3);
-      dmerge[0] = tmp.dshape(3);
+   //then merge the column
+   qmerge[0] = tmp.qshape(3);
+   dmerge[0] = tmp.dshape(3);
 
-      info.reset(qmerge,dmerge);
+   info.reset(qmerge,dmerge);
 
-      mpo[i].clear();
+   mpo[i].clear();
 
-      QSTmerge(tmp,info,mpo[i]);
+   QSTmerge(tmp,info,mpo[i]);
 
    }
 
@@ -2879,7 +2900,7 @@ MPO<Q> one_body_new(const DArray<2> &t){
    QSTmerge(info,mpo[L - 1],tmp);
 
    mpo[L - 1] = tmp;
-
+    */
    return mpo;
 
 }
