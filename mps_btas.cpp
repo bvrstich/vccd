@@ -90,17 +90,14 @@ int main(void){
 
    }
 
-   MPO<Quantum> T = one_body<Quantum>(t);
+   MPO<Quantum> T = one_body<Quantum>(t,false);
 
    MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,20,rgen);
    compress(A,mpsxx::Left,100);
    MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,20,rgen);
    compress(B,mpsxx::Left,100);
 
-   MPO<Quantum> T_new = one_body_new<Quantum>(t);
-
    cout << inprod(mpsxx::Left,A,T,B) << endl;
-   cout << inprod(mpsxx::Left,A,T_new,B) << endl;
 
 /*
    MPS<Quantum> rol = ro::construct(mpsxx::Left,A,T,B);

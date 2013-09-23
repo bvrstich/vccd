@@ -2386,7 +2386,7 @@ MPO<Q> T2(const DArray<4> &t){
  * @return MPO object of length L containing a general one-body operator \sum_ab t_ab a^+_as a_bs
  */
 template<class Q>
-MPO<Q> one_body_new(const DArray<2> &t){
+MPO<Q> one_body(const DArray<2> &t,bool merge){
 
    int L = t.shape(0);//number of occupied orbitals
 
@@ -2850,335 +2850,60 @@ MPO<Q> one_body_new(const DArray<2> &t){
 
    //insert local term
    insert_local_ob(mpo[L-1],istates.size() - 1,0,t(L-1,L-1));
-   /*
-   //merge everything together
-   TVector<Qshapes<Q>,1> qmerge;
-   TVector<Dshapes,1> dmerge;
 
-   qmerge[0] = mpo[0].qshape(3);
-   dmerge[0] = mpo[0].dshape(3);
+   if(merge){
 
-   QSTmergeInfo<1> info(qmerge,dmerge);
+      //merge everything together
+      TVector<Qshapes<Q>,1> qmerge;
+      TVector<Dshapes,1> dmerge;
 
-   QSDArray<4> tmp;
-   QSTmerge(mpo[0],info,tmp);
+      qmerge[0] = mpo[0].qshape(3);
+      dmerge[0] = mpo[0].dshape(3);
 
-   mpo[0] = tmp;
+      QSTmergeInfo<1> info(qmerge,dmerge);
 
-   for(int i = 1;i < L - 1;++i){
+      QSDArray<4> tmp;
+      QSTmerge(mpo[0],info,tmp);
 
-   //first merge the row
-   qmerge[0] = mpo[i].qshape(0);
-   dmerge[0] = mpo[i].dshape(0);
+      mpo[0] = tmp;
 
-   info.reset(qmerge,dmerge);
+      for(int i = 1;i < L - 1;++i){
 
-   tmp.clear();
+         //first merge the row
+         qmerge[0] = mpo[i].qshape(0);
+         dmerge[0] = mpo[i].dshape(0);
 
-   QSTmerge(info,mpo[i],tmp);
+         info.reset(qmerge,dmerge);
 
-   //then merge the column
-   qmerge[0] = tmp.qshape(3);
-   dmerge[0] = tmp.dshape(3);
+         tmp.clear();
 
-   info.reset(qmerge,dmerge);
+         QSTmerge(info,mpo[i],tmp);
 
-   mpo[i].clear();
+         //then merge the column
+         qmerge[0] = tmp.qshape(3);
+         dmerge[0] = tmp.dshape(3);
 
-   QSTmerge(tmp,info,mpo[i]);
+         info.reset(qmerge,dmerge);
 
-   }
+         mpo[i].clear();
 
-   //only merge row for i = L - 1
-   qmerge[0] = mpo[L - 1].qshape(0);
-   dmerge[0] = mpo[L - 1].dshape(0);
-
-   info.reset(qmerge,dmerge);
-
-   tmp.clear();
-
-   QSTmerge(info,mpo[L - 1],tmp);
-
-   mpo[L - 1] = tmp;
-    */
-   return mpo;
-
-}
-
-
-/**
- * @return MPO object of length L containing a general one-body operator \sum_ab t_ab a^+_as a_bs
- */
-template<class Q>
-MPO<Q> one_body(const DArray<2> &t){
-
-   int L = t.shape(0);//number of occupied orbitals
-
-   MPO<Q> mpo(L);
-
-   Qshapes<Q> qp;
-   physical(qp);
-
-   Qshapes<Q> qz; // 0 quantum number
-   qz.push_back(Q::zero());
-
-   Qshapes<Q> qo;
-   qo.push_back(Q::zero());//I
-
-   qo.push_back(Q(-1,0));//a^+_up
-   qo.push_back(Q(0,-1));//a^+_down
-
-   qo.push_back(Q(1,0));//a_up
-   qo.push_back(Q(0,1));//a_down
-
-   qo.push_back(Q(0,0));//a^+_up a_up + a^+_down a_down
-
-   mpo[0].resize(Q::zero(),make_array(qz,qp,-qp,qo));
-
-   std::vector< Ostate > ostates;
-
-   //identity
-   Ostate state;
-   state.push_id();
-   ostates.push_back(state);
-   state.clear();
-
-   //a^+_up (-1)^n_down
-   state.push_crea_up(0);
-   ostates.push_back(state);
-   state.clear();
-
-
-   //a^dagger_down 
-   state.push_crea_down(0);
-   ostates.push_back(state);
-   state.clear();
-
-   //a_up (-1)^n_down
-   state.push_anni_up(0);
-   ostates.push_back(state);
-   state.clear();
-
-   //a_down
-   state.push_anni_down(0);
-   ostates.push_back(state);
-   state.clear();
-
-   //local term
-   state.push_id();
-   ostates.push_back(state);
-   state.clear();
-
-   insert_id(mpo[0],0,0);
-   insert_crea_up_s(mpo[0],0,1,1.0);
-   insert_crea_down(mpo[0],0,2,1.0);
-   insert_anni_up_s(mpo[0],0,3,1.0);
-   insert_anni_down(mpo[0],0,4,1.0);
-   insert_local_ob(mpo[0],0,5,t(0,0));
-
-   std::vector< Ostate > istates;
-   istates = ostates;
-
-   Qshapes<Quantum> qi;
-   qi = qo;
-
-   //all middle tensors
-   for(int i = 1;i < L - 1;++i){
-
-      ostates.clear();
-      qo.clear();
-
-      qo.push_back(Q::zero());//I
-
-      //identity
-      state.push_id();
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(-1,0));//a^+_up
-
-      //first create spin up
-      state.push_crea_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(0,-1));//a^+_down
-
-      state.push_crea_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(1,0));//a_up
-
-      state.push_anni_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(0,1));//a_down
-
-      state.push_anni_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      for(int j = 1;j < istates.size() - 1;++j){
-
-         qo.push_back(qi[j]);
-         ostates.push_back(istates[j]);
+         QSTmerge(tmp,info,mpo[i]);
 
       }
 
-      //last column is closed
-      qo.push_back(Q::zero());//a_down
-      state.push_id();
-      ostates.push_back(state);
-      state.clear();
-
-      //fill the mpo!
-      mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
-
-      int row = 0;
-      int column = 0;
-
-      //identity
-      insert_id(mpo[i],0,0);
-      insert_crea_up_s(mpo[i],0,1,1.0);
-      insert_crea_down(mpo[i],0,2,1.0);
-      insert_anni_up_s(mpo[i],0,3,1.0);
-      insert_anni_down(mpo[i],0,4,1.0);
-
-      row = 1;
-      column = 5;
-
-      //signs
-      for(int j = 1;j < istates.size() - 1;++j){
-
-         insert_sign(mpo[i],row,column);
-         ++row;
-         ++column;
-
-      }
-
-      //last column: first local term
-      insert_local_ob(mpo[i],0,column,t(i,i));
-
-      row = 1;
-
-      while(row < istates.size() - 1){
-
-         std::vector<int> v;
-         double val;
-
-         v = Ostate::get_closing_single(i,istates[row],t,val);
-
-         if(v[0] == 0 && v[1] == 0)//crea up
-            insert_crea_up(mpo[i],row,column,val);
-         else if(v[0] == 1 && v[1] == 0)//crea down
-            insert_crea_down_s(mpo[i],row,column,val);
-         else if(v[0] == 0 && v[1] == 1)//anni up
-            insert_anni_up(mpo[i],row,column,val);
-         else
-            insert_anni_down_s(mpo[i],row,column,val);
-
-         ++row;
-
-      }
-
-      //finally identity
-      insert_id(mpo[i],row,column);
-
-      istates = ostates;
-      qi = qo;
-
-   }
-
-   ostates.clear();
-   qo.clear();
-
-   //last site:
-   qo.push_back(Q::zero());
-   state.push_id();
-   ostates.push_back(state);
-   state.clear();
-
-   mpo[L-1].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
-
-   //first local term
-   insert_local_ob(mpo[L - 1],0,0,t(L - 1,L - 1));
-
-   int row = 1;
-
-   while(row < istates.size() - 1){
-
-      std::vector<int> v;
-      double val;
-
-      v = Ostate::get_closing_single(L - 1,istates[row],t,val);
-
-      if(v[0] == 0 && v[1] == 0)//crea up
-         insert_crea_up(mpo[L - 1],row,0,val);
-      else if(v[0] == 1 && v[1] == 0)//crea down
-         insert_crea_down_s(mpo[L - 1],row,0,val);
-      else if(v[0] == 0 && v[1] == 1)//anni up
-         insert_anni_up(mpo[L - 1],row,0,val);
-      else
-         insert_anni_down_s(mpo[L - 1],row,0,val);
-
-      ++row;
-
-   }
-
-   //finally identity
-   insert_id(mpo[L - 1],row,0);
-
-   //merge everything together
-   TVector<Qshapes<Q>,1> qmerge;
-   TVector<Dshapes,1> dmerge;
-
-   qmerge[0] = mpo[0].qshape(3);
-   dmerge[0] = mpo[0].dshape(3);
-
-   QSTmergeInfo<1> info(qmerge,dmerge);
-
-   QSDArray<4> tmp;
-   QSTmerge(mpo[0],info,tmp);
-
-   mpo[0] = tmp;
-
-   for(int i = 1;i < L - 1;++i){
-
-      //first merge the row
-      qmerge[0] = mpo[i].qshape(0);
-      dmerge[0] = mpo[i].dshape(0);
+      //only merge row for i = L - 1
+      qmerge[0] = mpo[L - 1].qshape(0);
+      dmerge[0] = mpo[L - 1].dshape(0);
 
       info.reset(qmerge,dmerge);
 
       tmp.clear();
 
-      QSTmerge(info,mpo[i],tmp);
+      QSTmerge(info,mpo[L - 1],tmp);
 
-      //then merge the column
-      qmerge[0] = tmp.qshape(3);
-      dmerge[0] = tmp.dshape(3);
-
-      info.reset(qmerge,dmerge);
-
-      mpo[i].clear();
-
-      QSTmerge(tmp,info,mpo[i]);
+      mpo[L - 1] = tmp;
 
    }
-
-   //only merge row for i = L - 1
-   qmerge[0] = mpo[L - 1].qshape(0);
-   dmerge[0] = mpo[L - 1].dshape(0);
-
-   info.reset(qmerge,dmerge);
-
-   tmp.clear();
-
-   QSTmerge(info,mpo[L - 1],tmp);
-
-   mpo[L - 1] = tmp;
 
    return mpo;
 
@@ -4417,8 +4142,7 @@ template MPO<Quantum> tpint(int,int,int,int,int,double);
 template MPO<Quantum> T1(const DArray<2> &);
 template MPO<Quantum> T2(const DArray<4> &);
 template MPO<Quantum> qcham_test(const DArray<2> &,const DArray<4> &);
-template MPO<Quantum> one_body(const DArray<2> &);
-template MPO<Quantum> one_body_new(const DArray<2> &);
+template MPO<Quantum> one_body(const DArray<2> &,bool);
 template MPO<Quantum> qcham(const DArray<2> &,const DArray<4> &);
 template MPO<Quantum> crea_up(int L,int i);
 template MPO<Quantum> crea_down(int L,int i);

@@ -69,10 +69,7 @@ template<class Q>
 MPO<Q> qcham_test(const DArray<2> &,const DArray<4> &);
 
 template<class Q>
-MPO<Q> one_body(const DArray<2> &);
-
-template<class Q>
-MPO<Q> one_body_new(const DArray<2> &);
+MPO<Q> one_body(const DArray<2> &,bool);
 
 template<class Q>
 MPO<Q> qcham(const DArray<2> &,const DArray<4> &);
