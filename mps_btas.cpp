@@ -77,20 +77,25 @@ int main(void){
    compress(T,mpsxx::Left,0);
    */
 
-   DArray<2> t(L,L);
+   DArray<4> t(no,no,nv,nv);
 
    t = 0.0;
 
-   for(int i = 0;i < L;++i){
+   for(int i = 0;i < no;++i)
+      for(int j = 0;j < no;++j)
+         for(int a = 0;a < nv;++a)
+            for(int b = 0;b < nv;++b){
 
-      t(i,i) = rgen();
+               double value = rgen();
 
-      for(int j = i + 1;j < L;++j)
-         t(i,j) = t(j,i) = rgen();
+               t(i,j,a,b) = value;
+               t(j,i,b,a) = value;
 
-   }
+            }
 
-   MPO<Quantum> T = one_body<Quantum>(t,false);
+
+   MPO<Quantum> T = T2<Quantum>(t);
+   MPO<Quantum> T_new = T2_new<Quantum>(t,true);
 
    MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,20,rgen);
    compress(A,mpsxx::Left,100);
@@ -98,6 +103,7 @@ int main(void){
    compress(B,mpsxx::Left,100);
 
    cout << inprod(mpsxx::Left,A,T,B) << endl;
+   cout << inprod(mpsxx::Left,A,T_new,B) << endl;
 
 /*
    MPS<Quantum> rol = ro::construct(mpsxx::Left,A,T,B);

@@ -66,6 +66,9 @@ template<class Q>
 MPO<Q> T2(const DArray<4> &);
 
 template<class Q>
+MPO<Q> T2_new(const DArray<4> &,bool);
+
+template<class Q>
 MPO<Q> qcham_test(const DArray<2> &,const DArray<4> &);
 
 template<class Q>
@@ -74,7 +77,7 @@ MPO<Q> one_body(const DArray<2> &,bool);
 template<class Q>
 MPO<Q> qcham(const DArray<2> &,const DArray<4> &);
 
-void insert_id(QSDArray<4> &,int row,int column);
+void insert_id(QSDArray<4> &,int row,int column,double value = 1.0);
 void insert_zero(QSDArray<4> &,int row,int column);
 void insert_sign(QSDArray<4> &,int row,int column,double value = 1.0);
 void insert_crea_up(QSDArray<4> &,int row,int column,double);

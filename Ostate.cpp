@@ -1262,3 +1262,203 @@ int Ostate::get_single_complement_T2(int site,const Ostate &in,const Ostate &out
    }
 
 }
+
+/**
+ * get the complementary operator between in and out, when a single is coming in and a pair is going out and give the correct sign and operator to rearrange to normal order: for the T2 operator
+ */
+int Ostate::get_single_complement_T2_bis(int j,const Ostate &in,const Ostate &out,const DArray<4> &t,double &teff){
+
+   int no = t.shape(0);
+
+   //lets call in i,j and out l
+   int i = oplist[in[0]][0];
+   int si = oplist[in[0]][1];
+
+   int k = oplist[out[0]][0];
+   int sk = oplist[out[0]][1];
+
+   int l = oplist[out[1]][0];
+   int sl = oplist[out[1]][1];
+
+   //in virtual notation that is:
+   int a = k - no;
+   int b = l - no;
+
+   int comp;
+
+   if(si == 0){//first site anni up spin
+
+      if(sk == 0){//third site crea up spin
+
+         if(sl == 0){//fourth crea up spin
+
+            comp = 0;//anni up
+            teff = t(i,j,a,b) - t(i,j,b,a);
+
+            return comp;
+
+         }
+         else{//fourth crea down
+
+            comp = 1;//anni down
+            teff = t(i,j,a,b);
+
+            return comp;
+
+         }
+
+      }
+      else{//a crea down
+
+         if(sl == 0){//only one possible
+
+            comp = 1;//j is anni down
+            teff = -t(i,j,b,a);
+
+            return comp;
+
+         }
+         else
+            return -1;
+
+      }
+
+   }
+   else{//first site anni down
+
+      if(sk == 0){//third site crea up
+
+         if(sl == 1){//fourth site crea down
+
+            comp = 0;//anni up
+            teff = -t(i,j,b,a);
+
+            return comp;
+
+         }
+         else
+            return -1;
+
+      }
+      else{//third site crea down
+
+         if(sl == 1){//fourth site crea down
+
+            comp = 1;//anni down
+            teff = t(i,j,a,b) - t(i,j,b,a);
+
+            return comp;
+
+         }
+         else{//fourth site crea up
+
+            comp = 0;//anni down
+            teff = t(i,j,a,b);
+
+            return comp;
+
+         }
+
+      }
+
+   }
+
+}
+
+/**
+ * get the value to attach to the operator between in and out
+ * @return 0 if no connection, 1 if insert id and put value in teff
+ */
+int Ostate::get_double_complement_T2(const Ostate &in,const Ostate &out,const DArray<4> &t,double &teff){
+
+   int no = t.shape(0);
+
+   //lets call in i,j and out l
+   int i = oplist[in[1]][0];
+   int j = oplist[in[0]][0];
+
+   int si = oplist[in[1]][1];
+   int sj = oplist[in[0]][1];
+
+   int k = oplist[out[0]][0];
+   int sk = oplist[out[0]][1];
+
+   int l = oplist[out[1]][0];
+   int sl = oplist[out[1]][1];
+
+   //in virtual notation that is:
+   int a = k - no;
+   int b = l - no;
+
+   if(si == 0 && sj == 0){//anni up anni up coming in
+
+      //only coupling with crea up crea up
+      if(sk == 0 && sl == 0){
+
+         teff = t(i,j,a,b) - t(i,j,b,a);
+
+         return 1;
+
+      }
+      else
+         return 0;
+
+   }
+   else if(si == 0 && sj == 1){//anni up anni down coming in
+
+      //coupling with up down and down up
+      if(sk == 0 && sl == 1){
+
+         teff = t(i,j,a,b);
+
+         return 1;
+
+      }
+      else if(sk == 1 && sl == 0){
+
+         teff = -t(i,j,b,a);
+
+         return 1;
+
+      }
+      else
+         return 0;
+
+   }
+   else if(si == 1 && sj == 0){
+
+      //coupling with up down and down up
+      if(sk == 1 && sl == 0){
+
+         teff = t(i,j,a,b);
+
+         return 1;
+
+      }
+      else if(sk == 0 && sl == 1){
+
+         teff = -t(i,j,b,a);
+
+         return 1;
+
+      }
+      else
+         return 0;
+
+   }
+   else{//down down
+
+      //only coupling with crea down crea down
+      if(sk == 1 && sl == 1){
+
+         teff = t(i,j,a,b) - t(i,j,b,a);
+
+         return 1;
+
+      }
+      else
+         return 0;
+
+   }
+
+}
