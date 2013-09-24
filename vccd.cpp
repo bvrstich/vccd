@@ -132,7 +132,7 @@ namespace vccd {
          DArray<4> newt(t);
          Daxpy(-a,dir,newt);
 
-         MPO<Q> T2op = T2<Quantum>(newt);
+         MPO<Q> T2op = T2<Quantum>(newt,true);
          compress(T2op,mpsxx::Right,cutoff[0]);
          compress(T2op,mpsxx::Left,cutoff[0]);
 
@@ -149,7 +149,7 @@ namespace vccd {
          int no = t.shape(0);
          int nv = t.shape(2);
 
-         MPO<Quantum> T2op = T2<Quantum>(t);
+         MPO<Quantum> T2op = T2<Quantum>(t,true);
          compress(T2op,mpsxx::Right,0);
          compress(T2op,mpsxx::Left,0);
 
@@ -167,7 +167,7 @@ namespace vccd {
 
             Daxpy(-step,grad,t);
 
-            T2op = T2<Quantum>(t);
+            T2op = T2<Quantum>(t,true);
             compress(T2op,mpsxx::Right,0);
             compress(T2op,mpsxx::Left,0);
 
