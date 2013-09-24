@@ -28,11 +28,11 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 8;
+   int L = 10;
 
    //number of particles
-   int n_u = 4;
-   int n_d = 4;
+   int n_u = 3;
+   int n_d = 3;
 
    int no = n_u;
    int nv = L - no;
@@ -92,7 +92,6 @@ int main(void){
                t(j,i,b,a) = value;
 
             }
-
 
    MPO<Quantum> T = T2<Quantum>(t);
    MPO<Quantum> T_new = T2_new<Quantum>(t,true);
