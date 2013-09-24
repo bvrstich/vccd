@@ -28,11 +28,11 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 14;
+   int L = 8;
 
    //number of particles
-   int n_u = 2;
-   int n_d = 2;
+   int n_u = 4;
+   int n_d = 4;
 
    int no = n_u;
    int nv = L - no;
@@ -41,7 +41,7 @@ int main(void){
 
    Qshapes<Quantum> qp;
    physical(qp);
-
+/*
    //make the HF state
    std::vector<int> occ(L);
 
@@ -71,6 +71,15 @@ int main(void){
    std::ifstream fin("input/Be/cc-pVDZ/mp2.in");
    boost::archive::binary_iarchive iar(fin);
    iar >> t;
+*/
+   DArray<4> t(no,no,nv,nv);
+
+   for(int i = 0;i < no;++i)
+      for(int j = 0;j < no;++j)
+         for(int a = 0;a < nv;++a)
+            for(int b = 0;b < nv;++b){
+
+            }
 
    MPO<Quantum> T = T2<Quantum>(t,true);
    compress(T,mpsxx::Left,0);
@@ -87,9 +96,9 @@ int main(void){
    MPS<Quantum> ror = ro::construct(mpsxx::Right,A,T,B);
 
    MPO<Quantum> grad = grad::construct(rol,ror,A,B);
-/*
-   T1_2_mpo list(no,nv);
 
+   T2_2_mpo list(no,nv);
+/*
    int i = 2;
    int a = 1;
 

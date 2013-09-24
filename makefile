@@ -15,7 +15,8 @@ CPPSRC	= mps_btas.cpp\
            input.cpp\
            ro.cpp\
            grad.cpp\
-           T1_2_mpo.cpp
+           T1_2_mpo.cpp\
+           T2_2_mpo.cpp
 
 
 OBJ	= $(CPPSRC:.cpp=.o)
