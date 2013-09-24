@@ -3487,8 +3487,8 @@ MPO<Q> T2_new(const DArray<4> &t,bool merge){
          istates = ostates;
          qi = qo;
 
-         //next all but the last virtuals:
-         for(int i = no + 1;i < L - 1;++i){
+         //next everything until nv
+         for(int i = no + 1;i < nv;++i){
 
             //current virtual index
             int vind = i - no;
@@ -3506,6 +3506,7 @@ MPO<Q> T2_new(const DArray<4> &t,bool merge){
                ++row;
 
             }
+
             //the remaining virtuals: they have the signature of the operator they are going to: but opposite q-number
             for(int j = i + 1;j < L;++j){
 
@@ -3609,43 +3610,368 @@ MPO<Q> T2_new(const DArray<4> &t,bool merge){
 
          }
 
-         //last virtual L - 1, closing everything down
          ostates.clear();
          qo.clear();
 
-         qo.push_back(Q::zero());//first column completely closed 
-
+         //first col closed
          state.push_id();
          ostates.push_back(state);
+         state.clear();
 
-         mpo[L - 1].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+         qo.push_back(Q::zero());
 
-         row = 0;
+         //singles
+         for(int i = nv + 1;i < L;++i){
+
+            state.push_crea_up(i);
+            ostates.push_back(state);
+            state.clear();
+
+            qo.push_back(Q(1,0));
+
+            state.push_crea_down(i);
+            ostates.push_back(state);
+            state.clear();
+
+            qo.push_back(Q(0,1));
+
+         }
+
+         //pairs
+         Ostate istate;
+
+         for(int i = nv + 1;i < L;++i){
+
+            //first up
+            istate.push_crea_up(i);
+
+            state = istate;
+            state.push_crea_down(i);
+            ostates.push_back(state);
+            state.clear();
+
+            qo.push_back(Q(1,1));
+
+            for(int j = i + 1;j < L;++j){
+
+               //up up
+               state = istate;
+               state.push_crea_up(j);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Q(2,0));
+
+               //up down
+               state = istate;
+               state.push_crea_down(j);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Q(1,1));
+
+            }
+
+            istate.clear();
+
+            //first down
+            istate.push_crea_down(i);
+
+            for(int j = i + 1;j < L;++j){
+
+               //down up
+               state = istate;
+               state.push_crea_up(j);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Q(1,1));
+
+               //down down
+               state = istate;
+               state.push_crea_down(j);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Q(0,2));
+
+            }
+
+            istate.clear();
+
+         }
+
+         mpo[nv].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+         //incoming pairs
+         int row = 0;
 
          while(istates[row].size() == 2){
 
             //lets call in i,j
-            int ii = istates[row].gsite(1);
-            int ij = istates[row].gsite(0);
+            int i = istates[row].gsite(1);
+            int j = istates[row].gsite(0);
 
             int si = istates[row].gspin(1);
             int sj = istates[row].gspin(0);
 
             if(si == 0 && sj == 1)
-               insert_crea_up_crea_down(mpo[L - 1],row,0,t(ii,ij,nv-1,nv-1));
+               insert_crea_up_crea_down(mpo[nv],row,0,t(i,j,nv-no,nv-no));
             else if(si == 1 && sj == 0)
-               insert_crea_up_crea_down(mpo[L - 1],row,0,-t(ii,ij,nv-1,nv-1));
+               insert_crea_up_crea_down(mpo[nv],row,0,-t(i,j,nv-no,nv-no));
 
             ++row;
 
          }
 
-         //close down the complementaries:
-         insert_crea_up(mpo[L - 1],row,0,1.0);++row;
-         insert_crea_down_s(mpo[L - 1],row,0,1.0);
+         //incoming singles
+         while(row < istates.size() - 1){
 
-         //unit for the already closed parts
-         insert_id(mpo[L - 1],istates.size() - 1,0);
+            if(istates[row].gsite(0) == nv){
+
+               if(istates[row].gspin(0) == 0)
+                  insert_crea_up(mpo[nv],row,0,1.0);
+               else
+                  insert_crea_down_s(mpo[nv],row,0,1.0);
+
+            }
+
+            ++row;
+
+         }
+
+         //for closed terms coming in
+         insert_id(mpo[nv],row,0);
+
+         //next the single columns
+         int col = 1;
+
+         while(ostates[col].size() == 1){
+
+            row = 0;
+
+            //doubles coming in
+            while(istates[row].size() == 2){
+
+               double val;
+
+               int op = Ostate::get_single_complement_T2(nv,istates[row],ostates[col],t,val);
+
+               if(op == 0)
+                  insert_crea_up_s(mpo[nv],row,col,val);
+               else if(op == 1)
+                  insert_crea_down(mpo[nv],row,col,val);
+
+               ++row;
+
+            }
+
+            //sign for incoming to outgoing singles
+            while(row < istates.size() - 1){
+
+               if(istates[row].gsite(0) == ostates[col].gsite(0) && istates[row].gspin(0) == ostates[col].gspin(0))
+                  insert_sign(mpo[nv],row,col);
+
+               ++row;
+
+            }
+
+            ++col;
+
+         }
+
+         while(col < ostates.size()){
+
+            //transform from incoming to outgoing pairs
+            row = 0;
+
+            while(istates[row].size() == 2){
+
+               double val;
+
+               int op = Ostate::get_double_complement_T2(istates[row],ostates[col],t,val);
+
+               if(op == 1)
+                  insert_id(mpo[nv],row,col,val);
+
+               ++row;
+
+            }
+
+            ++col;
+
+         }
+
+         istates = ostates;
+         qi = qo;
+
+         //rest of the virtuals
+         for(int i = nv + 1;i < L - 1;++i){
+
+            qo.clear();
+            ostates.clear();
+
+            //start with id for closed states
+            state.push_id();
+            ostates.push_back(state);
+            state.clear();
+
+            qo.push_back(Q::zero());
+
+            //going to single operators: copy from incoming
+            int row = 1;
+
+            while(istates[row].size() == 1){
+
+               if(istates[row].gsite(0) != i){
+
+                  ostates.push_back(istates[row]);
+                  qo.push_back(qi[row]);
+
+               }
+
+               ++row;
+
+            }
+
+            //going to double operators: copy from incoming
+            while(row < istates.size()){
+
+               if(istates[row].gsite(0) != i){
+
+                  ostates.push_back(istates[row]);
+                  qo.push_back(qi[row]);
+
+               }
+
+               ++row;
+
+            }
+
+            mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+            //first column closed
+            insert_id(mpo[i],0,0);
+
+            //close the singles
+            row = 1;
+
+            while(istates[row].size() == 1){
+
+               if(istates[row].gsite(0) == i){
+
+                  if(istates[row].gspin(0) == 0)
+                     insert_crea_up(mpo[i],row,0,1.0);
+                  else
+                     insert_crea_down_s(mpo[i],row,0,1.0);
+
+               }
+
+               ++row;
+
+            }
+
+            //close the doubles
+            while(row < istates.size()){
+
+               if(istates[row].gsite(0) == i && istates[row].gsite(1) == i)
+                  insert_crea_up_crea_down(mpo[i],row,0,1.0);
+
+               ++row;
+
+            }
+
+            //next the single outgoing columns
+            int col = 1;
+
+            while(ostates[col].size() == 1){
+
+               int ci = ostates[col].gsite(0);
+               int cs = ostates[col].gspin(0);
+
+               //insert sign for incoming singles
+               row = 1;
+
+               while(istates[row].size() == 1){
+
+                  int ri = istates[row].gsite(0);
+                  int rs = istates[row].gspin(0);
+
+                  if(ri == ci && rs == cs)
+                     insert_sign(mpo[i],row,col);
+
+                  ++row;
+
+               }
+
+               //insert operator for incoming doubles
+               while(row < istates.size()){
+
+                  if(ci == istates[row].gsite(1) && cs == istates[row].gspin(1)){//same outgoing state
+
+                     if(istates[row].gsite(0) == i){//first incoming state is site
+
+                        if(istates[row].gspin(0) == 0)
+                           insert_crea_up_s(mpo[i],row,col,1.0);
+                        else
+                           insert_crea_down(mpo[i],row,col,1.0);
+
+                     }
+
+                  }
+
+                  ++row;
+
+               }
+
+               ++col;
+
+            }
+
+            //find row where incoming doubles begin
+            int rd = 1;
+
+            while(istates[rd].size() == 1)
+               ++rd;
+
+            //insert id for doubles coming in and going out
+            while(col < ostates.size()){
+
+               int cai = ostates[col].gsite(0);
+               int cas = ostates[col].gspin(0);
+
+               int cbi = ostates[col].gsite(1);
+               int cbs = ostates[col].gspin(1);
+
+               for(int row = rd;row < istates.size();++row){
+
+                  int rai = istates[row].gsite(0);
+                  int ras = istates[row].gspin(0);
+
+                  int rbi = istates[row].gsite(1);
+                  int rbs = istates[row].gspin(1);
+
+                  if(cai == rai && cas == ras && cbi == rbi && cbs == rbs)
+                     insert_id(mpo[i],row,col);
+
+               }
+
+               ++col;
+
+            }
+
+            istates = ostates;
+            qi = qo;
+
+         }
+
+         //last site: only 4 coming in
+         mpo[L - 1].resize(Q::zero(),make_array(-qi,qp,-qp,qz));
+
+         insert_id(mpo[L - 1],0,0);
+         insert_crea_up(mpo[L - 1],1,0,1.0);
+         insert_crea_down_s(mpo[L - 1],2,0,1.0);
+         insert_crea_up_crea_down(mpo[L - 1],3,0,1.0);
 
       }
 
