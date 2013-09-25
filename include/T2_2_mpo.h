@@ -30,13 +30,21 @@ class T2_2_mpo {
 
       void push_anni_down_anni_up(int,int,int,int,int);
 
+      void push_crea_up_crea_down(int,int,int,int,int);
+
       void push_anni_up(int,int,int,int,int);
 
       void push_anni_down_s(int,int,int,int,int);
 
+      void push_crea_up_s(int,int,int,int,int);
+
+      void push_crea_down(int,int,int,int,int);
+
       void push_id(int,int,int,int,int);
 
-      void push_single_complement(int,const Ostate &,int,const Ostate &,int);
+      void push_single_in_complement(int,const Ostate &,int,const Ostate &,int);
+
+      void push_single_out_complement(int,const Ostate &,int,const Ostate &,int);
 
       void push_double_complement(int,const Ostate &,int,const Ostate &,int);
 

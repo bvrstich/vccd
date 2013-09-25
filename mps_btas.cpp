@@ -28,7 +28,7 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 8;
+   int L = 9;
 
    //number of particles
    int n_u = 4;
@@ -105,6 +105,10 @@ int main(void){
       for(int a = 0;a < nv;++a)
          for(int b = 0;b < nv;++b){
 
+            cout << endl;
+            cout << i << "\t" << i << "\t" << a << "\t" << b << endl;
+            cout << endl;
+
             cout << list.get(grad,i,i,b,a) + list.get(grad,i,i,a,b) << endl;
 
             //E^a_i E^b_j
@@ -116,6 +120,11 @@ int main(void){
       for(int j = i + 1;j < no;++j)
          for(int a = 0;a < nv;++a)
             for(int b = 0;b < nv;++b){
+
+               cout << endl;
+               cout << i << "\t" << j << "\t" << a << "\t" << b << endl;
+               cout << endl;
+
 
                cout << list.get(grad,i,j,a,b) << endl;
 

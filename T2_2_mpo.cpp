@@ -264,7 +264,7 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
       while(istates[row].size() == 1){
 
          for(int col = 0;col < ostates.size();++col)
-            push_single_complement(no-1,istates[row],row,ostates[col],col);
+            push_single_in_complement(no-1,istates[row],row,ostates[col],col);
 
          ++row;
 
@@ -281,6 +281,177 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
       }
 
       istates = ostates;
+
+   }
+   else{//no < nv
+
+      //last occupied: i = no - 1
+      ostates.clear();
+
+      state.push_anni_up(no-1);
+      state.push_anni_down(no-1);
+      ostates.push_back(state);
+      state.clear();
+
+      //add a down
+      int row = 1;
+
+      while(istates[row].size() == 1){
+
+         state.push_anni_down(no-1);
+         state.insert(state.end(),istates[row].begin(),istates[row].end());
+         ostates.push_back(state);
+         state.clear();
+
+         ++row;
+
+      }
+
+      //add an up
+      row = 1;
+
+      while(istates[row].size() == 1){
+
+         state.push_anni_up(no-1);
+         state.insert(state.end(),istates[row].begin(),istates[row].end());
+         ostates.push_back(state);
+         state.clear();
+
+         ++row;
+
+      }
+
+      //id for the pairs coming in
+      while(row < istates.size()){
+
+         ostates.push_back(istates[row]);
+         ++row;
+
+      }
+
+      istates = ostates;
+
+      if(no + 1 == nv){
+
+         ostates.clear();
+
+         //first col closed
+         state.push_id();
+         ostates.push_back(state);
+         state.clear();
+
+         //singles
+         for(int i = no + 1;i < L;++i){
+
+            state.push_crea_up(i);
+            ostates.push_back(state);
+            state.clear();
+
+            state.push_crea_down(i);
+            ostates.push_back(state);
+            state.clear();
+
+         }
+
+         //pairs
+         Ostate istate;
+
+         for(int i = no + 1;i < L;++i){
+
+            //first up
+            istate.push_crea_up(i);
+
+            state = istate;
+            state.push_crea_down(i);
+            ostates.push_back(state);
+            state.clear();
+
+            for(int j = i + 1;j < L;++j){
+
+               //up up
+               state = istate;
+               state.push_crea_up(j);
+               ostates.push_back(state);
+               state.clear();
+
+               //up down
+               state = istate;
+               state.push_crea_down(j);
+               ostates.push_back(state);
+               state.clear();
+
+            }
+
+            istate.clear();
+
+            //first down
+            istate.push_crea_down(i);
+
+            for(int j = i + 1;j < L;++j){
+
+               //down up
+               state = istate;
+               state.push_crea_up(j);
+               ostates.push_back(state);
+               state.clear();
+
+               //down down
+               state = istate;
+               state.push_crea_down(j);
+               ostates.push_back(state);
+               state.clear();
+
+            }
+
+            istate.clear();
+
+         }
+
+         //first column closed: insert pairs
+         for(int row = 0;row < istates.size();++row){
+
+            //lets call in i,j
+            int i = istates[row].gsite(1);
+            int j = istates[row].gsite(0);
+
+            int si = istates[row].gspin(1);
+            int sj = istates[row].gspin(0);
+
+            int o = ij2o[i][j];
+            int v = ab2v[0][0];
+
+            int s = ov2s[o][v];
+
+            if(si == 0 && sj == 1)
+               push_crea_up_crea_down(s,no,row,0,1);
+            else if(si == 1 && sj == 0)
+               push_crea_up_crea_down(s,no,row,0,-1);
+
+         }
+
+         //singles going out:
+         int col = 1;
+
+         while(ostates[col].size() == 1){
+
+            for(int row = 0;row < istates.size();++row)
+               push_single_out_complement(no,istates[row],row,ostates[col],col);
+
+            ++col;
+
+         }
+
+         //switch to outgoing pairs
+         while(col < ostates.size()){
+
+            for(int row = 0;row < istates.size();++row)
+               push_double_complement(no,istates[row],row,ostates[col],col);
+
+            ++col;
+
+         }
+
+      }
 
    }
 
@@ -334,9 +505,27 @@ void T2_2_mpo::push_anni_down_anni_up(int s,int site,int row,int col,int sign){
 }
 
 /**
+ * add an anni down anni up to the list: on site with row and column and 
+ */
+void T2_2_mpo::push_crea_up_crea_down(int s,int site,int row,int col,int sign){
+
+   std::vector<int> mpoind(6);
+
+   mpoind[0] = site;
+   mpoind[1] = row;//incoming virtual
+   mpoind[2] = 3;//physical incoming
+   mpoind[3] = 0;//physical outgoing
+   mpoind[4] = col;//outgoing virtual
+   mpoind[5] = sign;//sign
+
+   list[s].push_back(mpoind);
+
+}
+
+/**
  * get the complementary operator between in and out, when a single is coming in and a pair is going out and give the correct sign and operator to rearrange to normal order: for the T2 operator
  */
-void T2_2_mpo::push_single_complement(int j,const Ostate &in,int row,const Ostate &out,int col){
+void T2_2_mpo::push_single_in_complement(int j,const Ostate &in,int row,const Ostate &out,int col){
 
    //lets call in i,j and out k,l
    int i = in.gsite(0);
@@ -481,6 +670,33 @@ void T2_2_mpo::push_anni_up(int s,int site,int row,int col,int sign){
 /**
  * add a crea up to the list: on site with row and column and 
  */
+void T2_2_mpo::push_crea_up_s(int s,int site,int row,int col,int sign){
+
+   std::vector<int> mpoind(6);
+
+   mpoind[0] = site;
+   mpoind[1] = row;//incoming virtual
+   mpoind[4] = col;//outgoing virtual
+
+   //0-> up
+   mpoind[2] = 1;//physical incoming
+   mpoind[3] = 0;//physical outgoing
+   mpoind[5] = sign;//sign
+
+   list[s].push_back(mpoind);
+
+   //down-> up down
+   mpoind[2] = 3;//physical incoming
+   mpoind[3] = 2;//physical outgoing
+   mpoind[5] = -sign;//sign
+
+   list[s].push_back(mpoind);
+
+}
+
+/**
+ * add a crea up to the list: on site with row and column and 
+ */
 void T2_2_mpo::push_anni_down_s(int s,int site,int row,int col,int sign){
 
    std::vector<int> mpoind(6);
@@ -500,6 +716,33 @@ void T2_2_mpo::push_anni_down_s(int s,int site,int row,int col,int sign){
    mpoind[2] = 1;//physical incoming
    mpoind[3] = 3;//physical outgoing
    mpoind[5] = -sign;//sign
+
+   list[s].push_back(mpoind);
+
+}
+
+/**
+ * add a crea up to the list: on site with row and column and 
+ */
+void T2_2_mpo::push_crea_down(int s,int site,int row,int col,int sign){
+
+   std::vector<int> mpoind(6);
+
+   mpoind[0] = site;
+   mpoind[1] = row;//incoming virtual
+   mpoind[4] = col;//outgoing virtual
+
+   //0-> down 
+   mpoind[2] = 2;//physical incoming
+   mpoind[3] = 0;//physical outgoing
+   mpoind[5] = sign;//sign
+
+   list[s].push_back(mpoind);
+
+   //up-> up down
+   mpoind[2] = 3;//physical incoming
+   mpoind[3] = 1;//physical outgoing
+   mpoind[5] = sign;//sign
 
    list[s].push_back(mpoind);
 
@@ -678,7 +921,7 @@ ostream &operator<<(ostream &output,const T2_2_mpo &list_p){
 
       int a = list_p.v2ab[v][0];
       int b = list_p.v2ab[v][1];
-      
+
       output << std::endl;
       output << "element t(" << i << "," << j << ";" << a << "," << b << ")" << std::endl;
       output << std::endl;
@@ -686,7 +929,7 @@ ostream &operator<<(ostream &output,const T2_2_mpo &list_p){
       for(int ind = 0;ind < list_p.list[s].size();++ind){
 
          output << list_p.list[s][ind][0] << "\t(" << list_p.list[s][ind][1] << "," << list_p.list[s][ind][2] << "," << list_p.list[s][ind][3] << 
-         
+
             "," << list_p.list[s][ind][4] << ")\tsign = " << list_p.list[s][ind][5] << std::endl;
 
       }
@@ -730,6 +973,126 @@ double T2_2_mpo::get(const MPO<Q> &grad,int i,int j,int a,int b){
    }
 
    return sum;
+
+}
+
+/**
+ * get the complementary operator between in and out, when a pair is coming and one is going out and give the correct sign to rearrange to normal order: for the T2 operator
+ */
+void T2_2_mpo::push_single_out_complement(int site,const Ostate &in,int row,const Ostate &out,int col){
+
+   //lets call in i,j and out l
+   int i = in.gsite(1);
+   int j = in.gsite(0);
+
+   int si = in.gspin(1);
+   int sj = in.gspin(0);
+
+   int l = out.gsite(0);
+   int sl = out.gspin(0);
+
+   //in virtual notation that is:
+   int a = site - no;
+   int b = l - no;
+
+   int o,v,s;
+
+   if(si == 0){//first site anni up spin
+
+      if(sj == 0){//second site anni up spin
+
+         if(sl == 0){//only coupling with crea up spin
+
+            //+ij;ab
+            o = ij2o[i][j];
+            v = ab2v[a][b];
+            s = ov2s[o][v];
+
+            push_crea_up_s(s,site,row,col,1);
+
+            //-ij;ba
+            v = ab2v[b][a];
+            s = ov2s[o][v];
+
+            push_crea_up_s(s,site,row,col,-1);
+
+         }
+
+      }
+      else{//second site anni down spin
+
+         if(sl == 0){//out crea up
+
+            //-ij;ba
+            o = ij2o[i][j];
+            v = ab2v[b][a];
+            s = ov2s[o][v];
+
+            push_crea_down(s,site,row,col,-1);
+
+         }
+         else{//out crea down
+
+            //ij;ab
+            o = ij2o[i][j];
+            v = ab2v[a][b];
+            s = ov2s[o][v];
+
+            push_crea_up_s(s,site,row,col,1);
+
+         }
+
+      }
+
+   }
+   else{//first site anni down
+
+      if(sj == 0){//second site anni up
+
+         if(sl == 0){//out crea up
+
+            //ij;ab
+            o = ij2o[i][j];
+            v = ab2v[a][b];
+            s = ov2s[o][v];
+
+            push_crea_down(s,site,row,col,1);
+
+         }
+         else{//out crea down
+
+            o = ij2o[i][j];
+            v = ab2v[b][a];
+            s = ov2s[o][v];
+
+            push_crea_up_s(s,site,row,col,-1);
+
+         }
+
+      }
+      else{//second site anni down
+
+         //only coupling with crea down
+         if(sl == 1){
+
+            //+ij;ab
+            o = ij2o[i][j];
+            v = ab2v[a][b];
+            s = ov2s[o][v];
+
+            push_crea_down(s,site,row,col,1);
+
+            //-ij;ba
+            v = ab2v[b][a];
+            s = ov2s[o][v];
+
+            push_crea_down(s,site,row,col,-1);
+
+         }
+
+      }
+
+   }
 
 }
 
