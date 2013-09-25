@@ -79,6 +79,11 @@ int main(void){
          for(int a = 0;a < nv;++a)
             for(int b = 0;b < nv;++b){
 
+               double value = rgen();
+
+               t(i,j,a,b) = value;
+               t(j,i,b,a) = value;
+
             }
 
    MPO<Quantum> T = T2<Quantum>(t,true);
@@ -98,6 +103,8 @@ int main(void){
    MPO<Quantum> grad = grad::construct(rol,ror,A,B);
 
    T2_2_mpo list(no,nv);
+
+   cout << list << endl;
 /*
    int i = 2;
    int a = 1;

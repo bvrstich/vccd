@@ -11,7 +11,7 @@ using std::ostream;
  * @date 24-08-2013
  * This class just collects the information needed for incoming and outgoing states of a MPO.
  */
-class T1_2_mpo : public std::vector<int> {
+class T1_2_mpo {
 
    friend ostream &operator<<(ostream &output,const T1_2_mpo &list_p);
 
@@ -37,7 +37,7 @@ class T1_2_mpo : public std::vector<int> {
 
    private:
 
-      std::vector< vector<int> > *list;
+      std::vector< std::vector<int> > *list;
 
       int **ia2s;
 

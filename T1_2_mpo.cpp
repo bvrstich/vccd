@@ -43,7 +43,7 @@ T1_2_mpo::T1_2_mpo(int no,int nv){
 
       }
 
-   list = new std::vector< vector<int> > [no*nv];
+   list = new std::vector< std::vector<int> > [no*nv];
 
    std::vector< Ostate > ostates;
    Ostate state;
@@ -432,7 +432,7 @@ double T1_2_mpo::get(const MPO<Q> &grad,int i,int a){
 
    int s = ia2s[i][a];
 
-   vector<int> v;
+   std::vector<int> v;
    IVector<4> ind;
    QSDArray<4>::const_iterator it;
 
