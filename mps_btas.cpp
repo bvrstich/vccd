@@ -28,11 +28,11 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 9;
+   int L = 14;
 
    //number of particles
-   int n_u = 4;
-   int n_d = 4;
+   int n_u = 2;
+   int n_d = 2;
 
    int no = n_u;
    int nv = L - no;
@@ -105,15 +105,20 @@ int main(void){
       for(int a = 0;a < nv;++a)
          for(int b = 0;b < nv;++b){
 
-            cout << endl;
-            cout << i << "\t" << i << "\t" << a << "\t" << b << endl;
-            cout << endl;
-
-            cout << list.get(grad,i,i,b,a) + list.get(grad,i,i,a,b) << endl;
+            double tmp1 = list.get(grad,i,i,b,a) + list.get(grad,i,i,a,b);
 
             //E^a_i E^b_j
             MPO<Quantum> E_op = E<Quantum>(L,a+no,b+no,i,i,1.0);
-            cout << inprod(mpsxx::Left,A,E_op,B) << endl;
+            double tmp2 = inprod(mpsxx::Left,A,E_op,B);
+
+            if(fabs(tmp1 - tmp2) > 1.0e-10){
+
+               cout << endl;
+               cout << i << "\t" << i << "\t" << a << "\t" << b << endl;
+               cout << endl;
+               cout << tmp1 << "\t" << tmp2 << endl;
+
+            }
 
          }
 
@@ -121,16 +126,20 @@ int main(void){
          for(int a = 0;a < nv;++a)
             for(int b = 0;b < nv;++b){
 
-               cout << endl;
-               cout << i << "\t" << j << "\t" << a << "\t" << b << endl;
-               cout << endl;
-
-
-               cout << list.get(grad,i,j,a,b) << endl;
+               double tmp1 = list.get(grad,i,j,a,b);
 
                //E^a_i E^b_j
                MPO<Quantum> E_op = E<Quantum>(L,a+no,b+no,i,j,1.0);
-               cout << inprod(mpsxx::Left,A,E_op,B) << endl;
+               double tmp2 = inprod(mpsxx::Left,A,E_op,B);
+
+               if(fabs(tmp1 - tmp2) > 1.0e-10){
+
+                  cout << endl;
+                  cout << i << "\t" << i << "\t" << a << "\t" << b << endl;
+                  cout << endl;
+                  cout << tmp1 << "\t" << tmp2 << endl;
+
+               }
 
             }
 

@@ -452,6 +452,283 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
          }
 
       }
+      else{//nv > no + 1
+
+         //for once the ostates and qo from previous site are correct for start of next site
+
+         //all the virtuals: the have the signature of the operator they are going to: but opposite q-number
+         for(int j = no + 1;j < L;++j){
+
+            state.push_crea_up(j);
+            ostates.push_back(state);
+            state.clear();
+
+            state.push_crea_down(j);
+            ostates.push_back(state);
+            state.clear();
+
+         }
+
+         //last column complete closed:
+         state.push_id();
+         ostates.push_back(state);
+         state.clear();
+
+         for(int col = istates.size();col < ostates.size() - 1;++col)
+            for(int row = 0;row < istates.size();++row)
+               push_single_out_complement(no,istates[row],row,ostates[col],col);
+
+         //last column: insert pairs
+         for(int row = 0;row < istates.size();++row){
+
+            //lets call in i,j
+            int i = istates[row].gsite(1);
+            int j = istates[row].gsite(0);
+
+            int si = istates[row].gspin(1);
+            int sj = istates[row].gspin(0);
+
+            int o = ij2o[i][j];
+            int v = ab2v[0][0];
+
+            int s = ov2s[o][v];
+
+            if(si == 0 && sj == 1)
+               push_crea_up_crea_down(s,no,row,ostates.size() - 1,1);
+            else if(si == 1 && sj == 0)
+               push_crea_up_crea_down(s,no,row,ostates.size() - 1,-1);
+
+         }
+
+         istates = ostates;
+
+         //next everything until nv
+         for(int i = no + 1;i < nv;++i){
+
+            //current virtual index
+            int vind = i - no;
+
+            ostates.clear();
+
+            //identity for the pairs
+            int row = 0;
+
+            while(istates[row].size() == 2){
+
+               ostates.push_back(istates[row]);
+               ++row;
+
+            }
+
+            //the remaining virtuals: they have the signature of the operator they are going to: but opposite q-number
+            for(int j = i + 1;j < L;++j){
+
+               state.push_crea_up(j);
+               ostates.push_back(state);
+               state.clear();
+
+               state.push_crea_down(j);
+               ostates.push_back(state);
+               state.clear();
+
+            }
+
+            //last column closed
+            state.push_id();
+            ostates.push_back(state);
+            state.clear();
+
+            int col = 0;
+
+            //go past the pairs
+            while(ostates[col].size() == 2)
+               ++col;
+
+            //remaining virtuals
+            while(col < ostates.size() - 1){
+
+               int row = 0;
+
+               while(istates[row].size() == 2){
+
+                  push_single_out_complement(i,istates[row],row,ostates[col],col);
+
+                  ++row;
+
+               }
+
+               ++col;
+
+            }
+
+            //last column: close down
+            row = 0;
+
+            while(istates[row].size() == 2){
+
+               //lets call in i,j
+               int ii = istates[row].gsite(1);
+               int ij = istates[row].gsite(0);
+
+               int si = istates[row].gspin(1);
+               int sj = istates[row].gspin(0);
+
+               int o = ij2o[ii][ij];
+               int v = ab2v[vind][vind];
+
+               int s = ov2s[o][v];
+
+               if(si == 0 && sj == 1)
+                  push_crea_up_crea_down(s,i,row,ostates.size() - 1,1);
+               else if(si == 1 && sj == 0)
+                  push_crea_up_crea_down(s,i,row,ostates.size() - 1,-1);
+
+               ++row;
+
+            }
+
+            istates = ostates;
+
+         }
+
+         ostates.clear();
+
+         //first col closed
+         state.push_id();
+         ostates.push_back(state);
+         state.clear();
+
+         //singles
+         for(int i = nv + 1;i < L;++i){
+
+            state.push_crea_up(i);
+            ostates.push_back(state);
+            state.clear();
+
+            state.push_crea_down(i);
+            ostates.push_back(state);
+            state.clear();
+
+         }
+
+         //pairs
+         Ostate istate;
+
+         for(int i = nv + 1;i < L;++i){
+
+            //first up
+            istate.push_crea_up(i);
+
+            state = istate;
+            state.push_crea_down(i);
+            ostates.push_back(state);
+            state.clear();
+
+            for(int j = i + 1;j < L;++j){
+
+               //up up
+               state = istate;
+               state.push_crea_up(j);
+               ostates.push_back(state);
+               state.clear();
+
+               //up down
+               state = istate;
+               state.push_crea_down(j);
+               ostates.push_back(state);
+               state.clear();
+
+            }
+
+            istate.clear();
+
+            //first down
+            istate.push_crea_down(i);
+
+            for(int j = i + 1;j < L;++j){
+
+               //down up
+               state = istate;
+               state.push_crea_up(j);
+               ostates.push_back(state);
+               state.clear();
+
+               //down down
+               state = istate;
+               state.push_crea_down(j);
+               ostates.push_back(state);
+               state.clear();
+
+            }
+
+            istate.clear();
+
+         }
+
+         //incoming pairs
+         int row = 0;
+
+         while(istates[row].size() == 2){
+
+            //lets call in i,j
+            int i = istates[row].gsite(1);
+            int j = istates[row].gsite(0);
+
+            int si = istates[row].gspin(1);
+            int sj = istates[row].gspin(0);
+
+            int o = ij2o[i][j];
+            int v = ab2v[nv - no][nv - no];
+
+            int s = ov2s[o][v];
+
+            if(si == 0 && sj == 1)
+               push_crea_up_crea_down(s,nv,row,0,1);
+            else if(si == 1 && sj == 0)
+               push_crea_up_crea_down(s,nv,row,0,-1);
+
+            ++row;
+
+         }
+
+         //next the single columns
+         int col = 1;
+
+         while(ostates[col].size() == 1){
+
+            row = 0;
+
+            //doubles coming in
+            while(istates[row].size() == 2){
+
+               push_single_out_complement(nv,istates[row],row,ostates[col],col);
+
+               ++row;
+
+            }
+
+            ++col;
+
+         }
+
+         while(col < ostates.size()){
+
+            //transform from incoming to outgoing pairs
+            row = 0;
+
+            while(istates[row].size() == 2){
+
+               push_double_complement(nv,istates[row],row,ostates[col],col);
+
+               ++row;
+
+            }
+
+            ++col;
+
+         }
+
+      }
 
    }
 
