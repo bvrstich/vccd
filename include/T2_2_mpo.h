@@ -49,8 +49,7 @@ class T2_2_mpo {
       void push_double_complement(int,const Ostate &,int,const Ostate &,int);
 
       template<class Q>
-         double get(const MPO<Q> &,int,int,int,int);
-
+         double get(const MPO<Q> &,int,int,int,int) const;
 
    private:
 

@@ -41,7 +41,7 @@ int main(void){
 
    Qshapes<Quantum> qp;
    physical(qp);
-/*
+
    //make the HF state
    std::vector<int> occ(L);
 
@@ -67,36 +67,23 @@ int main(void){
       cutoff[i] = 0;
 
    //read in the mp2 guess
-   DArray<4> t;
+   DArray<4> t(no,no,nv,nv);
+
    std::ifstream fin("input/Be/cc-pVDZ/mp2.in");
    boost::archive::binary_iarchive iar(fin);
    iar >> t;
-*/
-   DArray<4> t(no,no,nv,nv);
 
-   for(int i = 0;i < no;++i)
-      for(int j = 0;j < no;++j)
-         for(int a = 0;a < nv;++a)
-            for(int b = 0;b < nv;++b){
-
-               double value = rgen();
-
-               t(i,j,a,b) = value;
-               t(j,i,b,a) = value;
-
-            }
+//   vccd::steepest_descent(t,qc,hf,cutoff);
 
    MPO<Quantum> T = T2<Quantum>(t,false);
 
-   MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,20,rgen);
-   compress(A,mpsxx::Left,100);
-   MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,20,rgen);
-   compress(B,mpsxx::Left,100);
+   MPS<Quantum> eTA = exp(T,hf,cutoff);
+   normalize(eTA);
 
-   MPS<Quantum> rol = ro::construct(mpsxx::Left,A,T,B);
-   MPS<Quantum> ror = ro::construct(mpsxx::Right,A,T,B);
+   MPS<Quantum> rol = ro::construct(mpsxx::Left,eTA,T,eTA);
+   MPS<Quantum> ror = ro::construct(mpsxx::Right,eTA,T,eTA);
 
-   MPO<Quantum> grad = grad::construct(rol,ror,A,B);
+   MPO<Quantum> grad = grad::construct(rol,ror,eTA,eTA);
 
    T2_2_mpo list(no,nv);
 
@@ -109,16 +96,12 @@ int main(void){
 
             //E^a_i E^b_j
             MPO<Quantum> E_op = E<Quantum>(L,a+no,b+no,i,i,1.0);
-            double tmp2 = inprod(mpsxx::Left,A,E_op,B);
+            double tmp2 = inprod(mpsxx::Left,eTA,E_op,eTA);
 
-            if(fabs(tmp1 - tmp2) > 1.0e-10){
-
-               cout << endl;
-               cout << i << "\t" << i << "\t" << a << "\t" << b << endl;
-               cout << endl;
-               cout << tmp1 << "\t" << tmp2 << endl;
-
-            }
+            cout << endl;
+            cout << i << "\t" << i << "\t" << a << "\t" << b << endl;
+            cout << endl;
+            cout << tmp1 << "\t" << tmp2 << endl;
 
          }
 
@@ -130,16 +113,12 @@ int main(void){
 
                //E^a_i E^b_j
                MPO<Quantum> E_op = E<Quantum>(L,a+no,b+no,i,j,1.0);
-               double tmp2 = inprod(mpsxx::Left,A,E_op,B);
+               double tmp2 = inprod(mpsxx::Left,eTA,E_op,eTA);
 
-               if(fabs(tmp1 - tmp2) > 1.0e-10){
-
-                  cout << endl;
-                  cout << i << "\t" << i << "\t" << a << "\t" << b << endl;
-                  cout << endl;
-                  cout << tmp1 << "\t" << tmp2 << endl;
-
-               }
+               cout << endl;
+               cout << i << "\t" << j << "\t" << a << "\t" << b << endl;
+               cout << endl;
+               cout << tmp1 << "\t" << tmp2 << endl;
 
             }
 

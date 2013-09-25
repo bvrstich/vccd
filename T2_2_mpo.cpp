@@ -1221,7 +1221,7 @@ ostream &operator<<(ostream &output,const T2_2_mpo &list_p){
  * get the sum of the elements from input MPO corresponding to the t2 element t(i,j,a,b).
  */
 template <class Q>
-double T2_2_mpo::get(const MPO<Q> &grad,int i,int j,int a,int b){
+double T2_2_mpo::get(const MPO<Q> &grad,int i,int j,int a,int b) const{
 
    int o = ij2o[i][j];
    int vi = ab2v[a][b];
@@ -1245,7 +1245,9 @@ double T2_2_mpo::get(const MPO<Q> &grad,int i,int j,int a,int b){
       ind[3] = v[4];
 
       it = grad[v[0]].find(ind);
-      sum += (*it->second).at(0,0,0,0) * v[5];
+
+      if(it != grad[v[0]].end())//if the block exists!
+         sum += (*it->second).at(0,0,0,0) * v[5];
 
    }
 
@@ -1373,4 +1375,4 @@ void T2_2_mpo::push_single_out_complement(int site,const Ostate &in,int row,cons
 
 }
 
-template double T2_2_mpo::get(const MPO<Quantum> &,int,int,int,int);
+template double T2_2_mpo::get(const MPO<Quantum> &,int,int,int,int) const;
