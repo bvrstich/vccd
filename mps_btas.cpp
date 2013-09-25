@@ -86,16 +86,12 @@ int main(void){
 
             }
 
-   MPO<Quantum> T = T2<Quantum>(t,true);
-   compress(T,mpsxx::Left,0);
-   compress(T,mpsxx::Right,0);
+   MPO<Quantum> T = T2<Quantum>(t,false);
 
    MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,20,rgen);
    compress(A,mpsxx::Left,100);
    MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,20,rgen);
    compress(B,mpsxx::Left,100);
-
-   cout << inprod(mpsxx::Left,A,T,B) << endl;
 
    MPS<Quantum> rol = ro::construct(mpsxx::Left,A,T,B);
    MPS<Quantum> ror = ro::construct(mpsxx::Right,A,T,B);
@@ -104,18 +100,33 @@ int main(void){
 
    T2_2_mpo list(no,nv);
 
-   cout << list << endl;
-/*
-   int i = 2;
-   int a = 1;
+   for(int i = 0;i < no;++i){
 
-   cout << list.get(grad,i,a) << endl;
+      for(int a = 0;a < nv;++a)
+         for(int b = 0;b < nv;++b){
 
-   //E^0_0
-   MPO<Quantum> E_op = E<Quantum>(L,a+no,i,1.0);
+            cout << list.get(grad,i,i,b,a) + list.get(grad,i,i,a,b) << endl;
 
-   cout << inprod(mpsxx::Left,A,E_op,B) << endl;
-*/
+            //E^a_i E^b_j
+            MPO<Quantum> E_op = E<Quantum>(L,a+no,b+no,i,i,1.0);
+            cout << inprod(mpsxx::Left,A,E_op,B) << endl;
+
+         }
+
+      for(int j = i + 1;j < no;++j)
+         for(int a = 0;a < nv;++a)
+            for(int b = 0;b < nv;++b){
+
+               cout << list.get(grad,i,j,a,b) << endl;
+
+               //E^a_i E^b_j
+               MPO<Quantum> E_op = E<Quantum>(L,a+no,b+no,i,j,1.0);
+               cout << inprod(mpsxx::Left,A,E_op,B) << endl;
+
+            }
+
+   }
+
    return 0;
 
 }

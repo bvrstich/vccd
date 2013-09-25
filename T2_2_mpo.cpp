@@ -274,7 +274,7 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
       while(row < istates.size()){
 
          for(int col = 0;col < ostates.size();++col)
-            push_double_complement(no-1,istates[row],row,ostates[col],row);
+            push_double_complement(no-1,istates[row],row,ostates[col],col);
 
          ++row;
 
