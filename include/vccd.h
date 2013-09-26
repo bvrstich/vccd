@@ -16,7 +16,7 @@ namespace vccd{
       void gradient(const MPO<Q> &qcham,const MPS<Q> &wccd,DArray<4> &grad);
 
    template<class Q>
-      void gradient_new(const DArray<4> &,const MPO<Q> &qcham,const MPS<Q> &wccd,const T2_2_mpo &list,DArray<4> &grad);
+      void gradient_new(const DArray<4> &,const MPO<Q> &qcham,double E,const MPS<Q> &wccd,const T2_2_mpo &list,DArray<4> &grad);
 
    template<class Q>
       double line_search(const MPO<Q> &qcham,const MPS<Q> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,const std::vector<int> &cutoff);

@@ -73,8 +73,8 @@ int main(void){
    boost::archive::binary_iarchive iar(fin);
    iar >> t;
 
-//   vccd::steepest_descent(t,qc,hf,cutoff);
-
+   vccd::steepest_descent(t,qc,hf,cutoff);
+/*
    MPO<Quantum> T = T2<Quantum>(t,false);
 
    MPS<Quantum> eTA = exp(T,hf,cutoff);
@@ -123,7 +123,7 @@ int main(void){
             }
 
    }
-
+*/
    return 0;
 
 }

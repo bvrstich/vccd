@@ -43,8 +43,8 @@ CXX	= g++
 # -----------------------------------------------------------------------------
 #   Compiler & Linker flags
 # -----------------------------------------------------------------------------
-CFLAGS	= -I$(INCLUDE) -g -std=c++11 -D_HAS_CBLAS -D_HAS_INTEL_MKL
-LDFLAGS	= -g
+CFLAGS	= -I$(INCLUDE) -g -std=c++11 -D_HAS_CBLAS -D_HAS_INTEL_MKL -O3 -flto
+LDFLAGS	= -g -O3 -flto
 
 # =============================================================================
 #   Targets & Rules

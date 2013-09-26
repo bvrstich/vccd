@@ -1,9 +1,11 @@
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 
 using std::cout;
 using std::endl;
 using std::ostream;
+using std::ofstream;
 
 #include "include.h"
 
@@ -17,7 +19,7 @@ namespace vccd {
     */
    template<class Q>
       void gradient(const MPO<Q> &qcham,const MPS<Q> &wccd,DArray<4> &grad){
-/*
+
          double norm_ccd = dot(mpsxx::Left,wccd,wccd);
          MPS<Q> Hccd = qcham*wccd;
          compress(Hccd,mpsxx::Right,0);
@@ -47,32 +49,6 @@ namespace vccd {
                      grad(i,j,a,b) = 2.0 * (dot(mpsxx::Left,tmp,Hccd) - E_ccd * dot(mpsxx::Left,tmp,wccd))/norm_ccd;
 
                   }
-*/
-
-         int no = grad.shape(0);//number of occupied orbitals
-         int nv = grad.shape(2);//number of virtual orbitals
-
-         int L = no + nv;
-
-         MPO<Q> Eabij;
-         MPO<Q> prod;
-         MPS<Q> tmp;
-
-         for(int i = 0;i < no;++i)
-            for(int j = 0;j < no;++j)
-               for(int a = 0;a < nv;++a)
-                  for(int b = 0;b < nv;++b){
-
-                     grad(i,j,a,b) = 0.0;
-
-                     Eabij = E<Quantum>(L,a+no,b+no,i,j,1.0);
-                     tmp = Eabij*wccd;
-
-                     grad(i,j,a,b) = dot(mpsxx::Left,tmp,wccd);
-
-                     cout << i << "\t" << j << "\t" << a << "\t" << b << "\t" << grad(i,j,a,b) << endl;
-
-                  }
 
       }
 
@@ -80,28 +56,37 @@ namespace vccd {
     * construct the gradient of the energy for ccd
     */
    template<class Q>
-      void gradient_new(const DArray<4> &t,const MPO<Q> &qcham,const MPS<Q> &wccd,const T2_2_mpo& list,DArray<4> &grad){
+      void gradient_new(const DArray<4> &t,const MPO<Q> &qcham,double E,const MPS<Q> &wccd,const T2_2_mpo& list,DArray<4> &grad){
 
          int no = grad.shape(0);//number of occupied orbitals
          int nv = grad.shape(2);//number of virtual orbitals
 
+         MPS<Q> Hccd = qcham*wccd;
+         compress(Hccd,mpsxx::Right,0);
+         compress(Hccd,mpsxx::Left,0);
+
          MPO<Q> T = T2<Quantum>(t,false);
 
-         MPS<Quantum> rol = ro::construct(mpsxx::Left,wccd,T,wccd);
-         MPS<Quantum> ror = ro::construct(mpsxx::Right,wccd,T,wccd);
+         MPS<Quantum> rolH = ro::construct(mpsxx::Left,wccd,T,Hccd);
+         MPS<Quantum> rorH = ro::construct(mpsxx::Right,wccd,T,Hccd);
 
-         MPO<Quantum> mpogr = grad::construct(rol,ror,wccd,wccd);
+         MPO<Quantum> mpogrH = grad::construct(rolH,rorH,wccd,Hccd);
+
+         MPS<Quantum> roln = ro::construct(mpsxx::Left,wccd,T,wccd);
+         MPS<Quantum> rorn = ro::construct(mpsxx::Right,wccd,T,wccd);
+
+         MPO<Quantum> mpogrn = grad::construct(roln,rorn,wccd,wccd);
 
          for(int i = 0;i < no;++i){
 
             for(int a = 0;a < nv;++a)
                for(int b = 0;b < nv;++b)
-                  grad(i,i,a,b) = list.get(mpogr,i,i,b,a) + list.get(mpogr,i,i,a,b);
+                  grad(i,i,a,b) = 2.0 * ( list.get(mpogrH,i,i,b,a) + list.get(mpogrH,i,i,a,b) - E * (list.get(mpogrn,i,i,b,a) + list.get(mpogrn,i,i,a,b)) );
 
             for(int j = i + 1;j < no;++j)
                for(int a = 0;a < nv;++a)
                   for(int b = 0;b < nv;++b)
-                     grad(i,j,a,b) = list.get(mpogr,i,j,a,b);
+                     grad(i,j,a,b) = 2.0 * ( list.get(mpogrH,i,j,a,b) - E * list.get(mpogrn,i,j,a,b) );
 
          }
 
@@ -113,7 +98,6 @@ namespace vccd {
                      grad(j,i,a,b) = grad(i,j,a,b);
 
       }
-
 
    /**
     * find the minimum of the function in the direction dir
@@ -220,19 +204,19 @@ namespace vccd {
          MPS<Quantum> eTA = exp(T2op,hf,cutoff);
          normalize(eTA);
 
+         double E = inprod(mpsxx::Left,eTA,qc,eTA);
+
          DArray<4> grad(no,no,nv,nv);
-         gradient(qc,eTA,grad);
 
          T2_2_mpo list(no,nv);
 
-         gradient_new(t,qc,eTA,list,grad);
+         gradient_new(t,qc,E,eTA,list,grad);
 
-         /*
-            double step = line_search(qc,hf,t,grad,0.4,cutoff);
+         double step = line_search(qc,hf,t,grad,0.4,cutoff);
 
-            double convergence = 1.0;
+         double convergence = 1.0;
 
-            while(convergence > 1.0e-5){
+         while(convergence > 1.0e-5){
 
             Daxpy(-step,grad,t);
 
@@ -244,18 +228,19 @@ namespace vccd {
             normalize(eTA);
 
             convergence = Ddot(grad,grad);
+            E = inprod(mpsxx::Left,eTA,qc,eTA);
 
-            cout << convergence << "\t" << inprod(mpsxx::Left,eTA,qc,eTA) << endl;
+            cout << convergence << "\t" << E << endl;
 
-            gradient(qc,eTA,grad);
+            gradient_new(t,qc,E,eTA,list,grad);
             step = line_search(qc,hf,t,grad,0.2,cutoff);
 
-            }
-          */
+         }
+
       }
 
    template void gradient<Quantum>(const MPO<Quantum> &,const MPS<Quantum> &wccd,DArray<4> &grad);
-   template void gradient_new<Quantum>(const DArray<4> &,const MPO<Quantum> &,const MPS<Quantum> &wccd,const T2_2_mpo &list,DArray<4> &grad);
+   template void gradient_new<Quantum>(const DArray<4> &,const MPO<Quantum> &,double E,const MPS<Quantum> &wccd,const T2_2_mpo &list,DArray<4> &grad);
    template double line_search<Quantum>(const MPO<Quantum> &,const MPS<Quantum> &,const DArray<4> &,const DArray<4> &,double,const std::vector<int> &cutoff);
    template double line_search_func<Quantum>(double a,const DArray<4> &t,const DArray<4> &dir,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);
    template void steepest_descent<Quantum>(DArray<4>  &,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);
