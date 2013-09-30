@@ -37,19 +37,19 @@ namespace ls {
       double pow_alpha[Nmat.shape(0)];
 
       pow_alpha[0] = 1.0;
-      pow_alpha[1] = alpha;
+      pow_alpha[1] = -alpha;
 
       for(int i = 2;i < Nmat.shape(0);++i)
-         pow_alpha[i] = pow_alpha[i - 1] * alpha;
+         pow_alpha[i] = pow_alpha[i - 1] * (-alpha);
 
       double norm = 0.0;
 
       for(int i = 0;i < Nmat.shape(0);++i){
 
-         norm += fac[i] * fac[i] * pow_alpha[i] * pow_alpha[i] * Nmat(i,i);
+         norm += 1.0/ ( fac[i] * fac[i] ) * pow_alpha[i] * pow_alpha[i] * Nmat(i,i);
 
          for(int j = i + 1;j < Nmat.shape(0);++j)
-            norm += 2.0 * fac[i] * fac[j] * pow_alpha[i] * pow_alpha[j] * Nmat(i,j);
+            norm += 2.0 / ( fac[i] * fac[j] ) * pow_alpha[i] * pow_alpha[j] * Nmat(i,j);
 
       }
 
@@ -57,10 +57,10 @@ namespace ls {
 
       for(int i = 0;i < Nmat.shape(0);++i){
 
-         energy += fac[i] * fac[i] * pow_alpha[i] * pow_alpha[i] * Emat(i,i);
+         energy += 1.0/ ( fac[i] * fac[i] ) * pow_alpha[i] * pow_alpha[i] * Emat(i,i);
 
          for(int j = i + 1;j < Nmat.shape(0);++j)
-            energy += 2.0 * fac[i] * fac[j] * pow_alpha[i] * pow_alpha[j] * Emat(i,j);
+            energy += 2.0 / ( fac[i] * fac[j] ) * pow_alpha[i] * pow_alpha[j] * Emat(i,j);
 
       }
 
