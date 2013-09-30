@@ -37,10 +37,10 @@ namespace ls {
       double pow_alpha[Nmat.shape(0)];
 
       pow_alpha[0] = 1.0;
-      pow_alpha[1] = -alpha;
+      pow_alpha[1] = alpha;
 
       for(int i = 2;i < Nmat.shape(0);++i)
-         pow_alpha[i] = pow_alpha[i - 1] * (-alpha);
+         pow_alpha[i] = pow_alpha[i - 1] * alpha;
 
       double norm = 0.0;
 

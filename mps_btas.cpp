@@ -73,7 +73,7 @@ int main(void){
    boost::archive::binary_iarchive iar(fin);
    iar >> t;
 
-   vccd::steepest_descent(t,qc,hf,cutoff);
+   vccd::conjugate_gradient(t,qc,hf,cutoff);
 /*
    MPO<Quantum> T = T2<Quantum>(t,false);
 
