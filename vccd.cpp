@@ -18,26 +18,22 @@ namespace vccd {
     * construct minus the gradient of the energy for ccd
     */
    template<class Q>
-      void gradient(const DArray<4> &t,const MPO<Q> &qcham,double E,const MPS<Q> &wccd,const T2_2_mpo& list,DArray<4> &grad){
+      void gradient(const DArray<4> &t,const MPO<Q> &qcham,double E,const MPS<Q> &tccd,const MPS<Q> &wccd,const T2_2_mpo& list,DArray<4> &grad){
 
          int no = grad.shape(0);//number of occupied orbitals
          int nv = grad.shape(2);//number of virtual orbitals
 
-         MPS<Q> Hccd = qcham*wccd;
-         compress(Hccd,mpsxx::Right,0);
-         compress(Hccd,mpsxx::Left,0);
+         MPO<Q> T = T2<Q>(t,false);
 
-         MPO<Q> T = T2<Quantum>(t,false);
+         MPO<Q> rolH = ro::construct(mpsxx::Left,tccd,T,qcham,wccd);
+         MPO<Q> rorH = ro::construct(mpsxx::Right,tccd,T,qcham,wccd);
 
-         MPS<Quantum> rolH = ro::construct(mpsxx::Left,wccd,T,Hccd);
-         MPS<Quantum> rorH = ro::construct(mpsxx::Right,wccd,T,Hccd);
+         MPO<Q> mpogrH = grad::construct(rolH,rorH,tccd,qcham,wccd);
 
-         MPO<Quantum> mpogrH = grad::construct(rolH,rorH,wccd,Hccd);
+         MPS<Q> roln = ro::construct(mpsxx::Left,tccd,T,wccd);
+         MPS<Q> rorn = ro::construct(mpsxx::Right,tccd,T,wccd);
 
-         MPS<Quantum> roln = ro::construct(mpsxx::Left,wccd,T,wccd);
-         MPS<Quantum> rorn = ro::construct(mpsxx::Right,wccd,T,wccd);
-
-         MPO<Quantum> mpogrn = grad::construct(roln,rorn,wccd,wccd);
+         MPO<Q> mpogrn = grad::construct(roln,rorn,tccd,wccd);
 
          for(int i = 0;i < no;++i){
 
@@ -158,14 +154,20 @@ namespace vccd {
          int no = t.shape(0);
          int nv = t.shape(2);
 
-         MPO<Quantum> T = T2<Quantum>(t,true);
+         MPO<Q> T = T2<Q>(t,true);
          compress(T,mpsxx::Right,0);
          compress(T,mpsxx::Left,0);
 
          eMPS emps(T,hf,cutoff);
 
-         MPS<Quantum> wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
-         normalize(wccd);
+         MPS<Q> wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
+         MPS<Q> tccd = emps.expand(hf,1,cutoff[0]);
+
+         //get the norm right
+         double nrm = mpsxx::nrm2(wccd);
+
+         mpsxx::scal(1.0/nrm,wccd);
+         mpsxx::scal(1.0/nrm,tccd);
 
          double E = emps.eval(qc,hf);
          double N = emps.norm();
@@ -175,9 +177,9 @@ namespace vccd {
 
          T2_2_mpo list(no,nv);
 
-         gradient(t,qc,E/N,wccd,list,grad);
+         gradient(t,qc,E/N,tccd,wccd,list,grad);
 
-         T = T2<Quantum>(grad,false);
+         T = T2<Q>(grad,false);
          compress(T,mpsxx::Right,0);
          compress(T,mpsxx::Left,0);
 
@@ -189,7 +191,7 @@ namespace vccd {
 
             Daxpy(step,grad,t);
 
-            T = T2<Quantum>(t,false);
+            T = T2<Q>(t,false);
             compress(T,mpsxx::Right,0);
             compress(T,mpsxx::Left,0);
 
@@ -198,6 +200,14 @@ namespace vccd {
 
             //get the wavefunction out
             wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
+            tccd = emps.expand(hf,1,cutoff[0]);
+
+            //get the norm right
+            double nrm = mpsxx::nrm2(wccd);
+
+            mpsxx::scal(1.0/nrm,wccd);
+            mpsxx::scal(1.0/nrm,tccd);
+
             normalize(wccd);
 
             convergence = Ddot(grad,grad);
@@ -206,9 +216,9 @@ namespace vccd {
 
             cout << convergence << "\t" << E/N << endl;
 
-            gradient(t,qc,E/N,wccd,list,grad);
+            gradient(t,qc,E/N,tccd,wccd,list,grad);
 
-            T = T2<Quantum>(grad,false);
+            T = T2<Q>(grad,false);
             compress(T,mpsxx::Right,0);
             compress(T,mpsxx::Left,0);
 
@@ -231,27 +241,33 @@ namespace vccd {
          int no = t.shape(0);
          int nv = t.shape(2);
 
-         MPO<Quantum> T = T2<Quantum>(t,true);
+         MPO<Q> T = T2<Q>(t,true);
          compress(T,mpsxx::Right,0);
          compress(T,mpsxx::Left,0);
 
          eMPS emps(T,hf,cutoff);
 
-         MPS<Quantum> wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
-         normalize(wccd);
-
          double E = emps.eval(qc,hf);
          double N = emps.norm();
          cout << E/N << endl;
+
+         MPS<Q> wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
+         MPS<Q> tccd = emps.expand(hf,1,cutoff[0]);
+
+         //get the norm right
+         double nrm = mpsxx::nrm2(wccd);
+
+         mpsxx::scal(1.0/nrm,wccd);
+         mpsxx::scal(1.0/nrm,tccd);
 
          DArray<4> grad_1(no,no,nv,nv);
          DArray<4> grad_0(no,no,nv,nv);
 
          T2_2_mpo list(no,nv);
 
-         gradient(t,qc,E/N,wccd,list,grad_1);
+         gradient(t,qc,E/N,tccd,wccd,list,grad_1);
 
-         T = T2<Quantum>(grad_1,false);
+         T = T2<Q>(grad_1,false);
          compress(T,mpsxx::Right,0);
          compress(T,mpsxx::Left,0);
 
@@ -280,7 +296,7 @@ namespace vccd {
             //update t
             Daxpy(step,dir,t);
 
-            T = T2<Quantum>(t,false);
+            T = T2<Q>(t,false);
             compress(T,mpsxx::Right,0);
             compress(T,mpsxx::Left,0);
 
@@ -293,13 +309,19 @@ namespace vccd {
 
             //get the wavefunction out
             wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
-            normalize(wccd);
+            tccd = emps.expand(hf,1,cutoff[0]);
+
+            //get the norm right
+            double nrm = mpsxx::nrm2(wccd);
+
+            mpsxx::scal(1.0/nrm,wccd);
+            mpsxx::scal(1.0/nrm,tccd);
 
             //backup the gradient
             grad_0 = grad_1;
 
             //calculate the gradient for the new T
-            gradient(t,qc,E/N,wccd,list,grad_1);
+            gradient(t,qc,E/N,tccd,wccd,list,grad_1);
 
             rnorm_1 = Ddot(grad_1,grad_1);
 
@@ -316,7 +338,7 @@ namespace vccd {
             rnorm_0 = rnorm_1;
 
             //construct the T for the line search
-            T = T2<Quantum>(dir,false);
+            T = T2<Q>(dir,false);
             compress(T,mpsxx::Right,0);
             compress(T,mpsxx::Left,0);
 
@@ -324,7 +346,7 @@ namespace vccd {
 
       }
 
-   template void gradient<Quantum>(const DArray<4> &,const MPO<Quantum> &,double E,const MPS<Quantum> &wccd,const T2_2_mpo &list,DArray<4> &grad);
+   template void gradient<Quantum>(const DArray<4> &,const MPO<Quantum> &,double E,const MPS<Quantum> &tccd,const MPS<Quantum> &wccd,const T2_2_mpo &list,DArray<4> &grad);
    template double line_search<Quantum>(double,double,const MPO<Quantum> &,const MPS<Quantum> &,const eMPS &,const MPO<Quantum> &,double );
    template void steepest_descent<Quantum>(DArray<4>  &,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);
    template void conjugate_gradient<Quantum>(DArray<4>  &,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);

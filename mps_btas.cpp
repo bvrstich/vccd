@@ -68,52 +68,12 @@ int main(void){
 
    //read in the mp2 guess
    DArray<4> t(no,no,nv,nv);
-/*
+
    std::ifstream fin("input/Be/cc-pVDZ/mp2.in");
    boost::archive::binary_iarchive iar(fin);
    iar >> t;
-*/
-   for(int i = 0;i < no;++i)
-      for(int j = 0;j < no;++j)
-         for(int a = 0;a < nv;++a)
-            for(int b = 0;b < nv;++b){
 
-               double value = rgen();
-
-               t(i,j,a,b) = value;
-               t(j,i,b,a) = value;
-
-            }
-
-   //vccd::conjugate_gradient(t,qc,hf,cutoff);
-
-   MPO<Quantum> T = T2<Quantum>(t,false);
-   compress(T,mpsxx::Right,0);
-   compress(T,mpsxx::Left,0);
-
-   eMPS ccd(T,hf,cutoff);
-
-   MPS<Quantum> wccd = ccd.expand(hf,cutoff.size(),0);
-   MPS<Quantum> tccd = ccd.expand(hf,1,0);
-
-   T = T2<Quantum>(t,false);
-
-   MPO<Quantum> rolH = ro::construct(mpsxx::Left,tccd,T,qc,wccd);
-   MPO<Quantum> rorH = ro::construct(mpsxx::Right,tccd,T,qc,wccd);
-
-   MPO<Quantum> mpogrH = grad::construct(rolH,rorH,tccd,qc,wccd);
-
-   MPS<Quantum> tmp = T*tccd;
-   cout << endl;
-   cout << inprod(mpsxx::Left,tmp,qc,wccd) << endl;
-   cout << endl;
-
-   grad::check(mpogrH,T);
-
-//   MPS<Quantum> rol = ro::construct(mpsxx::Left,wccd,T,Hccd);
-   //MPS<Quantum> ror = ro::construct(mpsxx::Right,wccd,T,Hccd);
-
-//   MPO<Quantum> mpogrn = grad::construct(roln,rorn,wccd,wccd);
+   vccd::conjugate_gradient(t,qc,hf,cutoff);
 
    return 0;
 
