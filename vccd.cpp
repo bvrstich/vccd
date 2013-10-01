@@ -164,7 +164,7 @@ namespace vccd {
 
          eMPS emps(T,hf,cutoff);
 
-         MPS<Quantum> wccd = emps.expand(hf,cutoff[0]);
+         MPS<Quantum> wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
          normalize(wccd);
 
          double E = emps.eval(qc,hf);
@@ -197,7 +197,7 @@ namespace vccd {
             emps.update(T,hf);
 
             //get the wavefunction out
-            wccd = emps.expand(hf,cutoff[0]);
+            wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
             normalize(wccd);
 
             convergence = Ddot(grad,grad);
@@ -237,7 +237,7 @@ namespace vccd {
 
          eMPS emps(T,hf,cutoff);
 
-         MPS<Quantum> wccd = emps.expand(hf,cutoff[0]);
+         MPS<Quantum> wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
          normalize(wccd);
 
          double E = emps.eval(qc,hf);
@@ -292,7 +292,7 @@ namespace vccd {
             cout << iter << "\t" << convergence << "\t" << E/N << endl;
 
             //get the wavefunction out
-            wccd = emps.expand(hf,cutoff[0]);
+            wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
             normalize(wccd);
 
             //backup the gradient

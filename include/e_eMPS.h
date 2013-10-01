@@ -13,7 +13,7 @@ class eMPS;
  * @date 26-09-2013
  * This is a class written for making dealing with exponential MPO/MPS stuff more efficient. What happens if you multiply an exponential of an exponential ...
  */
-class e_eMPS {
+class e_eMPS : public std::vector< eMPS > {
 
    friend ostream &operator<<(ostream &output,const e_eMPS &lsemps_p);
 
@@ -32,9 +32,6 @@ class e_eMPS {
       void fillN(DArray<2> &,const eMPS &ccd) const;
 
    private:
-
-      //!vector containing the higher order terms: O*ccd, O^2*ccd, etc...
-      std::vector< eMPS > term;
 
 };
 

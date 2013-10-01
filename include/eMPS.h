@@ -11,7 +11,7 @@ using std::ostream;
  * @date 26-09-2013
  * This is a class written for making dealing with exponential MPO/MPS stuff more efficient 
  */
-class eMPS {
+class eMPS : public std::vector< MPS<Quantum> > {
 
    friend ostream &operator<<(ostream &output,const eMPS &emps_p);
 
@@ -38,18 +38,19 @@ class eMPS {
 
       const std::vector<int> &gorder() const;
 
-      void mult(const MPO<Quantum> &O,const MPS<Quantum> &hf);
+      void mult_exc(const MPO<Quantum> &O,const MPS<Quantum> &hf);
+
+      eMPS &mult_gen(const MPO<Quantum> &O,const MPS<Quantum> &hf,const eMPS &ccd);
 
       double inprod(const MPO<Quantum> &H,const MPS<Quantum> &hf,const eMPS &) const;
 
       double dot(const eMPS &) const;
 
-      MPS<Quantum> expand(const MPS<Quantum> &,int D = 0) const;
+      MPS<Quantum> expand(const MPS<Quantum> &,int,int D) const;
+
+      void print_dim(int);
 
    private:
-
-      //!vector containing the higher order terms: T*hf, T^2*hf, etc...
-      std::vector< MPS<Quantum> > term;
 
       //!the order of all the elements
       std::vector<int> order;

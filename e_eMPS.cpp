@@ -12,17 +12,15 @@ using std::ifstream;
 /**
  * standard constructor
  */
-e_eMPS::e_eMPS(const MPO<Quantum> &O,const eMPS &ccd,const MPS<Quantum> &hf){
+e_eMPS::e_eMPS(const MPO<Quantum> &O,const eMPS &ccd,const MPS<Quantum> &hf) : std::vector< eMPS > (ccd.gcutoff().size()) {
 
-   term.resize(ccd.gcutoff().size());
+   (*this)[0] = ccd;
+   (*this)[0].mult_exc(O,hf);
 
-   term[0] = ccd;
-   term[0].mult(O,hf);
+   for(int i = 1;i < (*this).size();++i){
 
-   for(int i = 1;i < term.size();++i){
-
-      term[i] = term[i - 1];
-      term[i].mult(O,hf);
+      (*this)[i] = (*this)[i - 1];
+      (*this)[i].mult_exc(O,hf);
 
    }
 
@@ -31,11 +29,7 @@ e_eMPS::e_eMPS(const MPO<Quantum> &O,const eMPS &ccd,const MPS<Quantum> &hf){
 /**
  * copy constructor
  */
-e_eMPS::e_eMPS(const e_eMPS &e_emps){
-
-   term = e_emps.term;
-
-}
+e_eMPS::e_eMPS(const e_eMPS &e_emps) : std::vector< eMPS > (e_emps){ }
 
 /**
  * destructor
@@ -43,31 +37,31 @@ e_eMPS::e_eMPS(const e_eMPS &e_emps){
 e_eMPS::~e_eMPS(){ }
 
 /**
- * fill the array E with the different inner products of the terms in this
+ * fill the array E with the different inner products of the (*this)s in this
  */
 void e_eMPS::fillE(DArray<2> &Emat,const MPO<Quantum> &H,const MPS<Quantum> &hf,const eMPS &ccd) const{
 
    //first row
-   for(int i = 0;i < term.size();++i)
-      Emat(0,i + 1) = term[i].inprod(H,hf,ccd);
+   for(int i = 0;i < (*this).size();++i)
+      Emat(0,i + 1) = (*this)[i].inprod(H,hf,ccd);
 
-   for(int i = 0;i < term.size();++i)
-      for(int j = i;j < term.size();++j)
-         Emat(i + 1,j + 1) = term[i].inprod(H,hf,term[j]);
+   for(int i = 0;i < (*this).size();++i)
+      for(int j = i;j < (*this).size();++j)
+         Emat(i + 1,j + 1) = (*this)[i].inprod(H,hf,(*this)[j]);
 
 }
 
 /**
- * fill the array E with the different inner products of the terms in this
+ * fill the array E with the different inner products of the (*this)s in this
  */
 void e_eMPS::fillN(DArray<2> &Nmat,const eMPS &ccd) const{
 
    //first row
-   for(int i = 0;i < term.size();++i)
-      Nmat(0,i + 1) = term[i].dot(ccd);
+   for(int i = 0;i < (*this).size();++i)
+      Nmat(0,i + 1) = (*this)[i].dot(ccd);
 
-   for(int i = 0;i < term.size();++i)
-      for(int j = i;j < term.size();++j)
-         Nmat(i + 1,j + 1) = term[i].dot(term[j]);
+   for(int i = 0;i < (*this).size();++i)
+      for(int j = i;j < (*this).size();++j)
+         Nmat(i + 1,j + 1) = (*this)[i].dot((*this)[j]);
 
 }
