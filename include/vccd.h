@@ -25,6 +25,12 @@ namespace vccd{
    template<class Q>
       void conjugate_gradient(DArray<4> &,const MPO<Q> &qcham,const MPS<Q> &hf,const std::vector<int> &cutoff);
 
+   template<class Q>
+      double old_line_search(const MPO<Q> &qc,const MPS<Q> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,const std::vector<int> &cutoff);
+
+   template<class Q>
+      double line_search_func(double a,const DArray<4> &t,const DArray<4> &dir,const MPO<Q> &qc,const MPS<Q> &hf,const std::vector<int> &cutoff);
+
 }
 
 #endif

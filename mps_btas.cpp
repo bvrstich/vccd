@@ -63,7 +63,7 @@ int main(void){
    //the cutoff vector for the exponential
    std::vector<int> cutoff(1);
 
-   cutoff[0] = 30;
+   cutoff[0] = 10;
    //cutoff[1] = 10;
 
    //read in the mp2 guess

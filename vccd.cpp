@@ -154,7 +154,7 @@ namespace vccd {
          int no = t.shape(0);
          int nv = t.shape(2);
 
-         MPO<Q> T = T2<Q>(t,true);
+         MPO<Q> T = T2<Q>(t,false);
          compress(T,mpsxx::Right,0);
          compress(T,mpsxx::Left,0);
 
@@ -181,13 +181,14 @@ namespace vccd {
 
          T2_2_mpo list(no,nv);
 
-         gradient(t,qc,E/N,tccd,wccd,list,grad,true);
+         gradient(t,qc,E/N,tccd,wccd,list,grad,false);
 
          T = T2<Q>(grad,false);
          compress(T,mpsxx::Right,0);
          compress(T,mpsxx::Left,0);
 
-         double step = line_search(E,N,qc,hf,emps,T,0.4);
+         //double step = line_search(E,N,qc,hf,emps,T,0.4);
+         double step  = old_line_search(qc,hf,t,grad,0.4,cutoff);
 
          double convergence = 1.0;
 
@@ -233,13 +234,14 @@ namespace vccd {
             cout << iter << "\t" << convergence << "\t" << E/N << endl;
             out << iter << "\t" << convergence << "\t" << E/N << endl;
 
-            gradient(t,qc,E/N,tccd,wccd,list,grad,true);
+            gradient(t,qc,E/N,tccd,wccd,list,grad,false);
 
             T = T2<Q>(grad,false);
             compress(T,mpsxx::Right,0);
             compress(T,mpsxx::Left,0);
 
-            step = line_search(E,N,qc,hf,emps,T,step);
+            //step = line_search(E,N,qc,hf,emps,T,step);
+            step  = old_line_search(qc,hf,t,grad,step,cutoff);
 
          }
 
@@ -371,9 +373,103 @@ namespace vccd {
 
       }
 
+   /**
+    * find the minimum of the function in the direction dir
+    */
+   template<class Q>
+      double old_line_search(const MPO<Q> &qc,const MPS<Q> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,const std::vector<int> &cutoff){
+
+         double phi = 0.5 * (1.0 + std::sqrt(5.0));
+
+         //first bracket interval in which the minimum lies
+         double a = 0.0;
+         double c = guess;
+         double b = c*(1.0 + phi);
+
+         double fb = line_search_func(b,t,dir,qc,hf,cutoff);
+         double fc = line_search_func(c,t,dir,qc,hf,cutoff);
+
+         while(fc > fb){
+
+            c = b;
+            fc = fb;
+
+            b = c * (1.0 + phi);
+
+            fb = line_search_func(b,t,dir,qc,hf,cutoff);
+
+         }
+
+         double d = a + b - c;
+         double fd;
+
+         while(b - a > 1.0e-4){
+
+            fd = line_search_func(d,t,dir,qc,hf,cutoff);
+
+            if(c < d){
+
+               if(fd < fc){
+
+                  a = c;
+
+                  c = d;
+                  fc = fd;
+
+               }
+               else//fd > fc
+                  b = d;
+
+            }
+            else{
+
+               if(fd < fc){
+
+                  b = c;
+
+                  c = d;
+                  fc = fd;
+
+               }
+               else//fd > fc
+                  a = d;
+
+            }
+
+            //update d
+            d = a + b - c;
+
+         }
+
+         return d;
+
+      }
+
+   /**
+    * find the minimum of the function in the direction dir
+    */
+   template<class Q>
+      double line_search_func(double a,const DArray<4> &t,const DArray<4> &dir,const MPO<Q> &qc,const MPS<Q> &hf,const std::vector<int> &cutoff){
+
+         DArray<4> newt(t);
+         Daxpy(a,dir,newt);
+
+         MPO<Q> T2op = T2<Quantum>(newt,true);
+         compress(T2op,mpsxx::Right,0);
+         compress(T2op,mpsxx::Left,0);
+
+         MPS<Q> eTA = exp(T2op,hf,cutoff);
+         normalize(eTA);
+
+         return inprod(mpsxx::Left,eTA,qc,eTA);
+
+      }
+
    template void gradient<Quantum>(const DArray<4> &,const MPO<Quantum> &,double E,const MPS<Quantum> &tccd,const MPS<Quantum> &wccd,const T2_2_mpo &list,DArray<4> &grad,bool merged);
    template double line_search<Quantum>(double,double,const MPO<Quantum> &,const MPS<Quantum> &,const eMPS &,const MPO<Quantum> &,double );
    template void steepest_descent<Quantum>(DArray<4>  &,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);
    template void conjugate_gradient<Quantum>(DArray<4>  &,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);
+   template double old_line_search(const MPO<Quantum> &qc,const MPS<Quantum> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,const std::vector<int> &cutoff);
+   template double line_search_func(double a,const DArray<4> &t,const DArray<4> &dir,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);
 
 }
