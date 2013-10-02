@@ -74,6 +74,12 @@ MPO<Q> one_body(const DArray<2> &,bool);
 template<class Q>
 MPO<Q> qcham(const DArray<2> &,const DArray<4> &);
 
+template<class Q>
+void get_merged_index(const Qshapes<Q> &,Qshapes<Q> &,std::vector< std::vector<int> > &,std::vector< std::vector<int> > &);
+
+template<class Q>
+int is_in(const Q &qn,const Qshapes<Q> &qlist);
+
 void insert_id(QSDArray<4> &,int row,int column,double value = 1.0);
 void insert_zero(QSDArray<4> &,int row,int column);
 void insert_sign(QSDArray<4> &,int row,int column,double value = 1.0);
@@ -103,6 +109,7 @@ void insert_local(QSDArray<4> &,int row,int column,double,double);
 void insert_pair(QSDArray<4> &,int row,int column,const std::vector<double> &);
 void insert_pair_s(QSDArray<4> &,int row,int column,const std::vector<double> &);
 void insert_local_ob(QSDArray<4> &,int row,int column,double,double);
+
 
 void fill_mp2(DArray<4> &T,const DArray<4> &V,const std::vector<double> &ener);
 

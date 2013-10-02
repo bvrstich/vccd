@@ -18,12 +18,12 @@ namespace vccd {
     * construct minus the gradient of the energy for ccd
     */
    template<class Q>
-      void gradient(const DArray<4> &t,const MPO<Q> &qcham,double E,const MPS<Q> &tccd,const MPS<Q> &wccd,const T2_2_mpo& list,DArray<4> &grad){
+      void gradient(const DArray<4> &t,const MPO<Q> &qcham,double E,const MPS<Q> &tccd,const MPS<Q> &wccd,const T2_2_mpo& list,DArray<4> &grad,bool merged){
 
          int no = grad.shape(0);//number of occupied orbitals
          int nv = grad.shape(2);//number of virtual orbitals
 
-         MPO<Q> T = T2<Q>(t,false);
+         MPO<Q> T = T2<Q>(t,merged);
 
          MPO<Q> rolH = ro::construct(mpsxx::Left,tccd,T,qcham,wccd);
          MPO<Q> rorH = ro::construct(mpsxx::Right,tccd,T,qcham,wccd);
@@ -39,12 +39,12 @@ namespace vccd {
 
             for(int a = 0;a < nv;++a)
                for(int b = 0;b < nv;++b)
-                  grad(i,i,a,b) = -2.0 * ( list.get(mpogrH,i,i,b,a) + list.get(mpogrH,i,i,a,b) - E * (list.get(mpogrn,i,i,b,a) + list.get(mpogrn,i,i,a,b)) );
+                  grad(i,i,a,b) = -2.0 * ( list.get(mpogrH,i,i,b,a,merged) + list.get(mpogrH,i,i,a,b,merged) - E * (list.get(mpogrn,i,i,b,a,merged) + list.get(mpogrn,i,i,a,b,merged)) );
 
             for(int j = i + 1;j < no;++j)
                for(int a = 0;a < nv;++a)
                   for(int b = 0;b < nv;++b)
-                     grad(i,j,a,b) = -2.0 * ( list.get(mpogrH,i,j,a,b) - E * list.get(mpogrn,i,j,a,b) );
+                     grad(i,j,a,b) = -2.0 * ( list.get(mpogrH,i,j,a,b,merged) - E * list.get(mpogrn,i,j,a,b,merged) );
 
          }
 
@@ -177,7 +177,7 @@ namespace vccd {
 
          T2_2_mpo list(no,nv);
 
-         gradient(t,qc,E/N,tccd,wccd,list,grad);
+         gradient(t,qc,E/N,tccd,wccd,list,grad,false);
 
          T = T2<Q>(grad,false);
          compress(T,mpsxx::Right,0);
@@ -216,7 +216,7 @@ namespace vccd {
 
             cout << convergence << "\t" << E/N << endl;
 
-            gradient(t,qc,E/N,tccd,wccd,list,grad);
+            gradient(t,qc,E/N,tccd,wccd,list,grad,false);
 
             T = T2<Q>(grad,false);
             compress(T,mpsxx::Right,0);
@@ -265,7 +265,7 @@ namespace vccd {
 
          T2_2_mpo list(no,nv);
 
-         gradient(t,qc,E/N,tccd,wccd,list,grad_1);
+         gradient(t,qc,E/N,tccd,wccd,list,grad_1,false);
 
          T = T2<Q>(grad_1,false);
          compress(T,mpsxx::Right,0);
@@ -321,7 +321,7 @@ namespace vccd {
             grad_0 = grad_1;
 
             //calculate the gradient for the new T
-            gradient(t,qc,E/N,tccd,wccd,list,grad_1);
+            gradient(t,qc,E/N,tccd,wccd,list,grad_1,false);
 
             rnorm_1 = Ddot(grad_1,grad_1);
 
@@ -346,7 +346,7 @@ namespace vccd {
 
       }
 
-   template void gradient<Quantum>(const DArray<4> &,const MPO<Quantum> &,double E,const MPS<Quantum> &tccd,const MPS<Quantum> &wccd,const T2_2_mpo &list,DArray<4> &grad);
+   template void gradient<Quantum>(const DArray<4> &,const MPO<Quantum> &,double E,const MPS<Quantum> &tccd,const MPS<Quantum> &wccd,const T2_2_mpo &list,DArray<4> &grad,bool merged);
    template double line_search<Quantum>(double,double,const MPO<Quantum> &,const MPS<Quantum> &,const eMPS &,const MPO<Quantum> &,double );
    template void steepest_descent<Quantum>(DArray<4>  &,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);
    template void conjugate_gradient<Quantum>(DArray<4>  &,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);

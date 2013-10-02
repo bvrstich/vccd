@@ -87,6 +87,28 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
 
    list = new std::vector< std::vector<int> > [s2ov.size()];
 
+   Qshapes<Quantum> qz;
+   qz.push_back(Quantum::zero());//I
+
+   //quantum numbers:
+   Qshapes<Quantum> qo;
+   qo.push_back(Quantum::zero());//I
+   qo.push_back(Quantum(0,1));//a_down
+   qo.push_back(Quantum(1,0));//a_up
+   qo.push_back(Quantum(1,1));//a_down a_up
+
+   Qshapes<Quantum> q_merged;
+   std::vector< std::vector<int> > ind_merged;
+   std::vector< std::vector<int> > inverse;
+
+   //get merged row
+   get_merged_index(qz,q_merged,ind_merged,inverse);
+   merged_row.push_back(inverse);
+
+   //get merged column
+   get_merged_index(qo,q_merged,ind_merged,inverse);
+   merged_col.push_back(inverse);
+
    std::vector< Ostate > ostates;
    Ostate state;
 
@@ -111,11 +133,19 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
    std::vector< Ostate > istates;
    istates = ostates;
 
+   Qshapes<Quantum> qi = qo;
+
    for(int i = 1;i < no - 1;++i){
 
       ostates.clear();
+      qo.clear();
+
+      qo.push_back(Quantum::zero());//I
 
       ostates.push_back(istates[0]);
+
+      qo.push_back(Quantum(0,1));//a_down
+      qo.push_back(Quantum(1,0));//a_up
 
       state.push_anni_down(i);
       ostates.push_back(state);
@@ -129,10 +159,14 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
 
       while(istates[row].size() == 1){
 
+         qo.push_back(qi[row]);//a_down
          ostates.push_back(istates[row]);
+
          ++row;
 
       }
+
+      qo.push_back(Quantum(1,1));//a_up a_down
 
       state.push_anni_up(i);
       state.push_anni_down(i);
@@ -149,6 +183,10 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
          ostates.push_back(state);
          state.clear();
 
+         Quantum tmp = qi[row];
+         tmp.anni_down();
+         qo.push_back(tmp);
+
          ++row;
 
       }
@@ -163,6 +201,10 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
          ostates.push_back(state);
          state.clear();
 
+         Quantum tmp = qi[row];
+         tmp.anni_up();
+         qo.push_back(tmp);
+
          ++row;
 
       }
@@ -170,12 +212,22 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
       //id for the pairs coming in
       while(row < istates.size()){
 
+         qo.push_back(qi[row]);
          ostates.push_back(istates[row]);
          ++row;
 
       }
 
+      //get merged row
+      get_merged_index(-qi,q_merged,ind_merged,inverse);
+      merged_row.push_back(inverse);
+
+      //get merged column
+      get_merged_index(qo,q_merged,ind_merged,inverse);
+      merged_col.push_back(inverse);
+
       istates = ostates;
+      qi = qo;
 
    }
 
@@ -183,11 +235,12 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
 
       //last occupied: i = no - 1: switch from incoming to outgoing
       ostates.clear();
+      qo.clear();
 
       Ostate istate;
 
       for(int i = no;i < L;++i){
-         
+
          //first up
          istate.push_crea_up(i);
 
@@ -195,6 +248,8 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
          state.push_crea_down(i);
          ostates.push_back(state);
          state.clear();
+
+         qo.push_back(Quantum(1,1));
 
          for(int j = i + 1;j < L;++j){
 
@@ -204,11 +259,15 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
             ostates.push_back(state);
             state.clear();
 
+            qo.push_back(Quantum(2,0));
+
             //up down
             state = istate;
             state.push_crea_down(j);
             ostates.push_back(state);
             state.clear();
+
+            qo.push_back(Quantum(1,1));
 
          }
 
@@ -225,17 +284,29 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
             ostates.push_back(state);
             state.clear();
 
+            qo.push_back(Quantum(1,1));
+
             //down down
             state = istate;
             state.push_crea_down(j);
             ostates.push_back(state);
             state.clear();
 
+            qo.push_back(Quantum(0,2));
+
          }
 
          istate.clear();
 
       }
+
+      //get merged row
+      get_merged_index(-qi,q_merged,ind_merged,inverse);
+      merged_row.push_back(inverse);
+
+      //get merged column
+      get_merged_index(qo,q_merged,ind_merged,inverse);
+      merged_col.push_back(inverse);
 
       //first row
       for(int col = 0;col < ostates.size();++col){
@@ -280,13 +351,14 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
 
       }
 
-      istates = ostates;
-
    }
    else{//no < nv
 
       //last occupied: i = no - 1
       ostates.clear();
+      qo.clear();
+
+      qo.push_back(Quantum(1,1));//a_up a_down
 
       state.push_anni_up(no-1);
       state.push_anni_down(no-1);
@@ -303,6 +375,10 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
          ostates.push_back(state);
          state.clear();
 
+         Quantum tmp = qi[row];
+         tmp.anni_down();
+         qo.push_back(tmp);
+
          ++row;
 
       }
@@ -317,6 +393,10 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
          ostates.push_back(state);
          state.clear();
 
+         Quantum tmp = qi[row];
+         tmp.anni_up();
+         qo.push_back(tmp);
+
          ++row;
 
       }
@@ -324,21 +404,34 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
       //id for the pairs coming in
       while(row < istates.size()){
 
+         qo.push_back(qi[row]);
          ostates.push_back(istates[row]);
          ++row;
 
       }
 
+      //get merged row
+      get_merged_index(-qi,q_merged,ind_merged,inverse);
+      merged_row.push_back(inverse);
+
+      //get merged column
+      get_merged_index(qo,q_merged,ind_merged,inverse);
+      merged_col.push_back(inverse);
+
       istates = ostates;
+      qi = qo;
 
       if(no + 1 == nv){
 
          ostates.clear();
+         qo.clear();
 
          //first col closed
          state.push_id();
          ostates.push_back(state);
          state.clear();
+
+         qo.push_back(Quantum::zero());
 
          //singles
          for(int i = no + 1;i < L;++i){
@@ -347,9 +440,13 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
             ostates.push_back(state);
             state.clear();
 
+            qo.push_back(Quantum(1,0));
+
             state.push_crea_down(i);
             ostates.push_back(state);
             state.clear();
+
+            qo.push_back(Quantum(0,1));
 
          }
 
@@ -366,6 +463,8 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
             ostates.push_back(state);
             state.clear();
 
+            qo.push_back(Quantum(1,1));
+
             for(int j = i + 1;j < L;++j){
 
                //up up
@@ -374,11 +473,15 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
                ostates.push_back(state);
                state.clear();
 
+               qo.push_back(Quantum(2,0));
+
                //up down
                state = istate;
                state.push_crea_down(j);
                ostates.push_back(state);
                state.clear();
+
+               qo.push_back(Quantum(1,1));
 
             }
 
@@ -395,17 +498,29 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
                ostates.push_back(state);
                state.clear();
 
+               qo.push_back(Quantum(1,1));
+
                //down down
                state = istate;
                state.push_crea_down(j);
                ostates.push_back(state);
                state.clear();
 
+               qo.push_back(Quantum(0,2));
+
             }
 
             istate.clear();
 
          }
+
+         //get merged row
+         get_merged_index(-qi,q_merged,ind_merged,inverse);
+         merged_row.push_back(inverse);
+
+         //get merged column
+         get_merged_index(qo,q_merged,ind_merged,inverse);
+         merged_col.push_back(inverse);
 
          //first column closed: insert pairs
          for(int row = 0;row < istates.size();++row){
@@ -459,9 +574,13 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
          //all the virtuals: the have the signature of the operator they are going to: but opposite q-number
          for(int j = no + 1;j < L;++j){
 
+            qo.push_back(Quantum(1,0));//go to crea up
+
             state.push_crea_up(j);
             ostates.push_back(state);
             state.clear();
+
+            qo.push_back(Quantum(0,1));//go to crea down 
 
             state.push_crea_down(j);
             ostates.push_back(state);
@@ -470,9 +589,18 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
          }
 
          //last column complete closed:
+         qo.push_back(Quantum(0,0));
          state.push_id();
          ostates.push_back(state);
          state.clear();
+
+         //get merged row
+         get_merged_index(-qi,q_merged,ind_merged,inverse);
+         merged_row.push_back(inverse);
+
+         //get merged column
+         get_merged_index(qo,q_merged,ind_merged,inverse);
+         merged_col.push_back(inverse);
 
          for(int col = istates.size();col < ostates.size() - 1;++col)
             for(int row = 0;row < istates.size();++row)
@@ -501,6 +629,7 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
          }
 
          istates = ostates;
+         qi = qo;
 
          //next everything until nv
          for(int i = no + 1;i < nv;++i){
@@ -509,6 +638,7 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
             int vind = i - no;
 
             ostates.clear();
+            qo.clear();
 
             //identity for the pairs
             int row = 0;
@@ -516,6 +646,7 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
             while(istates[row].size() == 2){
 
                ostates.push_back(istates[row]);
+               qo.push_back(qi[row]);
                ++row;
 
             }
@@ -523,9 +654,13 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
             //the remaining virtuals: they have the signature of the operator they are going to: but opposite q-number
             for(int j = i + 1;j < L;++j){
 
+               qo.push_back(Quantum(1,0));//go to crea up
+
                state.push_crea_up(j);
                ostates.push_back(state);
                state.clear();
+
+               qo.push_back(Quantum(0,1));//go to crea down 
 
                state.push_crea_down(j);
                ostates.push_back(state);
@@ -537,6 +672,15 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
             state.push_id();
             ostates.push_back(state);
             state.clear();
+            qo.push_back(Quantum(0,0));
+
+            //get merged row
+            get_merged_index(-qi,q_merged,ind_merged,inverse);
+            merged_row.push_back(inverse);
+
+            //get merged column
+            get_merged_index(qo,q_merged,ind_merged,inverse);
+            merged_col.push_back(inverse);
 
             int col = 0;
 
@@ -588,15 +732,19 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
             }
 
             istates = ostates;
+            qi = qo;
 
          }
 
          ostates.clear();
+         qo.clear();
 
          //first col closed
          state.push_id();
          ostates.push_back(state);
          state.clear();
+
+         qo.push_back(Quantum::zero());
 
          //singles
          for(int i = nv + 1;i < L;++i){
@@ -605,9 +753,13 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
             ostates.push_back(state);
             state.clear();
 
+            qo.push_back(Quantum(1,0));
+
             state.push_crea_down(i);
             ostates.push_back(state);
             state.clear();
+
+            qo.push_back(Quantum(0,1));
 
          }
 
@@ -624,6 +776,8 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
             ostates.push_back(state);
             state.clear();
 
+            qo.push_back(Quantum(1,1));
+
             for(int j = i + 1;j < L;++j){
 
                //up up
@@ -632,11 +786,15 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
                ostates.push_back(state);
                state.clear();
 
+               qo.push_back(Quantum(2,0));
+
                //up down
                state = istate;
                state.push_crea_down(j);
                ostates.push_back(state);
                state.clear();
+
+               qo.push_back(Quantum(1,1));
 
             }
 
@@ -653,17 +811,29 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
                ostates.push_back(state);
                state.clear();
 
+               qo.push_back(Quantum(1,1));
+
                //down down
                state = istate;
                state.push_crea_down(j);
                ostates.push_back(state);
                state.clear();
 
+               qo.push_back(Quantum(0,2));
+
             }
 
             istate.clear();
 
          }
+
+         //get merged row
+         get_merged_index(-qi,q_merged,ind_merged,inverse);
+         merged_row.push_back(inverse);
+
+         //get merged column
+         get_merged_index(qo,q_merged,ind_merged,inverse);
+         merged_col.push_back(inverse);
 
          //incoming pairs
          int row = 0;
@@ -1203,14 +1373,30 @@ ostream &operator<<(ostream &output,const T2_2_mpo &list_p){
       output << "element t(" << i << "," << j << ";" << a << "," << b << ")" << std::endl;
       output << std::endl;
 
+      std::vector<int> br;
+      std::vector<int> bc;
+
       for(int ind = 0;ind < list_p.list[s].size();++ind){
 
-         output << list_p.list[s][ind][0] << "\t(" << list_p.list[s][ind][1] << "," << list_p.list[s][ind][2] << "," << list_p.list[s][ind][3] << 
+         int site = list_p.list[s][ind][0];
+         int r = list_p.list[s][ind][1];
+         int pi = list_p.list[s][ind][2];
+         int po = list_p.list[s][ind][3];
+         int c = list_p.list[s][ind][4];
+         int sign = list_p.list[s][ind][5];
 
-            "," << list_p.list[s][ind][4] << ")\tsign = " << list_p.list[s][ind][5] << std::endl;
+         br = list_p.merged_row[site][r];
+         bc = list_p.merged_col[site][c];
 
-      }
+         output << site << "\tunmerged index: (" << r << "," << pi << "," << po << "," << c << ")\t" << 
 
+            "merged block:\t(" << br[0] << "," << pi << "," << po << "," << bc[0] << ")\t" << 
+
+            "merged block index:\t(" << br[1] << "," << 0 << "," << 0 << "," << bc[1] << ")" << 
+
+            "\tsign = " << sign << std::endl;
+
+      } 
    }
 
    return output;
@@ -1221,7 +1407,7 @@ ostream &operator<<(ostream &output,const T2_2_mpo &list_p){
  * get the sum of the elements from input MPO corresponding to the t2 element t(i,j,a,b).
  */
 template <class Q>
-double T2_2_mpo::get(const MPO<Q> &grad,int i,int j,int a,int b) const{
+double T2_2_mpo::get(const MPO<Q> &grad,int i,int j,int a,int b,bool merged) const{
 
    int o = ij2o[i][j];
    int vi = ab2v[a][b];
@@ -1375,4 +1561,4 @@ void T2_2_mpo::push_single_out_complement(int site,const Ostate &in,int row,cons
 
 }
 
-template double T2_2_mpo::get(const MPO<Quantum> &,int,int,int,int) const;
+template double T2_2_mpo::get(const MPO<Quantum> &,int,int,int,int,bool) const;

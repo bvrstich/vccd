@@ -49,7 +49,7 @@ class T2_2_mpo {
       void push_double_complement(int,const Ostate &,int,const Ostate &,int);
 
       template<class Q>
-         double get(const MPO<Q> &,int,int,int,int) const;
+         double get(const MPO<Q> &,int,int,int,int,bool) const;
 
    private:
 
@@ -66,6 +66,9 @@ class T2_2_mpo {
 
       int no;
       int nv;
+
+      std::vector< std::vector< std::vector<int> > > merged_row;
+      std::vector< std::vector< std::vector<int> > > merged_col;
 
 };
 

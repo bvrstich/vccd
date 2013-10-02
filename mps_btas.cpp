@@ -68,11 +68,23 @@ int main(void){
 
    //read in the mp2 guess
    DArray<4> t(no,no,nv,nv);
+/*
+   for(int i = 0;i < no;++i)
+      for(int j = 0;j < no;++j)
+         for(int a = 0;a < nv;++a)
+            for(int b = 0;b < nv;++b){
 
+               double value = rgen();
+
+               t(i,j,a,b) = value;
+               t(j,i,b,a) = value;
+
+            }
+*/
    std::ifstream fin("input/Be/cc-pVDZ/mp2.in");
    boost::archive::binary_iarchive iar(fin);
    iar >> t;
-
+   
    vccd::conjugate_gradient(t,qc,hf,cutoff);
 
    return 0;

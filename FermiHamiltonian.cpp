@@ -5258,6 +5258,79 @@ void fill_mp2(DArray<4> &T,const DArray<4> &V,const std::vector<double> &e){
 
 }
 
+/**
+ * given a list with all one-dimensional unmerged quantumnumbers q_in, return unique quantumnumbers in q_merged
+ */
+template<class Q>
+void get_merged_index(const Qshapes<Q> &q_in,Qshapes<Q> &q_merged,std::vector< std::vector<int> > &ind_merged,std::vector< std::vector<int> > &inverse){
+
+   q_merged.clear();
+   ind_merged.clear();
+   inverse.clear();
+
+   inverse.resize(q_in.size());
+
+   for(int i = 0;i < q_in.size();++i)
+      inverse[i].resize(2);
+
+   std::vector<int> v;
+
+   q_merged.push_back(q_in[0]);
+
+   v.push_back(0);
+   ind_merged.push_back(v);
+
+   v.clear();
+   
+   //row -> block and index
+   inverse[0][0] = 0;//block = 0
+   inverse[0][1] = 0;//index = 0
+
+   for(int row = 1;row < q_in.size();++row){
+
+      int block = is_in(q_in[row],q_merged);
+
+      if(block == -1){//new quantumnumber
+
+         q_merged.push_back(q_in[row]);
+
+         v.push_back(row);
+         ind_merged.push_back(v);
+
+         v.clear();
+
+         //row -> block and index
+         inverse[row][0] = q_merged.size() - 1;//block = size of merged list
+         inverse[row][1] = 0;//index = 0
+
+      }
+      else{//quantumnumber present in block
+
+         ind_merged[block].push_back(row);
+
+         inverse[row][0] = block;
+         inverse[row][1] = ind_merged[block].size() - 1;
+
+      }
+
+   }
+
+}
+
+/**
+ * if Quantumnumber qn is in the list, return the index of that quantumnumber in the list, if not, return -1
+ */
+template<class Q>
+int is_in(const Q &qn,const Qshapes<Q> &qlist){
+
+   for(int i = 0;i < qlist.size();++i)
+      if(qn == qlist[i])
+         return i;
+
+   return -1;
+
+}
+
 template void physical<Quantum>(Qshapes<Quantum> &);
 template MPO<Quantum> E(int,int,int,double);
 template MPO<Quantum> E(int,int,int,int,int,double);
@@ -5279,3 +5352,5 @@ template MPO<Quantum> anni_up_anni_up(int L,int i,int j,double val);
 template MPO<Quantum> anni_down_anni_up(int L,int i,int j,double val);
 template MPO<Quantum> anni_up_anni_down(int L,int i,int j,double val);
 template MPO<Quantum> anni_down_anni_down(int L,int i,int j,double val);
+template void get_merged_index(const Qshapes<Quantum> &,Qshapes<Quantum> &,std::vector< std::vector<int> > &,std::vector< std::vector<int> > &);
+template int is_in(const Quantum &qn,const Qshapes<Quantum> &qlist);
