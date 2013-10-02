@@ -124,6 +124,8 @@ double eMPS::norm() const {
  */
 MPS<Quantum> eMPS::expand(const MPS<Quantum> &hf,int rank,int D) const{
 
+   if(rank > 0){
+
    MPS<Quantum> sum = (*this)[0];
 
    //now sum all the terms together:
@@ -138,6 +140,10 @@ MPS<Quantum> eMPS::expand(const MPS<Quantum> &hf,int rank,int D) const{
    axpy(1.0,hf,sum);
 
    return sum;
+
+   }
+   else
+      return hf;
 
 }
 
@@ -314,6 +320,36 @@ void eMPS::print_dim(int order_in){
       cout << (*this)[order_in][i].qshape() << endl;
       cout << (*this)[order_in][i].dshape() << endl;
       cout << endl;
+
+   }
+
+}
+
+/**
+ * print the dimensions of the mps of order order_in
+ * @param order_in input order
+ */
+void eMPS::print_tot_dim(int order_in){
+
+   for(int i = 0;i < (*this)[order_in].size();++i){
+
+      cout << i << "\t";
+
+      //row dim
+      int tmp = 0;
+
+      for(int j = 0;j < (*this)[order_in][i].dshape(0).size();++j)
+         tmp += (*this)[order_in][i].dshape(0)[j];
+
+      cout << tmp << "\t";
+
+      //col dim
+      tmp = 0;
+
+      for(int j = 0;j < (*this)[order_in][i].dshape(2).size();++j)
+         tmp += (*this)[order_in][i].dshape(2)[j];
+
+      cout << tmp << endl;
 
    }
 

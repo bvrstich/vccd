@@ -61,31 +61,20 @@ int main(void){
    cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
 
    //the cutoff vector for the exponential
-   std::vector<int> cutoff(no);
+   std::vector<int> cutoff(1);
 
-   for(int i = 0;i < no;++i)
-      cutoff[i] = 0;
+   cutoff[0] = 30;
+   //cutoff[1] = 10;
 
    //read in the mp2 guess
    DArray<4> t(no,no,nv,nv);
-/*
-   for(int i = 0;i < no;++i)
-      for(int j = 0;j < no;++j)
-         for(int a = 0;a < nv;++a)
-            for(int b = 0;b < nv;++b){
 
-               double value = rgen();
-
-               t(i,j,a,b) = value;
-               t(j,i,b,a) = value;
-
-            }
-*/
    std::ifstream fin("input/Be/cc-pVDZ/mp2.in");
    boost::archive::binary_iarchive iar(fin);
    iar >> t;
    
-   vccd::conjugate_gradient(t,qc,hf,cutoff);
+   //vccd::conjugate_gradient(t,qc,hf,cutoff);
+   vccd::steepest_descent(t,qc,hf,cutoff);
 
    return 0;
 

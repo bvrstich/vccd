@@ -1419,25 +1419,58 @@ double T2_2_mpo::get(const MPO<Q> &grad,int i,int j,int a,int b,bool merged) con
    IVector<4> ind;
    QSDArray<4>::const_iterator it;
 
-   double sum = 0.0;
+   if(merged){
 
-   for(int n = 0;n < list[s].size();++n){
+      std::vector<int> br;
+      std::vector<int> bc;
 
-      v = list[s][n];
+      double sum = 0.0;
 
-      ind[0] = v[1];
-      ind[1] = v[2];
-      ind[2] = v[3];
-      ind[3] = v[4];
+      for(int n = 0;n < list[s].size();++n){
 
-      it = grad[v[0]].find(ind);
+         v = list[s][n];
 
-      if(it != grad[v[0]].end())//if the block exists!
-         sum += (*it->second).at(0,0,0,0) * v[5];
+         br = merged_row[v[0]][v[1]];
+         bc = merged_col[v[0]][v[4]];
+
+         ind[0] = br[0];
+         ind[1] = v[2];
+         ind[2] = v[3];
+         ind[3] = bc[0];
+
+         it = grad[v[0]].find(ind);
+
+         if(it != grad[v[0]].end())//if the block exists!
+            sum += (*it->second).at(br[1],0,0,bc[1]) * v[5];
+
+      }
+
+      return sum;
 
    }
+   else{
 
-   return sum;
+      double sum = 0.0;
+
+      for(int n = 0;n < list[s].size();++n){
+
+         v = list[s][n];
+
+         ind[0] = v[1];
+         ind[1] = v[2];
+         ind[2] = v[3];
+         ind[3] = v[4];
+
+         it = grad[v[0]].find(ind);
+
+         if(it != grad[v[0]].end())//if the block exists!
+            sum += (*it->second).at(0,0,0,0) * v[5];
+
+      }
+
+      return sum;
+
+   }
 
 }
 

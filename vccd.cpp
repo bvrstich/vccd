@@ -99,7 +99,7 @@ namespace vccd {
          double d = a + b - c;
          double fd;
 
-         while(b - a > 1.0e-7){
+         while(b - a > 1.0e-10){
 
             fd = ls::eval(Emat,Nmat,d);
 
@@ -160,8 +160,12 @@ namespace vccd {
 
          eMPS emps(T,hf,cutoff);
 
-         MPS<Q> wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
-         MPS<Q> tccd = emps.expand(hf,1,cutoff[0]);
+         MPS<Q> wccd = emps.expand(hf,cutoff.size(),0);
+         MPS<Q> tccd = emps.expand(hf,cutoff.size() - 1,0);
+
+         cout << endl;
+         emps.print_tot_dim(0);
+         cout << endl;
 
          //get the norm right
          double nrm = mpsxx::nrm2(wccd);
@@ -177,7 +181,7 @@ namespace vccd {
 
          T2_2_mpo list(no,nv);
 
-         gradient(t,qc,E/N,tccd,wccd,list,grad,false);
+         gradient(t,qc,E/N,tccd,wccd,list,grad,true);
 
          T = T2<Q>(grad,false);
          compress(T,mpsxx::Right,0);
@@ -187,7 +191,14 @@ namespace vccd {
 
          double convergence = 1.0;
 
-         while(convergence > 1.0e-5){
+         int iter = 0;
+
+         ofstream out("sd.out");
+         out.precision(10);
+
+         while(convergence > 1.0e-10){
+
+            ++iter;
 
             Daxpy(step,grad,t);
 
@@ -199,8 +210,12 @@ namespace vccd {
             emps.update(T,hf);
 
             //get the wavefunction out
-            wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
-            tccd = emps.expand(hf,1,cutoff[0]);
+            wccd = emps.expand(hf,cutoff.size(),0);
+            tccd = emps.expand(hf,cutoff.size() - 1,0);
+
+            cout << endl;
+            emps.print_tot_dim(0);
+            cout << endl;
 
             //get the norm right
             double nrm = mpsxx::nrm2(wccd);
@@ -210,13 +225,15 @@ namespace vccd {
 
             normalize(wccd);
 
-            convergence = Ddot(grad,grad);
+            convergence = Ddot(grad,grad) * step * step;
+
             E = emps.eval(qc,hf);
             N = emps.norm();
 
-            cout << convergence << "\t" << E/N << endl;
+            cout << iter << "\t" << convergence << "\t" << E/N << endl;
+            out << iter << "\t" << convergence << "\t" << E/N << endl;
 
-            gradient(t,qc,E/N,tccd,wccd,list,grad,false);
+            gradient(t,qc,E/N,tccd,wccd,list,grad,true);
 
             T = T2<Q>(grad,false);
             compress(T,mpsxx::Right,0);
@@ -251,8 +268,12 @@ namespace vccd {
          double N = emps.norm();
          cout << E/N << endl;
 
-         MPS<Q> wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
-         MPS<Q> tccd = emps.expand(hf,1,cutoff[0]);
+         cout << endl;
+         emps.print_tot_dim(0);
+         cout << endl;
+
+         MPS<Q> wccd = emps.expand(hf,cutoff.size(),0);
+         MPS<Q> tccd = emps.expand(hf,cutoff.size() - 1,0);
 
          //get the norm right
          double nrm = mpsxx::nrm2(wccd);
@@ -265,7 +286,7 @@ namespace vccd {
 
          T2_2_mpo list(no,nv);
 
-         gradient(t,qc,E/N,tccd,wccd,list,grad_1,false);
+         gradient(t,qc,E/N,tccd,wccd,list,grad_1,true);
 
          T = T2<Q>(grad_1,false);
          compress(T,mpsxx::Right,0);
@@ -303,13 +324,17 @@ namespace vccd {
             //set new T
             emps.update(T,hf);
 
+            cout << endl;
+            emps.print_tot_dim(0);
+            cout << endl;
+
             E = emps.eval(qc,hf);
             N = emps.norm();
             cout << iter << "\t" << convergence << "\t" << E/N << endl;
 
             //get the wavefunction out
-            wccd = emps.expand(hf,cutoff.size(),cutoff[0]);
-            tccd = emps.expand(hf,1,cutoff[0]);
+            wccd = emps.expand(hf,cutoff.size(),0);
+            tccd = emps.expand(hf,cutoff.size() - 1,0);
 
             //get the norm right
             double nrm = mpsxx::nrm2(wccd);
@@ -321,7 +346,7 @@ namespace vccd {
             grad_0 = grad_1;
 
             //calculate the gradient for the new T
-            gradient(t,qc,E/N,tccd,wccd,list,grad_1,false);
+            gradient(t,qc,E/N,tccd,wccd,list,grad_1,true);
 
             rnorm_1 = Ddot(grad_1,grad_1);
 

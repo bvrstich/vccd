@@ -50,6 +50,8 @@ class eMPS : public std::vector< MPS<Quantum> > {
 
       void print_dim(int);
 
+      void print_tot_dim(int);
+
    private:
 
       //!the order of all the elements
