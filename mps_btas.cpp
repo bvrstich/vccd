@@ -63,7 +63,7 @@ int main(void){
    //the cutoff vector for the exponential
    std::vector<int> cutoff(1);
 
-   cutoff[0] = 10;
+   cutoff[0] = 20;
    //cutoff[1] = 10;
 
    //read in the mp2 guess
@@ -72,9 +72,9 @@ int main(void){
    std::ifstream fin("input/Be/cc-pVDZ/mp2.in");
    boost::archive::binary_iarchive iar(fin);
    iar >> t;
-   
-   //vccd::conjugate_gradient(t,qc,hf,cutoff);
-   vccd::steepest_descent(t,qc,hf,cutoff);
+
+   vccd::conjugate_gradient(t,qc,hf,cutoff);
+   //vccd::steepest_descent(t,qc,hf,cutoff);
 
    return 0;
 

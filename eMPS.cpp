@@ -24,13 +24,13 @@ eMPS::eMPS(const MPO<Quantum> &T,const MPS<Quantum> &hf,const std::vector<int> &
    //form the list of contributing (*this)s in the expansion
    (*this)[0] = T*hf;
 
-   compress((*this)[0],mpsxx::Left,cutoff[0]);
+   compress((*this)[0],mpsxx::Left,0);
    compress((*this)[0],mpsxx::Right,cutoff[0]);
 
    for(int i = 1;i < cutoff.size();++i){
 
       (*this)[i] = T* (*this)[i - 1];
-      compress((*this)[i],mpsxx::Left,cutoff[i]);
+      compress((*this)[i],mpsxx::Left,0);
       compress((*this)[i],mpsxx::Right,cutoff[i]);
       scal(1.0/(i + 1.0),(*this)[i]);
 
@@ -155,13 +155,13 @@ void eMPS::update(const MPO<Quantum> &T,const MPS<Quantum> &hf){
    //form the list of contributing (*this)s in the expansion
    (*this)[0] = T*hf;
 
-   compress((*this)[0],mpsxx::Left,cutoff[0]);
+   compress((*this)[0],mpsxx::Left,0);
    compress((*this)[0],mpsxx::Right,cutoff[0]);
 
    for(int i = 1;i < cutoff.size();++i){
 
       (*this)[i] = T*(*this)[i - 1];
-      compress((*this)[i],mpsxx::Left,cutoff[i]);
+      compress((*this)[i],mpsxx::Left,0);
       compress((*this)[i],mpsxx::Right,cutoff[i]);
       scal(1.0/(i + 1.0),(*this)[i]);
 
@@ -181,14 +181,14 @@ void eMPS::mult_exc(const MPO<Quantum> &O,const MPS<Quantum> &hf){
 
          (*this)[i] = O * (*this)[i - 1];
 
-         compress((*this)[i],mpsxx::Left,cutoff[i]);
+         compress((*this)[i],mpsxx::Left,0);
          compress((*this)[i],mpsxx::Right,cutoff[i]);
 
       }
 
       (*this)[0] = O*hf;
 
-      compress((*this)[0],mpsxx::Left,cutoff[0]);
+      compress((*this)[0],mpsxx::Left,0);
       compress((*this)[0],mpsxx::Right,cutoff[0]);
 
    }
@@ -198,7 +198,7 @@ void eMPS::mult_exc(const MPO<Quantum> &O,const MPS<Quantum> &hf){
 
          (*this)[i] = O * (*this)[i - 1];
 
-         compress((*this)[i],mpsxx::Left,cutoff[order[i] - 1]);
+         compress((*this)[i],mpsxx::Left,0);
          compress((*this)[i],mpsxx::Right,cutoff[order[i] - 1]);
 
       }
