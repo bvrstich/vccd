@@ -28,11 +28,11 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 10;
+   int L = 14;
 
    //number of particles
-   int n_u = 5;
-   int n_d = 5;
+   int n_u = 2;
+   int n_d = 2;
 
    int no = n_u;
    int nv = L - no;
@@ -41,7 +41,7 @@ int main(void){
 
    Qshapes<Quantum> qp;
    physical(qp);
-/*
+
    //make the HF state
    std::vector<int> occ(L);
 
@@ -75,60 +75,6 @@ int main(void){
 
    vccd::conjugate_gradient(t,qc,hf,cutoff);
    //vccd::steepest_descent(t,qc,hf,cutoff);
-*/
-   DArray<2> t(L,L);
-
-   for(int i = 0;i < L;++i)
-      for(int j = i;j < L;++j){
-
-         double value = rgen();
-
-         t(i,j) = value;
-         t(j,i) = value;
-
-      }
-
-   DArray<4> V(L,L,L,L);
-
-   for(int i = 0;i < L;++i)
-      for(int j = 0;j < L;++j)
-         for(int k = 0;k < L;++k)
-            for(int l = 0;l < L;++l){
-
-               double value = rgen();
-
-               V(i,j,k,l) = value;
-               V(j,i,l,k) = value;
-               V(k,j,i,l) = value;
-               V(j,k,l,i) = value;
-               V(i,l,k,j) = value;
-               V(l,i,j,k) = value;
-               V(k,l,i,j) = value;
-               V(l,k,j,i) = value;
-
-            }
-
-   MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,20,rgen);
-
-   compress(A,mpsxx::Left,0);
-   compress(A,mpsxx::Right,0);
-
-   normalize(A);
-
-   MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,20,rgen);
-
-   compress(B,mpsxx::Left,0);
-   compress(B,mpsxx::Right,0);
-
-   normalize(B);
-
-   MPO<Quantum> qc = qcham<Quantum>(t,V,false);
-
-   compress(qc,mpsxx::Left,0);
-   compress(qc,mpsxx::Right,0);
-
-   cout << inprod(mpsxx::Left,A,qc,B) << endl;
-   cout << inprod(mpsxx::Left,B,qc,A) << endl;
 
    return 0;
 
