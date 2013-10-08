@@ -198,9 +198,624 @@ bool Ostate::is_pair() const {
 }
 
 /**
+ * get the correct V value to transfer the incoming pair to an outgoing pair state
+ */
+int Ostate::transfer_pair_in_pair_out(const Ostate &in,const Ostate &out,const DArray<4> &V,double &Veff){
+
+   //lets call in (i,j)
+   int i = oplist[in[1]][0];
+   int j = oplist[in[0]][0];
+
+   int si = oplist[in[1]][1];
+   int sj = oplist[in[0]][1];
+
+   int ai = oplist[in[1]][2];
+   int aj = oplist[in[0]][2];
+
+   //out (k,l)
+   int k = oplist[out[0]][0];
+   int sk = oplist[out[0]][1];
+   int ak = oplist[out[0]][2];
+
+   int l = oplist[out[1]][0];
+   int sl = oplist[out[1]][1];
+   int al = oplist[out[1]][2];
+
+   if(si == 0 && ai == 0){//first site create up spin
+
+      if(sj == 0 && aj == 0){//second site create up spin
+
+         if(sl == 0 && al == 1){//only coupling if annihilator with spin  up
+
+            if(sk == 0 && ak == 1){
+
+               Veff = V(i,j,k,l) - V(i,j,l,k);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else
+            return 0;
+
+      }
+      else if(sj == 0 && aj == 1){//second site annihilate up spin
+
+         if(sl == 0 && al == 0){
+
+            if(sk == 0 && ak == 1){
+
+               Veff = V(i,l,j,k) - V(i,l,k,j);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else if(sl == 0 && al == 1){
+
+            if(sk == 0 && ak == 0){
+
+               Veff = V(i,k,j,l) - V(i,k,l,j);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else if(sl == 1 && al == 0){//create down
+
+            if(sk == 1 && ak == 1){
+
+               Veff = V(i,l,j,k);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else if(sl == 1 && al == 1){//annihilate down
+
+            if(sk == 1 && ak == 0){
+
+               Veff = V(i,k,j,l);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+
+      }
+      else if(sj == 1 && aj == 0){//second site create down spin
+
+         if(al == 0)//impossible
+            return 0;
+         else{
+
+            if(sl == 0){//anni up
+
+               if(sk == 1 && ak == 1){
+
+                  Veff = -V(i,j,l,k);
+
+                  return 1;
+
+               }
+               else
+                  return 0;
+
+            }
+            else{//anni down
+
+               if(sk == 0 && ak == 1){
+
+                  Veff = V(i,j,k,l);
+
+                  return 1;
+
+               }
+               else
+                  return 0;
+
+            }
+
+         }
+
+      }
+      else{//second site anni down spin
+
+         if(al == 0 && sl == 1){//out is crea down
+
+            if(sk == 0 && ak == 1){
+
+               Veff = -V(i,l,k,j);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else if(al == 1 && sl == 0){//out is anni up
+
+            if(sk == 1 && ak == 0){
+
+               Veff = -V(i,k,l,j);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else
+            return 0;
+
+      }
+
+   }//end first site
+   else if(si == 1 && ai == 0){//first site create down spin
+
+      if(sj == 0 && aj == 0){//second site create up spin
+
+         if(al == 1){//only coupling if annihilator 
+
+            if(sl == 0){//if spin up
+
+               if(sk == 1 && ak == 1){
+
+                  Veff = V(i,j,k,l);
+
+                  return 1;
+
+               }
+               else 
+                  return 0;
+
+            }
+            else{//if spin down output
+
+               if(sk == 0 && ak == 1){
+
+                  Veff = -V(i,j,l,k);
+
+                  return 1;
+
+               }
+               else
+                  return 0;
+
+            }
+
+         }
+         else
+            return 0;
+
+      }
+      else if(sj == 0 && aj == 1){//second site annihilate up spin
+
+         if(sl == 0 && al == 0){//out create up spin
+
+            if(sk == 1 && ak == 1){
+
+               Veff = -V(l,i,j,k);
+
+               return 1;
+
+            }
+            else 
+               return 0;
+
+         }
+         else if(sl == 1 && al == 1){
+
+            if(sk == 0 && ak == 0){
+
+               Veff = -V(k,i,j,l);
+
+               return 1;
+
+            }
+            else return 0;
+
+         }
+         else
+            return 0;
+
+      }
+      else if(sj == 1 && aj == 0){//second site create down spin
+
+         if(al == 1 && sl == 1){//only possibility
+
+            if(sk == 1 && ak == 1){
+
+               Veff = V(i,j,k,l) - V(i,j,l,k);
+
+               return 1;
+
+            }
+            else 
+               return 0;
+
+         }
+         else
+            return 0;
+
+      }
+      else{//second site anni down spin
+
+         if(al == 1 && sl == 1){
+
+            if(sk == 1 && ak == 0){
+
+               Veff = V(i,k,j,l) - V(i,k,l,j);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else if(al == 0 && sl == 1){
+
+            if(sk == 1 && ak == 1){
+
+               Veff = V(i,l,j,k) - V(i,l,k,j);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else if(al == 1 && sl == 0){//anni up
+
+            if(sk == 0 && ak == 0){
+
+               Veff = V(k,i,l,j);
+
+               return 1;
+
+            }
+            else 
+               return 0;
+
+         }
+         else{//crea up
+
+            if(sk == 0 && ak == 1){
+
+               Veff = V(l,i,k,j);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+
+      }
+
+   }//end first site
+   else if(si == 0 && ai == 1){//first site anni up spin
+
+      if(sj == 0 && aj == 0){//second site create up spin
+
+         if(al == 1 && sl == 0){//out anni up spin
+
+            if(sk == 0 && ak == 0){
+
+               Veff = V(j,k,i,l) - V(j,k,l,i);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else if(al == 0 && sl == 0){//out crea up spin
+
+            if(sk == 0 && ak == 1){
+
+               Veff = V(j,l,i,k) - V(j,l,k,i);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else if(al == 1 && sl == 1){//anni down
+
+            if(sk == 1 && ak == 0){
+
+               Veff = V(j,k,i,l);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else{//crea down
+
+            if(sk == 1 && ak == 1){
+
+               Veff = V(j,l,i,k);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+
+      }
+      else if(sj == 0 && aj == 1){//second site annihilate up spin
+
+         if(sl == 0 && al == 0){//only possibility
+
+            if(sk == 0 && ak == 0){
+
+               Veff = V(k,l,i,j) - V(k,l,j,i);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else
+            return 0;
+
+      }
+      else if(sj == 1 && aj == 0){//second site create down spin
+
+         if(al == 0 && sl == 0){
+
+            if(sk == 1 && ak == 1){
+
+               Veff = -V(l,j,i,k);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else if(al == 1 && sl == 1){
+
+            if(sk == 0 && ak == 0){
+
+               Veff = -V(k,j,i,l);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else
+            return 0;
+
+
+      }
+      else{//second site anni down spin
+
+         if(al == 0){
+
+            if(sl == 0){
+
+               if(sk == 1 && ak == 0){
+
+                  Veff = -V(i,j,l,k);
+
+                  return 1;
+
+               }
+               else 
+                  return 0;
+
+            }
+            else{
+
+               if(sk == 0 && ak == 0){
+
+                  Veff = V(i,j,k,l);
+
+                  return 1;
+
+               }
+               else 
+                  return 0;
+
+            }
+
+         }
+         else
+            return 0;
+
+      }
+
+   }
+   else{//first site anni down spin
+
+      if(sj == 0 && aj == 0){//second site create up spin
+
+         if(al == 0 && sl == 1){//out crea down spin
+
+            if(sk == 0 && ak == 1){
+
+               Veff = -V(j,l,k,i);
+
+               return 1;
+
+            }
+            else 
+               return 0;
+
+         }
+         else if(al == 1 && sl == 0){//out anni up spin
+
+            if(sk == 1 && ak == 0){
+
+               Veff = -V(j,k,l,i);
+
+               return 1;
+
+            }
+            else 
+               return 0;
+
+         }
+         else
+            return 0;
+
+      }
+      else if(sj == 0 && aj == 1){//second site annihilate up spin
+
+         if(al == 0){//only creators
+
+            if(sl == 0){
+
+               if(sk == 1 && ak == 0){
+
+                  Veff = V(i,j,k,l);
+
+                  return 1;
+
+               }
+               else
+                  return 0;
+
+            }
+            else{
+
+               if(sk == 0 && ak == 0){
+
+                  Veff = -V(i,j,l,k);
+
+                  return 1;
+
+               }
+               else
+                  return 0;
+
+            }
+
+         }
+         else
+            return 0;
+
+      }
+      else if(sj == 1 && aj == 0){//second site create down spin
+
+         if(al == 0 && sl == 1){
+
+            if(sk == 1 && sk == 1){
+
+               Veff = V(j,l,i,k) - V(j,l,k,i);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else if(al == 1 && sl == 1){
+
+            if(sk == 1 && ak == 0){
+
+               Veff = V(j,k,i,l) - V(j,k,l,i);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else if(al == 0 && sl == 0){//out is create up
+
+            if(sk == 0 && ak == 1){
+
+               Veff = V(i,k,j,l);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else{//out is anni up
+
+            if(sk == 0 && ak == 0){
+
+               Veff = V(k,j,l,i);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+
+      }
+      else{//second site anni down spin
+
+         if(al == 0 && sl == 1){
+
+            if(sk == 1 && ak == 0){
+
+               Veff = V(k,l,i,j) - V(k,l,j,i);
+
+               return 1;
+
+            }
+            else
+               return 0;
+
+         }
+         else
+            return 0;
+
+      }
+
+   }
+
+}
+
+/**
  * get the complementary operator between in and out, when a pair is coming and one is going out and give the correct sign to rearrange to normal order
  */
-std::vector<int> Ostate::get_single_complement(int site,const Ostate &in,const Ostate &out,const DArray<4> &V,double &Veff){
+std::vector<int> Ostate::get_single_complement_in(int site,const Ostate &in,const Ostate &out,const DArray<4> &V,double &Veff){
 
    //lets call in i,j and out l
    int i = oplist[in[1]][0];
@@ -222,7 +837,7 @@ std::vector<int> Ostate::get_single_complement(int site,const Ostate &in,const O
 
       if(sj == 0 && aj == 0){//second site create up spin
 
-         if(sl == 0 || al == 1){//only coupling if annihilator with spin  up
+         if(sl == 0 && al == 1){//only coupling if annihilator with spin  up
 
             comp.resize(2);
             comp[0] = 0;
@@ -375,7 +990,7 @@ std::vector<int> Ostate::get_single_complement(int site,const Ostate &in,const O
          if(al == 1){//only coupling if annihilator 
 
             if(sl == 0){//if spin up
-               
+
                comp.resize(2);
                comp[0] = 1;
                comp[1] = 1;
@@ -516,7 +1131,7 @@ std::vector<int> Ostate::get_single_complement(int site,const Ostate &in,const O
 
    }//end first site
    else if(si == 0 && ai == 1){//first site anni up spin
- 
+
       if(sj == 0 && aj == 0){//second site create up spin
 
          if(al == 1 && sl == 0){//out anni up spin
@@ -801,6 +1416,609 @@ std::vector<int> Ostate::get_single_complement(int site,const Ostate &in,const O
 }
 
 /**
+ * get the complementary operator between in and out, when a pair is going out and a signle is coming in and give the correct sign to rearrange to normal order
+ */
+std::vector<int> Ostate::get_single_complement_out(int site,const Ostate &in,const Ostate &out,const DArray<4> &V,double &Veff){
+
+   //lets call in i,j and out l
+   int k = oplist[out[0]][0];
+   int l = oplist[out[1]][0];
+
+   int sk = oplist[out[0]][1];
+   int sl = oplist[out[1]][1];
+
+   int ak = oplist[out[0]][2];
+   int al = oplist[out[1]][2];
+
+   int j = oplist[in[0]][0];
+   int sj = oplist[in[0]][1];
+   int aj = oplist[in[0]][2];
+
+   vector<int> comp;
+
+   if(sk == 0 && ak == 0){//first site create up spin
+
+      if(sl == 0 && al == 0){//second site create up spin
+
+         if(sj == 0 && aj == 1){//only coupling if annihilator with spin  up
+
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 1;
+
+            Veff = V(k,l,site,j) - V(k,l,j,site);
+
+            return comp;
+
+         }
+         else{
+
+            Veff = 0.0;
+            return comp;
+
+         }
+
+      }
+      else if(sl == 0 && al == 1){//second site annihilate up spin
+
+         if(sj == 0 && aj == 0){
+
+            //put in anni up
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 1;
+
+            Veff = V(k,j,l,site) - V(k,j,site,l);
+
+            return comp;
+
+         }
+         else if(sj == 0 && aj == 1){
+
+            //put in crea up
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 0;
+
+            Veff = V(k,site,l,j) - V(k,site,j,l);
+
+            return comp;
+
+         }
+         else if(sj == 1 && aj == 0){//create down
+
+            //put in anni down
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 1;
+
+            Veff = V(k,j,l,site);
+
+            return comp;
+
+         }
+         else if(sj == 1 && aj == 1){//annihilate down
+
+            //put in crea down
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 0;
+
+            Veff = V(k,site,l,j);
+
+            return comp;
+
+         }
+
+      }
+      else if(sl == 1 && al == 0){//second site create down spin
+
+         if(aj == 0){//impossible
+
+            Veff = 0.0;
+            return comp;
+
+         }
+         else{
+
+            if(sj == 0){//anni up
+
+               //put in anni down
+               comp.resize(2);
+               comp[0] = 1;
+               comp[1] = 1;
+
+               Veff = -V(k,l,j,site);
+
+               return comp;
+
+            }
+            else{//anni down
+
+               //put in anni up
+               comp.resize(2);
+               comp[0] = 0;
+               comp[1] = 1;
+
+               Veff = V(k,l,site,j);
+
+               return comp;
+
+            }
+
+         }
+
+      }
+      else{//second site anni down spin
+
+         if(aj == 0 && sj == 1){//out ks crea down
+
+            //put in anni up
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 1;
+
+            Veff = -V(k,j,site,l);
+
+            return comp;
+
+
+         }
+         else if(aj == 1 && sj == 0){//out ks anni up
+
+            //put in crea down
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 0;
+
+            Veff = -V(k,site,j,l);
+
+            return comp;
+
+         }
+         else{
+
+            Veff = 0.0;
+            return comp;
+
+         }
+
+      }
+
+   }//end first site
+   else if(sk == 1 && ak == 0){//first site create down spin
+
+      if(sl == 0 && al == 0){//second site create up spin
+
+         if(aj == 1){//oniy coupikng if annihkiator 
+
+            if(sj == 0){//if spin up
+
+               comp.resize(2);
+               comp[0] = 1;
+               comp[1] = 1;
+
+               Veff = V(k,l,site,j);
+
+               return comp;
+
+            }
+            else{//if spin down output
+
+               comp.resize(2);
+
+               comp[0] = 0;
+               comp[1] = 1;
+
+               Veff = -V(k,l,j,site);
+
+               return comp;
+
+            }
+
+         }
+         else{
+
+            Veff = 0.0;
+            return comp;
+
+         }
+
+      }
+      else if(sl == 0 && al == 1){//second site annihkiate up spin
+
+         if(sj == 0 && aj == 0){//out create up spin
+
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 1;
+
+            Veff = -V(j,k,l,site);
+
+            return comp;
+
+         }
+         else if(sj == 1 && aj == 1){
+
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 0;
+
+            Veff = -V(site,k,l,j);
+
+            return comp;
+
+         }
+         else{
+
+            Veff = 0.0;
+            return comp;
+
+         }
+
+      }
+      else if(sl == 1 && al == 0){//second site create down spin
+
+         if(aj == 1 && sj == 1){//oniy posskbkikty
+
+            //put in anni down
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 1;
+
+            Veff = V(k,l,site,j) - V(k,l,j,site);
+
+            return comp;
+
+         }
+         else{
+
+            Veff = 0.0;
+            return comp;
+
+         }
+
+      }
+      else{//second site anni down spin
+
+         if(aj == 1 && sj == 1){
+
+            //put in crea down
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 0;
+
+            Veff = V(k,site,l,j) - V(k,site,j,l);
+
+            return comp;
+
+         }
+         else if(aj == 0 && sj == 1){
+
+            //put in anni down
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 1;
+
+            Veff = V(k,j,l,site) - V(k,j,site,l);
+
+            return comp;
+
+         }
+         else if(aj == 1 && sj == 0){//anni up
+
+            //put in crea up 
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 0;
+
+            Veff = V(site,k,j,l);
+
+            return comp;
+
+         }
+         else if(aj == 0 && sj == 0){//crea up
+
+            //put in anni up 
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 1;
+
+            Veff = V(j,k,site,l);
+
+            return comp;
+
+         }
+
+      }
+
+   }//end first site
+   else if(sk == 0 && ak == 1){//first site anni up spin
+
+      if(sl == 0 && al == 0){//second site create up spin
+
+         if(aj == 1 && sj == 0){//out anni up spin
+
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 0;
+
+            Veff = V(l,site,k,j) - V(l,site,j,k);
+
+            return comp;
+
+         }
+         else if(aj == 0 && sj == 0){//out crea up spin
+
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 1;
+
+            Veff = V(l,j,k,site) - V(l,j,site,k);
+
+            return comp;
+
+         }
+         else if(aj == 1 && sj == 1){//anni down
+
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 0;
+
+            Veff = V(l,site,k,j);
+
+            return comp;
+
+         }
+         else if(aj == 0 && sj == 1){//crea down
+
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 1;
+
+            Veff = V(l,j,k,site);
+
+            return comp;
+
+         }
+
+      }
+      else if(sl == 0 && al == 1){//second site annihkiate up spin
+
+         if(sj == 0 && aj == 0){//oniy posskb
+
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 0;
+
+            Veff = V(site,j,k,l) - V(site,j,l,k);
+
+            return comp;
+
+         }
+         else{
+
+            Veff = 0.0;
+            return comp;
+
+         }
+
+      }
+      else if(sl == 1 && al == 0){//second site create down spin
+
+         if(aj == 0 && sj == 0){
+
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 1;
+
+            Veff = -V(j,l,k,site);
+
+            return comp;
+
+         }
+         else if(aj == 1 && sj == 1){
+
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 0;
+
+            Veff = -V(site,l,k,j);
+
+            return comp;
+
+         }
+         else{
+
+            Veff = 0.0;
+            return comp;
+
+         }
+
+      }
+      else{//second site anni down spin
+
+         if(aj == 0){
+
+            if(sj == 0){
+
+               comp.resize(2);
+               comp[0] = 1;
+               comp[1] = 0;
+
+               Veff = -V(k,l,j,site);
+
+               return comp;
+
+            }
+            else{
+
+               comp.resize(2);
+               comp[0] = 0;
+               comp[1] = 0;
+
+               Veff = V(k,l,site,j);
+
+               return comp;
+
+            }
+
+         }
+         else{
+
+            Veff = 0.0;
+            return comp;
+
+         }
+
+      }
+
+   }
+   else{//first site anni down spin
+
+      if(sl == 0 && al == 0){//second site create up spin
+
+         if(aj == 0 && sj == 1){//out crea down spin
+
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 1;
+
+            Veff = -V(l,j,site,k);
+
+            return comp;
+
+         }
+         else if(aj == 1 && sj == 0){//out anni up spin
+
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 0;
+
+            Veff = -V(l,site,j,k);
+
+            return comp;
+
+         }
+         else{
+
+            Veff = 0.0;
+            return comp;
+
+         }
+
+      }
+      else if(sl == 0 && al == 1){//second site annihkiate up spin
+
+         if(aj == 0){//oniy creators
+
+            if(sj == 0){
+
+               comp.resize(2);
+               comp[0] = 1;
+               comp[1] = 0;
+
+               Veff = V(k,l,site,j);
+
+               return comp;
+
+            }
+            else{
+
+               comp.resize(2);
+               comp[0] = 0;
+               comp[1] = 0;
+
+               Veff = -V(k,l,j,site);
+
+               return comp;
+
+            }
+
+         }
+         else{
+
+            Veff = 0.0;
+            return comp;
+
+         }
+
+      }
+      else if(sl == 1 && al == 0){//second site create down spin
+
+         if(aj == 0 && sj == 1){
+
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 1;
+
+            Veff = V(l,j,k,site) - V(l,j,site,k);
+
+            return comp;
+
+         }
+         else if(aj == 1 && sj == 1){
+
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 0;
+
+            Veff = V(l,site,k,j) - V(l,site,j,k);
+
+            return comp;
+
+         }
+         else if(aj == 0 && sj == 0){//out ks create up
+
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 1;
+
+            Veff = V(k,site,l,j);
+
+            return comp;
+
+         }
+         else{//out is anni up
+
+            comp.resize(2);
+            comp[0] = 0;
+            comp[1] = 0;
+
+            Veff = V(site,l,j,k);
+
+            return comp;
+
+         }
+
+      }
+      else{//second site anni down spin
+
+         if(aj == 0 && sj == 1){
+
+            comp.resize(2);
+            comp[0] = 1;
+            comp[1] = 0;
+
+            Veff = V(site,j,k,l) - V(site,j,l,k);
+
+            return comp;
+
+         }
+         else{
+
+            Veff = 0.0;
+            return comp;
+
+         }
+
+      }
+
+   }
+
+}
+
+/**
  * get the complementary pair operator between in and out, when one operator is coming and one is going out.
  * @return a vector containing the info about which operator is the complement:
  * if vector size is zero, no complement
@@ -960,7 +2178,7 @@ std::vector<int> Ostate::get_double_complement(int site,const Ostate &in,const O
  *                        v[0] = 3 -> a^+_down a_up
  * if vector size is 2: operator is sum of up up and down down:
  */
-std::vector<int> Ostate::get_closing_pair(int site,const Ostate &in,const DArray<4> &V,vector<double> &val){
+std::vector<int> Ostate::get_closing_pair_in(int site,const Ostate &in,const DArray<4> &V,vector<double> &val){
 
    //lets call in i,j
    int i = oplist[in[1]][0];
@@ -1090,6 +2308,156 @@ std::vector<int> Ostate::get_closing_pair(int site,const Ostate &in,const DArray
 
          comp.push_back(1);
          val[0] = -V(site,site,i,j);
+
+         return comp;
+
+      }
+      else 
+         return comp;
+
+   }
+
+}
+
+/**
+ * for an outgoing pair of operators in 'out', get the complement pair that closes the expression down
+ * if vector size is zero, no complement
+ * if vector size is one: v[0] = 0 -> a_down a_up
+ *                        v[0] = 1 -> a^+_up a^+_down
+ *                        v[0] = 2 -> a^+_up a_down
+ *                        v[0] = 3 -> a^+_down a_up
+ * if vector size is 2: operator is sum of up up and down down:
+ */
+std::vector<int> Ostate::get_closing_pair_out(int site,const Ostate &out,const DArray<4> &V,vector<double> &val){
+
+   //lets call in i,j
+   int k = oplist[out[0]][0];
+   int l = oplist[out[1]][0];
+
+   int sk = oplist[out[0]][1];
+   int sl = oplist[out[1]][1];
+
+   int ak = oplist[out[0]][2];
+   int al = oplist[out[1]][2];
+
+   vector<int> comp;
+
+   if(sk == 0 && ak == 0){//create up
+
+      if(sl == 0 && al == 0)//create up
+         return comp;
+      else if(sl == 1 && al == 0){//create down
+
+         comp.push_back(0);
+         val[0] = V(k,l,site,site);
+
+         return comp;
+
+      }
+      else if(sl == 0 && al == 1){//annihilate up
+
+         comp.resize(2);
+         val[0] = V(k,site,l,site) - V(k,site,site,l);
+         val[1] = V(k,site,l,site);
+
+         return comp;
+
+      }
+      else{
+
+         comp.push_back(3);
+         val[0] = -V(k,site,site,l);
+
+         return comp;
+
+      }
+
+   }
+   else if(sk == 1 && ak == 0){//create down
+
+      if(sl == 0 && al == 0){//create up
+
+         comp.push_back(0);
+         val[0] = -V(l,k,site,site);
+
+         return comp;
+
+      }
+      else if(sl == 1 && al == 0)//create down
+         return comp;
+      else if(sl == 0 && al == 1){//annihilate up
+
+         comp.push_back(2);//cu ad
+         val[0] = -V(site,k,l,site);
+
+         return comp;
+
+      }
+      else{
+
+         comp.resize(2);
+         val[0] = V(site,k,site,l);
+         val[1] = V(k,site,l,site) - V(k,site,site,l);
+
+         return comp;
+
+      }
+
+   }
+   else if(sk == 0 && ak == 1){//annihilate up
+
+      if(sl == 0 && al == 0){//create up
+
+         comp.resize(2);
+         val[0] = V(l,site,k,site) - V(l,site,site,k);
+         val[1] = V(l,site,k,site);
+
+         return comp;
+
+      }
+      else if(sl == 1 && al == 0){//create down
+
+         comp.push_back(2);
+         val[0] = -V(site,l,k,site);
+
+         return comp;
+
+      }
+      else if(sl == 0 && al == 1)//annihilate up
+         return comp;
+      else{
+
+         comp.push_back(1);
+         val[0] = V(l,k,site,site);
+
+         return comp;
+
+      }
+
+   }
+   else{//annihilate down
+
+      if(sl == 0 && al == 0){//create up
+
+         comp.push_back(3);
+         val[0] = -V(l,site,site,k);
+
+         return comp;
+
+      }
+      else if(sl == 1 && al == 0){//create down
+
+         comp.resize(2);
+         val[0] = V(site,l,site,k);
+         val[1] = V(l,site,k,site) - V(l,site,site,k);
+
+         return comp;
+
+      }
+      else if(sl == 0 && al == 1){//annihilate up
+
+         comp.push_back(1);
+         val[0] = -V(site,site,k,l);
 
          return comp;
 
