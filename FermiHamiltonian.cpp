@@ -6479,7 +6479,7 @@ MPO<Q> qcham_new(const DArray<2> &t,const DArray<4> &V,bool merge){
 
          double val;
 
-         std::vector<int> v = Ostate::get_single_complement_out(L/2,istates[row],ostates[col],V,val);
+         std::vector<int> v = Ostate::get_single_complement_in(L/2,ostates[col],istates[row],V,val);
 
          if(v.size() > 0){
 
@@ -6941,7 +6941,7 @@ MPO<Q> qcham_new(const DArray<2> &t,const DArray<4> &V,bool merge){
                if(rs_1 == 1){//first anni down
 
                   if(rs_2 == 0 && ra_2 == 1)//second anni up: extra minus sign!
-                     insert_anni_down_anni_up(mpo[i],row,col,-1.0);
+                     insert_anni_down_anni_up(mpo[i],row,col,1.0);
 
                }
 
@@ -7105,7 +7105,7 @@ MPO<Q> qcham_new(const DArray<2> &t,const DArray<4> &V,bool merge){
 
             double val;
 
-            std::vector<int> v = Ostate::get_single_complement_out(i,istates[row],ostates[col],V,val);
+            std::vector<int> v = Ostate::get_single_complement_in(i,ostates[col],istates[row],V,val);
 
             if(v.size() > 0){
 
@@ -7257,7 +7257,7 @@ MPO<Q> qcham_new(const DArray<2> &t,const DArray<4> &V,bool merge){
             if(rs_1 == 1){//first anni down
 
                if(rs_2 == 0 && ra_2 == 1)//second anni up: extra minus sign!
-                  insert_anni_down_anni_up(mpo[L - 1],row,0,-1.0);
+                  insert_anni_down_anni_up(mpo[L - 1],row,0,1.0);
 
             }
 

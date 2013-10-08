@@ -28,7 +28,7 @@ int main(void){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 8;
+   int L = 10;
 
    //number of particles
    int n_u = 4;
@@ -108,20 +108,15 @@ int main(void){
 
             }
 
-
-   MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,20,rgen());
+   MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,20,rgen);
 
    compress(A,mpsxx::Left,0);
    compress(A,mpsxx::Right,0);
 
-   normalize(A);
-
-   MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,20,rgen());
+   MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,20,rgen);
 
    compress(B,mpsxx::Left,0);
    compress(B,mpsxx::Right,0);
-
-   normalize(B);
 
    MPO<Quantum> qc = qcham<Quantum>(t,V);
 
@@ -136,16 +131,8 @@ int main(void){
    compress(qc_new,mpsxx::Left,0);
    compress(qc_new,mpsxx::Right,0);
 
-   for(int i = 0;i < L;++i){
-
-      cout << endl;
-      cout << "site " << i << endl;
-      cout << endl;
-      cout << qc_new[i].qshape() << endl;
-      cout << qc_new[i].dshape() << endl;
-      cout << endl;
-
-   }
+   cout << inprod(mpsxx::Left,A,qc_new,B) << endl;
+   cout << inprod(mpsxx::Left,B,qc_new,A) << endl;
 
    return 0;
 
