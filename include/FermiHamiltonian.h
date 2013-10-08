@@ -66,16 +66,10 @@ template<class Q>
 MPO<Q> T2(const DArray<4> &,bool);
 
 template<class Q>
-MPO<Q> qcham_test(const DArray<2> &,const DArray<4> &);
-
-template<class Q>
-MPO<Q> qcham_new(const DArray<2> &,const DArray<4> &,bool);
+MPO<Q> qcham(const DArray<2> &,const DArray<4> &,bool);
 
 template<class Q>
 MPO<Q> one_body(const DArray<2> &,bool);
-
-template<class Q>
-MPO<Q> qcham(const DArray<2> &,const DArray<4> &);
 
 template<class Q>
 void get_merged_index(const Qshapes<Q> &,Qshapes<Q> &,std::vector< std::vector<int> > &,std::vector< std::vector<int> > &);

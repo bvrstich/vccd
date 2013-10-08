@@ -31,8 +31,8 @@ int main(void){
    int L = 10;
 
    //number of particles
-   int n_u = 4;
-   int n_d = 4;
+   int n_u = 5;
+   int n_d = 5;
 
    int no = n_u;
    int nv = L - no;
@@ -113,26 +113,22 @@ int main(void){
    compress(A,mpsxx::Left,0);
    compress(A,mpsxx::Right,0);
 
+   normalize(A);
+
    MPS<Quantum> B = create(L,Quantum(n_u,n_d),qp,20,rgen);
 
    compress(B,mpsxx::Left,0);
    compress(B,mpsxx::Right,0);
 
-   MPO<Quantum> qc = qcham<Quantum>(t,V);
+   normalize(B);
+
+   MPO<Quantum> qc = qcham<Quantum>(t,V,false);
 
    compress(qc,mpsxx::Left,0);
    compress(qc,mpsxx::Right,0);
 
    cout << inprod(mpsxx::Left,A,qc,B) << endl;
    cout << inprod(mpsxx::Left,B,qc,A) << endl;
-
-   MPO<Quantum> qc_new = qcham_new<Quantum>(t,V,false);
-
-   compress(qc_new,mpsxx::Left,0);
-   compress(qc_new,mpsxx::Right,0);
-
-   cout << inprod(mpsxx::Left,A,qc_new,B) << endl;
-   cout << inprod(mpsxx::Left,B,qc_new,A) << endl;
 
    return 0;
 
