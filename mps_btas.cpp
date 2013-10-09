@@ -61,10 +61,10 @@ int main(void){
    cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
 
    //the cutoff vector for the exponential
-   std::vector<int> cutoff(1);
+   std::vector<int> cutoff(2);
 
-   cutoff[0] = 20;
-   //cutoff[1] = 10;
+   cutoff[0] = 0;
+   cutoff[1] = 0;
 
    //read in the mp2 guess
    DArray<4> t(no,no,nv,nv);
