@@ -29,6 +29,9 @@ namespace vccd{
       void steepest_descent(DArray<4> &,const MPO<Q> &qcham,const MPS<Q> &hf,const std::vector<int> &cutoff);
 
    template<class Q>
+      void modified_steepest_descent(DArray<4> &,const MPO<Q> &qcham,const MPS<Q> &hf,const std::vector<int> &cutoff,const std::vector<double> &);
+
+   template<class Q>
       void conjugate_gradient(DArray<4> &,const MPO<Q> &qcham,const MPS<Q> &hf,const std::vector<int> &cutoff);
 
    template<class Q>

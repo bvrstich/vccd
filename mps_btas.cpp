@@ -66,6 +66,16 @@ int main(void){
    cutoff[0] = 0;
    cutoff[1] = 0;
 
+   std::vector<double> e(L);
+
+   ifstream ener("input/Be/cc-pVDZ/ener.in");
+
+   int i;
+   double value;
+
+   while(ener >> i >> value)
+      e[i] = value;
+
    //read in the mp2 guess
    DArray<4> t(no,no,nv,nv);
 
@@ -73,8 +83,9 @@ int main(void){
    boost::archive::binary_iarchive iar(fin);
    iar >> t;
 
-   vccd::conjugate_gradient(t,qc,hf,cutoff);
+   //vccd::conjugate_gradient(t,qc,hf,cutoff);
    //vccd::steepest_descent(t,qc,hf,cutoff);
+   vccd::modified_steepest_descent(t,qc,hf,cutoff,e);
 
    return 0;
 

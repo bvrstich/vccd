@@ -249,6 +249,111 @@ namespace vccd {
       }
 
    /**
+    * optimize the cluster amplitudes t using a simplest steepest descent algorithm
+    * @param t input cluster amplitudes
+    * @param qc the quantum-chemical hamiltonian
+    * @param hf the hartree-fock reference state
+    * @param cutoff vector containing the number of states to be withheld for every order in the expansion
+    */
+   template<class Q>
+      void modified_steepest_descent(DArray<4> &t,const MPO<Q> &qc,const MPS<Q> &hf,const std::vector<int> &cutoff,const std::vector<double> &e){
+
+         int no = t.shape(0);
+         int nv = t.shape(2);
+
+         DArray<4> M(no,no,nv,nv);
+
+         for(int i = 0;i < no;++i)
+            for(int j = 0;j < no;++j)
+               for(int a = 0;a < nv;++a)
+                  for(int b = 0;b < nv;++b)
+                     M(i,j,a,b) = e[a + no] + e[b + no] - e[i] - e[j];
+
+         MPO<Q> T = T2<Q>(t,false);
+         compress(T,mpsxx::Right,0);
+         compress(T,mpsxx::Left,0);
+
+         eMPS emps(T,hf,cutoff);
+
+         MPS<Q> wccd = emps.expand(hf,cutoff.size(),0);
+         MPS<Q> tccd = emps.expand(hf,cutoff.size() - 1,0);
+
+         //get the norm right
+         double nrm = mpsxx::nrm2(wccd);
+
+         mpsxx::scal(1.0/nrm,wccd);
+         mpsxx::scal(1.0/nrm,tccd);
+
+         double E = emps.eval(qc,hf);
+         double N = emps.norm();
+
+         cout << E/N << endl;
+
+         DArray<4> grad(no,no,nv,nv);
+
+         T2_2_mpo list(no,nv);
+
+         gradient(t,qc,E/N,tccd,wccd,list,grad,false);
+
+         double convergence = 1.0;
+
+         int iter = 0;
+
+         while(convergence > 1.0e-10){
+
+            ++iter;
+
+            //modify the direction
+            for(int i = 0;i < no;++i)
+               for(int j = 0;j < no;++j)
+                  for(int a = 0;a < nv;++a)
+                     for(int b = 0;b < nv;++b)
+                        grad(i,j,a,b) /= M(i,j,a,b);
+
+            //construct the T for the line search
+            T = T2<Q>(grad,false);
+            compress(T,mpsxx::Right,0);
+            compress(T,mpsxx::Left,0);
+
+            double step = line_search(E,N,qc,hf,emps,T,0.1);
+
+            Daxpy(step,grad,t);
+
+            T = T2<Q>(t,false);
+            compress(T,mpsxx::Right,0);
+            compress(T,mpsxx::Left,0);
+
+            //set new T
+            emps.update(T,hf);
+
+            //get the wavefunction out
+            wccd = emps.expand(hf,cutoff.size(),0);
+            tccd = emps.expand(hf,cutoff.size() - 1,0);
+
+            //get the norm right
+            nrm = mpsxx::nrm2(wccd);
+
+            mpsxx::scal(1.0/nrm,wccd);
+            mpsxx::scal(1.0/nrm,tccd);
+
+            convergence = Ddot(grad,grad) * step * step;
+
+            E = emps.eval(qc,hf);
+            N = emps.norm();
+
+            cout << iter << "\t" << convergence << "\t" << E/N << endl;
+
+            gradient(t,qc,E/N,tccd,wccd,list,grad,false);
+
+            T = T2<Q>(grad,false);
+            compress(T,mpsxx::Right,0);
+            compress(T,mpsxx::Left,0);
+
+         }
+
+      }
+
+   /**
     * optimize the cluster amplitudes t using a conjugate gradient algorithm
     * @param t input cluster amplitudes
     * @param qc the quantum-chemical hamiltonian
@@ -271,10 +376,6 @@ namespace vccd {
          double N = emps.norm();
          cout << E/N << endl;
 
-         cout << endl;
-         emps.print_tot_dim(0);
-         cout << endl;
-
          MPS<Q> wccd = emps.expand(hf,cutoff.size(),0);
          MPS<Q> tccd = emps.expand(hf,cutoff.size() - 1,0);
 
@@ -289,8 +390,7 @@ namespace vccd {
 
          T2_2_mpo list(no,nv);
 
-         //gradient(t,qc,E/N,tccd,wccd,list,grad_1,true);
-         old_gradient(qc,wccd,grad_1,cutoff);
+         gradient(t,qc,E/N,tccd,wccd,list,grad_1,true);
 
          T = T2<Q>(grad_1,false);
          compress(T,mpsxx::Right,0);
@@ -314,8 +414,7 @@ namespace vccd {
             ++iter;
 
             //stepsize
-            //step = line_search(E,N,qc,hf,emps,T,step);
-            step = old_line_search(qc,hf,t,dir,step,cutoff);
+            step = line_search(E,N,qc,hf,emps,T,step);
 
             convergence = Ddot(grad_1,grad_1) * step * step;
 
@@ -329,12 +428,9 @@ namespace vccd {
             //set new T
             emps.update(T,hf);
 
-            cout << endl;
-            emps.print_tot_dim(0);
-            cout << endl;
-
             E = emps.eval(qc,hf);
             N = emps.norm();
+
             cout << iter << "\t" << convergence << "\t" << E/N << endl;
 
             //get the wavefunction out
@@ -351,8 +447,7 @@ namespace vccd {
             grad_0 = grad_1;
 
             //calculate the gradient for the new T
-            //gradient(t,qc,E/N,tccd,wccd,list,grad_1,true);
-            old_gradient(qc,wccd,grad_1,cutoff);
+            gradient(t,qc,E/N,tccd,wccd,list,grad_1,true);
 
             rnorm_1 = Ddot(grad_1,grad_1);
 
@@ -704,6 +799,7 @@ namespace vccd {
    template void gradient<Quantum>(const DArray<4> &,const MPO<Quantum> &,double E,const MPS<Quantum> &tccd,const MPS<Quantum> &wccd,const T2_2_mpo &list,DArray<4> &grad,bool merged);
    template double line_search<Quantum>(double,double,const MPO<Quantum> &,const MPS<Quantum> &,const eMPS &,const MPO<Quantum> &,double );
    template void steepest_descent<Quantum>(DArray<4>  &,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);
+   template void modified_steepest_descent<Quantum>(DArray<4>  &,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff,const std::vector<double> &e);
    template void conjugate_gradient<Quantum>(DArray<4>  &,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);
    template void conjugate_gradient_tmp<Quantum>(DArray<4>  &,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<int> &cutoff);
    template double old_line_search(const MPO<Quantum> &qc,const MPS<Quantum> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,const std::vector<int> &cutoff);
