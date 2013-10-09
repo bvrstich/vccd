@@ -11,15 +11,11 @@ BINNAME = mps_btas
 CPPSRC	= mps_btas.cpp\
            FermiHamiltonian.cpp\
            Ostate.cpp\
-           vccd.cpp\
            input.cpp\
            ro.cpp\
            grad.cpp\
-           ls.cpp\
            T1_2_mpo.cpp\
-           T2_2_mpo.cpp\
-           eMPS.cpp\
-           e_eMPS.cpp
+           T2_2_mpo.cpp
 
 
 OBJ	= $(CPPSRC:.cpp=.o)

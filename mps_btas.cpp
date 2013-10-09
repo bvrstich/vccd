@@ -60,12 +60,6 @@ int main(void){
    //hartree fock energy
    cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
 
-   //the cutoff vector for the exponential
-   std::vector<int> cutoff(2);
-
-   cutoff[0] = 0;
-   cutoff[1] = 0;
-
    //read in the mp2 guess
    DArray<4> t(no,no,nv,nv);
 
@@ -73,8 +67,15 @@ int main(void){
    boost::archive::binary_iarchive iar(fin);
    iar >> t;
 
-   vccd::conjugate_gradient(t,qc,hf,cutoff);
-   //vccd::steepest_descent(t,qc,hf,cutoff);
+   MPO<Quantum> T = T2<Quantum>(t,false);
+   compress(T,mpsxx::Left,0);
+   compress(T,mpsxx::Right,0);
+
+   int D = 0;
+
+   MPS<Quantum> eTA = exp(T,hf,2,D);
+
+   cout << inprod(mpsxx::Left,hf,qc,eTA) << endl;
 
    return 0;
 
