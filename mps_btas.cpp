@@ -67,15 +67,18 @@ int main(void){
    boost::archive::binary_iarchive iar(fin);
    iar >> t;
 
-   MPO<Quantum> T = T2<Quantum>(t,false);
-   compress(T,mpsxx::Left,0);
-   compress(T,mpsxx::Right,0);
+   std::ifstream energies("input/Be/cc-pVDZ/ener.in");
 
-   int D = 0;
+   //hf energies
+   std::vector<double> e;
 
-   MPS<Quantum> eTA = exp(T,hf,2,D);
+   int i;
+   double value;
 
-   cout << inprod(mpsxx::Left,hf,qc,eTA) << endl;
+   while(energies >> i >> value)
+      e.push_back(value);
+
+   vccd::solve(t,qc,hf,e,0);
 
    return 0;
 
