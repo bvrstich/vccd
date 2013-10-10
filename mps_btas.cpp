@@ -102,7 +102,7 @@ int main(void){
    print_dim(T);
 
    //solve
-   vccd::solve(t,qc,hf,e,0,0.15);
+   vccd::solve(t,qc,hf,e,0);
 
    return 0;
 

@@ -57,149 +57,178 @@ namespace vccd {
 
       }
 
-  /**
-   * solve the problem self consistently/ which in this case is more or less the same as a modified steepest descent algorithm
-   */
-  template<class Q>
-     void solve(DArray<4> &t,const MPO<Q> &qc,const MPS<Q> &hf,const std::vector<double> &e,int D,double relax){
+   /**
+    * solve the problem self consistently/ which in this case is more or less the same as a modified steepest descent algorithm
+    */
+   template<class Q>
+      void solve(DArray<4> &t,const MPO<Q> &qc,const MPS<Q> &hf,const std::vector<double> &e,int D){
 
-        int no = t.shape(0);
-        int nv = t.shape(2);
+         int no = t.shape(0);
+         int nv = t.shape(2);
 
-        DArray<4> M(no,no,nv,nv);
+         DArray<4> M(no,no,nv,nv);
 
-        for(int i = 0;i < no;++i)
-           for(int j = 0;j < no;++j)
-              for(int a = 0;a < nv;++a)
-                 for(int b = 0;b < nv;++b)
-                    M(i,j,a,b) = e[i] + e[j] - e[a + no] - e[b + no];
+         for(int i = 0;i < no;++i)
+            for(int j = 0;j < no;++j)
+               for(int a = 0;a < nv;++a)
+                  for(int b = 0;b < nv;++b)
+                     M(i,j,a,b) = e[i] + e[j] - e[a + no] - e[b + no];
 
-        MPO<Quantum> T = T2<Quantum>(t,false);
-        compress(T,mpsxx::Left,0);
-        compress(T,mpsxx::Right,0);
+         MPO<Quantum> T = T2<Quantum>(t,false);
+         compress(T,mpsxx::Left,0);
+         compress(T,mpsxx::Right,0);
 
-        MPS<Quantum> eTA = exp(T,hf,2,D);
-        normalize(eTA);
+         MPS<Quantum> eTA = exp(T,hf,no,D);
+         normalize(eTA);
 
-        double E = inprod(mpsxx::Left,eTA,qc,eTA);
+         double E = inprod(mpsxx::Left,eTA,qc,eTA);
 
-        cout << 0 << "\t" << E << endl;
+         cout << 0 << "\t" << E << endl;
 
-        DArray<4> grad(no,no,nv,nv);
-        T2_2_mpo list(no,nv);
+         DArray<4> grad(no,no,nv,nv);
+         T2_2_mpo list(no,nv);
 
-        double convergence = 1.0;
+         double convergence = 1.0;
 
-        int iter = 1;
+         int iter = 1;
 
-        while(convergence > 1.0e-10){
+         double step = 0.2;
 
-           print_dim(eTA);
+         while(convergence > 1.0e-10){
 
-           vccd::gradient(t,qc,E,eTA,eTA,list,grad,true);
+            print_dim(eTA);
 
-           //new t is old + grad/M
-           for(int i = 0;i < no;++i)
-              for(int j = 0;j < no;++j)
-                 for(int a = 0;a < nv;++a)
-                    for(int b = 0;b < nv;++b)
-                       t(i,j,a,b) += relax * grad(i,j,a,b)/M(i,j,a,b);
+            vccd::gradient(t,qc,E,eTA,eTA,list,grad,true);
 
-           convergence = Ddot(grad,grad)*relax;
+            //scale the gradient: grad/M
+            for(int i = 0;i < no;++i)
+               for(int j = 0;j < no;++j)
+                  for(int a = 0;a < nv;++a)
+                     for(int b = 0;b < nv;++b)
+                        grad(i,j,a,b) = grad(i,j,a,b)/M(i,j,a,b);
 
-           T = T2<Quantum>(t,false);
-           compress(T,mpsxx::Left,0);
-           compress(T,mpsxx::Right,0);
+            step = line_search(qc,hf,t,grad,step,D);
 
-           eTA = exp(T,hf,2,D);
-           normalize(eTA);
+            Daxpy(step,grad,t);
 
-           E = inprod(mpsxx::Left,eTA,qc,eTA);
+            convergence = Ddot(grad,grad)*step;
 
-           cout << iter << "\t" << convergence << "\t" << E << endl;
+            T = T2<Quantum>(t,false);
+            compress(T,mpsxx::Left,0);
+            compress(T,mpsxx::Right,0);
 
-           ++iter;
+            eTA = exp(T,hf,no,D);
+            normalize(eTA);
 
-        }
+            E = inprod(mpsxx::Left,eTA,qc,eTA);
 
+            cout << iter << "\t" << convergence << "\t" << E << endl;
 
-     }
+            ++iter;
 
-  /**
-   * find the minimum of the function in the direction dir
-   */
-  template<class Q>
-     double line_search(const MPO<Q> &qc,const MPS<Q> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,int D){
+         }
 
-        double phi = 0.5 * (1.0 + std::sqrt(5.0));
+      }
 
-        //first bracket interval in which the minimum lies
-        double a = 0.0;
-        double c = guess;
-        double b = c*(1.0 + phi);
+   /**
+    * find the minimum of the function in the direction dir
+    */
+   template<class Q>
+      double line_search(const MPO<Q> &qc,const MPS<Q> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,int D){
 
-        double fb = line_search_func(b,t,dir,qc,hf,cutoff);
-        double fc = line_search_func(c,t,dir,qc,hf,cutoff);
+         double phi = 0.5 * (1.0 + std::sqrt(5.0));
 
-        while(fc > fb){
+         //first bracket interval in which the minimum lies
+         double a = 0.0;
+         double c = guess;
+         double b = c*(1.0 + phi);
 
-           c = b;
-           fc = fb;
+         double fb = line_search_func(b,t,dir,qc,hf,D);
+         double fc = line_search_func(c,t,dir,qc,hf,D);
 
-           b = c * (1.0 + phi);
+         while(fc > fb){
 
-           fb = line_search_func(b,t,dir,qc,hf,cutoff);
+            c = b;
+            fc = fb;
 
-        }
+            b = c * (1.0 + phi);
 
-        double d = a + b - c;
-        double fd;
+            fb = line_search_func(b,t,dir,qc,hf,D);
 
-        while(b - a > 1.0e-4){
+         }
 
-           fd = line_search_func(d,t,dir,qc,hf,cutoff);
+         double d = a + b - c;
+         double fd;
 
-           if(c < d){
+         while(b - a > 1.0e-4){
 
-              if(fd < fc){
+            fd = line_search_func(d,t,dir,qc,hf,D);
 
-                 a = c;
+            if(c < d){
 
-                 c = d;
-                 fc = fd;
+               if(fd < fc){
 
-              }
-              else//fd > fc
-                 b = d;
+                  a = c;
 
-           }
-           else{
+                  c = d;
+                  fc = fd;
 
-              if(fd < fc){
+               }
+               else//fd > fc
+                  b = d;
 
-                 b = c;
+            }
+            else{
 
-                 c = d;
-                 fc = fd;
+               if(fd < fc){
 
-              }
-              else//fd > fc
-                 a = d;
+                  b = c;
 
-           }
+                  c = d;
+                  fc = fd;
 
-           //update d
-           d = a + b - c;
+               }
+               else//fd > fc
+                  a = d;
 
-        }
+            }
 
-        return d;
+            //update d
+            d = a + b - c;
 
-     }
+         }
 
-  template void gradient<Quantum>(const DArray<4> &,const MPO<Quantum> &,double E,const MPS<Quantum> &tccd,const MPS<Quantum> &wccd,const T2_2_mpo &list,DArray<4> &grad,bool merged);
-  template void solve<Quantum>(DArray<4> &t,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<double> &,int,double);
-  template double line_search<Quantum>(const MPO<Quantum> &qc,const MPS<Quantum> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,int D);
+         return d;
 
+      }
+
+   /**
+    * find the minimum of the function in the direction dir
+    */
+   template<class Q>
+      double line_search_func(double a,const DArray<4> &t,const DArray<4> &dir,const MPO<Q> &qc,const MPS<Q> &hf,int D){
+
+         DArray<4> newt(t);
+         Daxpy(a,dir,newt);
+
+         int no = newt.shape(0);
+
+         int L = qc.size();
+
+         MPO<Q> T2op = T2<Quantum>(newt,false);
+         compress(T2op,mpsxx::Right,0);
+         compress(T2op,mpsxx::Left,0);
+
+         MPS<Q> eTA = exp(T2op,hf,no,D);
+         normalize(eTA);
+
+         return inprod(mpsxx::Left,eTA,qc,eTA);
+
+      }
+
+   template void gradient<Quantum>(const DArray<4> &,const MPO<Quantum> &,double E,const MPS<Quantum> &tccd,const MPS<Quantum> &wccd,const T2_2_mpo &list,DArray<4> &grad,bool merged);
+   template void solve<Quantum>(DArray<4> &t,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<double> &,int);
+   template double line_search<Quantum>(const MPO<Quantum> &qc,const MPS<Quantum> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,int D);
+   template double line_search_func<Quantum>(double a,const DArray<4> &t,const DArray<4> &dir,const MPO<Quantum> &qc,const MPS<Quantum> &hf,int D);
 
 }
