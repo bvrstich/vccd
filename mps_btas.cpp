@@ -51,34 +51,58 @@ int main(void){
    for(int i = no;i < L;++i)
       occ[i] = 0;
 
-   MPS<Quantum> hf = product_state(L,qp,occ);
-
-   //load the qc hamiltonian
-   MPO<Quantum> qc(L);
-   load_mpx(qc,"input/Be/cc-pVDZ/MPO/qcham");
-
-   //hartree fock energy
-   cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
-
-   //read in the mp2 guess
-   DArray<4> t(no,no,nv,nv);
-
-   std::ifstream fin("input/Be/cc-pVDZ/mp2.in");
-   boost::archive::binary_iarchive iar(fin);
-   iar >> t;
-
-   std::ifstream energies("input/Be/cc-pVDZ/ener.in");
-
    //hf energies
    std::vector<double> e;
+
+   std::ifstream ener_in("input/Be/cc-pVDZ/ener.in");
 
    int i;
    double value;
 
-   while(energies >> i >> value)
+   while(ener_in >> i >> value)
       e.push_back(value);
 
-   vccd::solve(t,qc,hf,e,0);
+   MPS<Quantum> hf = product_state(L,qp,occ);
+
+   std::vector<int> order;
+
+   std::ifstream ord_in("input/Be/cc-pVDZ/order.in");
+
+   int j;
+
+   while(ord_in >> i >> j)
+      order.push_back(j);
+
+   //construct the qc hamiltonian
+   DArray<2> K(L,L);
+   read_oei("input/Be/cc-pVDZ/OEI.in",K,order);
+
+   //construct the qc hamiltonian
+   DArray<4> V(L,L,L,L);
+   read_tei("input/Be/cc-pVDZ/TEI.in",V,order);
+
+   MPO<Quantum> qc = qcham<Quantum>(K,V,false);
+
+   compress(qc,mpsxx::Left,0);
+   compress(qc,mpsxx::Right,0);
+
+   //hartree fock energy
+   cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
+
+   //construct the mp2 guess
+   DArray<4> t(no,no,nv,nv);
+
+   fill_mp2(t,V,e);
+
+   MPO<Quantum> T = T2<Quantum>(t,false);
+
+   compress(T,mpsxx::Left,0);
+   compress(T,mpsxx::Right,0);
+
+   print_dim(T);
+
+   //solve
+   vccd::solve(t,qc,hf,e,0,0.15);
 
    return 0;
 

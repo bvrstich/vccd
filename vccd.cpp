@@ -61,7 +61,7 @@ namespace vccd {
    * solve the problem self consistently/ which in this case is more or less the same as a modified steepest descent algorithm
    */
   template<class Q>
-     void solve(DArray<4> &t,const MPO<Q> &qc,const MPS<Q> &hf,const std::vector<double> &e,int D){
+     void solve(DArray<4> &t,const MPO<Q> &qc,const MPS<Q> &hf,const std::vector<double> &e,int D,double relax){
 
         int no = t.shape(0);
         int nv = t.shape(2);
@@ -88,7 +88,13 @@ namespace vccd {
         DArray<4> grad(no,no,nv,nv);
         T2_2_mpo list(no,nv);
 
-        for(int iter = 1;iter < 4;++iter){
+        double convergence = 1.0;
+
+        int iter = 1;
+
+        while(convergence > 1.0e-10){
+
+           print_dim(eTA);
 
            vccd::gradient(t,qc,E,eTA,eTA,list,grad,true);
 
@@ -97,7 +103,9 @@ namespace vccd {
               for(int j = 0;j < no;++j)
                  for(int a = 0;a < nv;++a)
                     for(int b = 0;b < nv;++b)
-                       t(i,j,a,b) += grad(i,j,a,b)/M(i,j,a,b);
+                       t(i,j,a,b) += relax * grad(i,j,a,b)/M(i,j,a,b);
+
+           convergence = Ddot(grad,grad)*relax;
 
            T = T2<Quantum>(t,false);
            compress(T,mpsxx::Left,0);
@@ -108,7 +116,9 @@ namespace vccd {
 
            E = inprod(mpsxx::Left,eTA,qc,eTA);
 
-           cout << iter << "\t" << E << endl;
+           cout << iter << "\t" << convergence << "\t" << E << endl;
+
+           ++iter;
 
         }
 
@@ -116,6 +126,6 @@ namespace vccd {
      }
 
   template void gradient<Quantum>(const DArray<4> &,const MPO<Quantum> &,double E,const MPS<Quantum> &tccd,const MPS<Quantum> &wccd,const T2_2_mpo &list,DArray<4> &grad,bool merged);
-  template void solve<Quantum>(DArray<4> &t,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<double> &,int);
+  template void solve<Quantum>(DArray<4> &t,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<double> &,int,double);
 
 }
