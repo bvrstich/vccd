@@ -125,7 +125,81 @@ namespace vccd {
 
      }
 
+  /**
+   * find the minimum of the function in the direction dir
+   */
+  template<class Q>
+     double line_search(const MPO<Q> &qc,const MPS<Q> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,int D){
+
+        double phi = 0.5 * (1.0 + std::sqrt(5.0));
+
+        //first bracket interval in which the minimum lies
+        double a = 0.0;
+        double c = guess;
+        double b = c*(1.0 + phi);
+
+        double fb = line_search_func(b,t,dir,qc,hf,cutoff);
+        double fc = line_search_func(c,t,dir,qc,hf,cutoff);
+
+        while(fc > fb){
+
+           c = b;
+           fc = fb;
+
+           b = c * (1.0 + phi);
+
+           fb = line_search_func(b,t,dir,qc,hf,cutoff);
+
+        }
+
+        double d = a + b - c;
+        double fd;
+
+        while(b - a > 1.0e-4){
+
+           fd = line_search_func(d,t,dir,qc,hf,cutoff);
+
+           if(c < d){
+
+              if(fd < fc){
+
+                 a = c;
+
+                 c = d;
+                 fc = fd;
+
+              }
+              else//fd > fc
+                 b = d;
+
+           }
+           else{
+
+              if(fd < fc){
+
+                 b = c;
+
+                 c = d;
+                 fc = fd;
+
+              }
+              else//fd > fc
+                 a = d;
+
+           }
+
+           //update d
+           d = a + b - c;
+
+        }
+
+        return d;
+
+     }
+
   template void gradient<Quantum>(const DArray<4> &,const MPO<Quantum> &,double E,const MPS<Quantum> &tccd,const MPS<Quantum> &wccd,const T2_2_mpo &list,DArray<4> &grad,bool merged);
   template void solve<Quantum>(DArray<4> &t,const MPO<Quantum> &qc,const MPS<Quantum> &hf,const std::vector<double> &,int,double);
+  template double line_search<Quantum>(const MPO<Quantum> &qc,const MPS<Quantum> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,int D);
+
 
 }

@@ -17,6 +17,9 @@ namespace vccd{
    template<class Q>
       void solve(DArray<4> &,const MPO<Q> &qcham,const MPS<Q> &,const std::vector<double> &,int,double);
 
+   template<class Q>
+      double line_search(const MPO<Q> &qc,const MPS<Q> &hf,const DArray<4> &t,const DArray<4> &dir,double guess,int D);
+
 }
 
 #endif
