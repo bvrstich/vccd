@@ -31,8 +31,8 @@ int main(void){
    int L = 14;
 
    //number of particles
-   int n_u = 5;
-   int n_d = 5;
+   int n_u = 2;
+   int n_d = 2;
 
    int no = n_u;
    int nv = L - no;
@@ -54,7 +54,7 @@ int main(void){
    //hf energies
    std::vector<double> e;
 
-   std::ifstream ener_in("input/Ne/cc-pVDZ/ener.in");
+   std::ifstream ener_in("input/Be/cc-pVDZ/ener.in");
 
    int i;
    double value;
@@ -66,7 +66,7 @@ int main(void){
 
    std::vector<int> order;
 
-   std::ifstream ord_in("input/Ne/cc-pVDZ/order.in");
+   std::ifstream ord_in("input/Be/cc-pVDZ/order.in");
 
    int j;
 
@@ -75,16 +75,16 @@ int main(void){
 
    //construct the qc hamiltonian
    DArray<2> K(L,L);
-   read_oei("input/Ne/cc-pVDZ/OEI.in",K,order);
+   read_oei("input/Be/cc-pVDZ/OEI.in",K,order);
 
    //construct the qc hamiltonian
    DArray<4> V(L,L,L,L);
-   read_tei("input/Ne/cc-pVDZ/TEI.in",V,order);
+   read_tei("input/Be/cc-pVDZ/TEI.in",V,order);
 
    MPO<Quantum> qc = qcham<Quantum>(K,V,false);
 
-   compress(qc,mpsxx::Left,0);
-   compress(qc,mpsxx::Right,0);
+   cout << compress(qc,mpsxx::Left,0) << endl;
+   cout << compress(qc,mpsxx::Right,0) << endl;
 
    //hartree fock energy
    cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
@@ -94,16 +94,9 @@ int main(void){
 
    fill_mp2(t,V,e);
 
-   MPO<Quantum> T = T2<Quantum>(t,false);
-
-   compress(T,mpsxx::Left,0);
-   compress(T,mpsxx::Right,0);
-
-   print_dim(T);
-
    //solve
-   //vccd::solve(t,qc,hf,e,100,0.1);
-   vccd::conjugate_gradient(t,qc,hf,e,100);
+   vccd::solve(t,qc,hf,e,150,0);
+   //vccd::conjugate_gradient(t,qc,hf,e,100);
 
    return 0;
 
