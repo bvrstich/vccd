@@ -22,13 +22,15 @@ double rgen() { return 2.0*(static_cast<double>(rand())/RAND_MAX) - 1.0; }
 using namespace btas;
 using namespace mpsxx;
 
-int main(void){
+int main(int argc,char *argv[]){
+
+   char *dirpath = argv[1];
 
    cout.precision(10);
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 14;
+   int L = 20;
 
    //number of particles
    int n_u = 2;
@@ -54,7 +56,10 @@ int main(void){
    //hf energies
    std::vector<double> e;
 
-   std::ifstream ener_in("input/Be/cc-pVDZ/ener.in");
+   char enerfile[100];
+   sprintf(enerfile,"%sener.in",dirpath);
+
+   std::ifstream ener_in(enerfile);
 
    int i;
    double value;
@@ -66,25 +71,36 @@ int main(void){
 
    std::vector<int> order;
 
-   std::ifstream ord_in("input/Be/cc-pVDZ/order.in");
+   char orderfile[100];
+   sprintf(orderfile,"%sorder.in",dirpath);
+
+   std::ifstream ord_in(orderfile);
 
    int j;
 
    while(ord_in >> i >> j)
       order.push_back(j);
 
+   char oeifile[100];
+   sprintf(oeifile,"%sOEI.in",dirpath);
+
    //construct the qc hamiltonian
    DArray<2> K(L,L);
-   read_oei("input/Be/cc-pVDZ/OEI.in",K,order);
+   read_oei(oeifile,K,order);
+
+   char teifile[100];
+   sprintf(teifile,"%sTEI.in",dirpath);
 
    //construct the qc hamiltonian
    DArray<4> V(L,L,L,L);
-   read_tei("input/Be/cc-pVDZ/TEI.in",V,order);
+   read_tei(teifile,V,order);
 
    MPO<Quantum> qc = qcham<Quantum>(K,V,false);
 
    cout << compress(qc,mpsxx::Left,0) << endl;
    cout << compress(qc,mpsxx::Right,0) << endl;
+
+   print_dim(qc);
 
    //hartree fock energy
    cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
@@ -95,8 +111,8 @@ int main(void){
    fill_mp2(t,V,e);
 
    //solve
-   vccd::solve(t,qc,hf,e,150,0);
-   //vccd::conjugate_gradient(t,qc,hf,e,100);
+   //vccd::solve(t,qc,hf,e,0,0);
+   vccd::conjugate_gradient(t,qc,hf,e,0);
 
    return 0;
 

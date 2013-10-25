@@ -353,9 +353,15 @@ namespace vccd {
             wccd = exp(T,hf,no,D);
             normalize(wccd);
 
+            cout << endl;
+            print_dim(wccd);
+            cout << endl;
+
             E = inprod(mpsxx::Left,wccd,qc,wccd);
 
+            cout << endl;
             cout << step << "\t" << iter << "\t" << convergence << "\t" << E << endl;
+            cout << endl;
 
             //backup the gradient
             grad_0 = grad_1;
