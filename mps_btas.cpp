@@ -111,13 +111,15 @@ int main(int argc,char *argv[]){
    fill_mp2(t,V,e);
 
    MPO<Quantum> T = T2<Quantum>(t,false);
-   /*
+
    compress(T,mpsxx::Left,0);
    compress(T,mpsxx::Right,0);
 
-   MPS<Quantum> eTA = exp(T,hf,no,D);
+   MPS<Quantum> eTA = exp(T,hf,nv,0);
    normalize(eTA);
 
+   print_dim(eTA);
+/*
    //solve
    //vccd::solve(t,qc,hf,e,0,0);
    vccd::conjugate_gradient(t,qc,hf,e,0);
