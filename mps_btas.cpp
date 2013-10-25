@@ -30,11 +30,11 @@ int main(int argc,char *argv[]){
    srand(time(NULL));
 
    //lenght of the chain
-   int L = 20;
+   int L = 7;
 
    //number of particles
-   int n_u = 2;
-   int n_d = 2;
+   int n_u = 5;
+   int n_d = 5;
 
    int no = n_u;
    int nv = L - no;
@@ -110,10 +110,18 @@ int main(int argc,char *argv[]){
 
    fill_mp2(t,V,e);
 
+   MPO<Quantum> T = T2<Quantum>(t,false);
+   /*
+   compress(T,mpsxx::Left,0);
+   compress(T,mpsxx::Right,0);
+
+   MPS<Quantum> eTA = exp(T,hf,no,D);
+   normalize(eTA);
+
    //solve
    //vccd::solve(t,qc,hf,e,0,0);
    vccd::conjugate_gradient(t,qc,hf,e,0);
-
+*/
    return 0;
 
 }
