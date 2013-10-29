@@ -1117,6 +1117,33 @@ MPO<Q> E(int L,int i,int j,int k,int l,double t){
 }
 
 /**
+ * elementary double excitation operator:E^i_k E^j_l
+ */
+template<class Q>
+MPO<Q> T2_test(const DArray<4> &t){
+
+   int no = t.shape(0);
+   int nv = t.shape(2);
+
+   int L = no + nv;
+
+   MPO<Q> tmp = E<Q>(L,no,no,0,0,t(0,0,0,0));
+
+   for(int i = 0;i < no;++i)
+      for(int j = 0;j < no;++j)
+         for(int a = 0;a < nv;++a)
+            for(int b = 0;b < nv;++b){
+
+               if( (i + j + a + b) != 0 )
+                  mpsxx::axpy(1.0,E<Q>(L,a + no,b + no,i,j,t(i,j,a,b)),tmp);
+
+            }
+
+   return tmp;
+
+}
+
+/**
  * elementary excitation operator:E^i_j: \sum_s a^+_{i,s} a_{js}
  */
 template<class Q>
@@ -7400,6 +7427,7 @@ template MPO<Quantum> E(int,int,int,int,int,double);
 template MPO<Quantum> tpint(int,int,int,int,int,double);
 template MPO<Quantum> T1(const DArray<2> &,bool);
 template MPO<Quantum> T2(const DArray<4> &,bool);
+template MPO<Quantum> T2_test(const DArray<4> &);
 template MPO<Quantum> qcham(const DArray<2> &,const DArray<4> &,bool);
 template MPO<Quantum> one_body(const DArray<2> &,bool);
 template MPO<Quantum> crea_up(int L,int i);
