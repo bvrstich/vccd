@@ -1117,6 +1117,33 @@ MPO<Q> E(int L,int i,int j,int k,int l,double t){
 }
 
 /**
+ * elementary double excitation operator:E^i_k E^j_l
+ */
+template<class Q>
+MPO<Q> T2_test(const DArray<4> &t){
+
+   int no = t.shape(0);
+   int nv = t.shape(2);
+
+   int L = no + nv;
+
+   MPO<Q> tmp = E<Q>(L,no,no,0,0,t(0,0,0,0));
+
+   for(int i = 0;i < no;++i)
+      for(int j = 0;j < no;++j)
+         for(int a = 0;a < nv;++a)
+            for(int b = 0;b < nv;++b){
+
+               if( (i + j + a + b) != 0 )
+                  mpsxx::axpy(1.0,E<Q>(L,a + no,b + no,i,j,t(i,j,a,b)),tmp);
+
+            }
+
+   return tmp;
+
+}
+
+/**
  * elementary excitation operator:E^i_j: \sum_s a^+_{i,s} a_{js}
  */
 template<class Q>
@@ -1882,161 +1909,161 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
 
    Qshapes<Quantum> qi = qo;
 
-   for(int i = 1;i < no - 1;++i){
+   if(nv < no){
 
-      ostates.clear();
-      qo.clear();
+      for(int i = 1;i < nv;++i){
 
-      qo.push_back(Q::zero());//I
+         ostates.clear();
+         qo.clear();
 
-      ostates.push_back(istates[0]);
+         qo.push_back(Q::zero());//I
 
-      qo.push_back(Q(0,1));//a_down
-      qo.push_back(Q(1,0));//a_up
+         ostates.push_back(istates[0]);
 
-      state.push_anni_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      state.push_anni_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      int row = 1;
-
-      while(istates[row].size() == 1){
-
-         qo.push_back(qi[row]);//a_down
-         ostates.push_back(istates[row]);
-
-         ++row;
-
-      }
-
-      qo.push_back(Q(1,1));//a_up a_down
-
-      state.push_anni_up(i);
-      state.push_anni_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      //add a down
-      row = 1;
-
-      while(istates[row].size() == 1){
+         qo.push_back(Q(0,1));//a_down
+         qo.push_back(Q(1,0));//a_up
 
          state.push_anni_down(i);
-         state.insert(state.end(),istates[row].begin(),istates[row].end());
          ostates.push_back(state);
          state.clear();
-
-         Quantum tmp = qi[row];
-         tmp.anni_down();
-         qo.push_back(tmp);
-
-         ++row;
-
-      }
-
-      //add an up
-      row = 1;
-
-      while(istates[row].size() == 1){
 
          state.push_anni_up(i);
-         state.insert(state.end(),istates[row].begin(),istates[row].end());
          ostates.push_back(state);
          state.clear();
 
-         Quantum tmp = qi[row];
-         tmp.anni_up();
-         qo.push_back(tmp);
+         int row = 1;
 
-         ++row;
+         while(istates[row].size() == 1){
 
-      }
+            qo.push_back(qi[row]);//a_down
+            ostates.push_back(istates[row]);
 
-      //id for the pairs coming in
-      while(row < istates.size()){
+            ++row;
 
-         qo.push_back(qi[row]);
-         ostates.push_back(istates[row]);
-         ++row;
+         }
 
-      }
+         qo.push_back(Q(1,1));//a_up a_down
 
-      mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+         state.push_anni_up(i);
+         state.push_anni_down(i);
+         ostates.push_back(state);
+         state.clear();
 
-      int column = 0;
+         //add a down
+         row = 1;
 
-      insert_id(mpo[i],0,0);
-      insert_anni_down(mpo[i],0,1,1.0);
-      insert_anni_up_s(mpo[i],0,2,1.0);
+         while(istates[row].size() == 1){
 
-      row = 1;
-      column = 3;
+            state.push_anni_down(i);
+            state.insert(state.end(),istates[row].begin(),istates[row].end());
+            ostates.push_back(state);
+            state.clear();
 
-      //signs!
-      while(istates[row].size() == 1){
+            Quantum tmp = qi[row];
+            tmp.anni_down();
+            qo.push_back(tmp);
 
-         //fermion sign!
-         insert_sign(mpo[i],row,column);
+            ++row;
+
+         }
+
+         //add an up
+         row = 1;
+
+         while(istates[row].size() == 1){
+
+            state.push_anni_up(i);
+            state.insert(state.end(),istates[row].begin(),istates[row].end());
+            ostates.push_back(state);
+            state.clear();
+
+            Quantum tmp = qi[row];
+            tmp.anni_up();
+            qo.push_back(tmp);
+
+            ++row;
+
+         }
+
+         //id for the pairs coming in
+         while(row < istates.size()){
+
+            qo.push_back(qi[row]);
+            ostates.push_back(istates[row]);
+            ++row;
+
+         }
+
+         mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+         int column = 0;
+
+         insert_id(mpo[i],0,0);
+         insert_anni_down(mpo[i],0,1,1.0);
+         insert_anni_up_s(mpo[i],0,2,1.0);
+
+         row = 1;
+         column = 3;
+
+         //signs!
+         while(istates[row].size() == 1){
+
+            //fermion sign!
+            insert_sign(mpo[i],row,column);
+            column++;
+            row++;
+
+         }
+
+         //double remove
+         insert_anni_down_anni_up(mpo[i],0,column,1.0);
          column++;
-         row++;
+
+         //anni down
+         row = 1;
+
+         while(istates[row].size() == 1){
+
+            insert_anni_down_s(mpo[i],row,column,1.0);
+            column++;
+            row++;
+
+         }
+
+         //anni up
+         row = 1;
+
+         while(istates[row].size() == 1){
+
+            //fermion sign!
+            insert_anni_up(mpo[i],row,column,1.0);
+            ++column;
+            ++row;
+
+         }
+
+         while(row < istates.size()){
+
+            //finally identity
+            insert_id(mpo[i],row,column);
+            ++row;
+            ++column;
+
+         }
+
+         istates = ostates;
+         qi = qo;
 
       }
 
-      //double remove
-      insert_anni_down_anni_up(mpo[i],0,column,1.0);
-      column++;
-
-      //anni down
-      row = 1;
-
-      while(istates[row].size() == 1){
-
-         insert_anni_down_s(mpo[i],row,column,1.0);
-         column++;
-         row++;
-
-      }
-
-      //anni up
-      row = 1;
-
-      while(istates[row].size() == 1){
-
-         //fermion sign!
-         insert_anni_up(mpo[i],row,column,1.0);
-         ++column;
-         ++row;
-
-      }
-
-      while(row < istates.size()){
-
-         //finally identity
-         insert_id(mpo[i],row,column);
-         ++row;
-         ++column;
-
-      }
-
-      istates = ostates;
-      qi = qo;
-
-   }
-
-   if(no == nv){
-
-      //last occupied: i = no - 1: switch from incoming to outgoing
+      //switch from incoming to outgoing doubles
       ostates.clear();
       qo.clear();
 
       Ostate istate;
 
       for(int i = no;i < L;++i){
-         
+
          //first up
          istate.push_crea_up(i);
 
@@ -2096,10 +2123,39 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
 
       }
 
-      mpo[no-1].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+      //then the incoming singles
+      qo.push_back(Q(0,1));//a_down
+      qo.push_back(Q(1,0));//a_up
+
+      state.push_anni_down(nv);
+      ostates.push_back(state);
+      state.clear();
+
+      state.push_anni_up(nv);
+      ostates.push_back(state);
+      state.clear();
+
+      int row = 1;
+
+      while(istates[row].size() == 1){
+
+         qo.push_back(qi[row]);//a_down
+         ostates.push_back(istates[row]);
+
+         ++row;
+
+      }
+
+      //finally the id
+      qo.push_back(Q::zero());//I
+      ostates.push_back(istates[0]);
+
+      mpo[nv].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
 
       //first row
-      for(int col = 0;col < ostates.size();++col){
+      int col = 0;
+
+      while(ostates[col].size() == 2){
 
          int ai = ostates[col].gsite(0);
          int as = ostates[col].gspin(0);
@@ -2108,27 +2164,62 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
          int bs = ostates[col].gspin(1);
 
          if(as == 0 && bs == 1)//- because of extra minus sign!
-            insert_anni_down_anni_up(mpo[no-1],0,col,-t(no-1,no-1,ai - no,bi - no));
+            insert_anni_down_anni_up(mpo[nv],0,col,-t(nv,nv,ai - no,bi - no));
          else if(as == 1 && bs == 0)
-            insert_anni_down_anni_up(mpo[no-1],0,col,t(no-1,no-1,ai - no,bi - no));
+            insert_anni_down_anni_up(mpo[nv],0,col,t(nv,nv,ai - no,bi - no));
+
+         ++col;
 
       }
 
-      //singles coming in
-      int row = 1;
+      //insert single for 'outgoing' incoming singles
+      while(col < ostates.size() - 1){
+
+         int ci = ostates[col].gsite(0);
+         int cs = ostates[col].gspin(0);
+
+         if(ci == nv && cs == 0)//insert anni_up
+            insert_anni_up_s(mpo[nv],0,col,1.0);
+         else if(ci == nv && cs == 1)
+            insert_anni_down(mpo[nv],0,col,1.0);
+
+         ++col;
+
+      }
+
+      //insert id finally
+      insert_id(mpo[nv],0,col);
+
+      //singles coming in 
+      row = 1;
 
       while(istates[row].size() == 1){
 
-         for(int col = 0;col < ostates.size();++col){
+         //to outgoing doubles
+         col = 0;
+
+         while(ostates[col].size() == 2){
 
             double val;
 
-            int op = Ostate::get_single_complement_T2_bis(no-1,istates[row],ostates[col],t,val);
+            int op = Ostate::get_single_complement_T2_bis(nv,istates[row],ostates[col],t,val);
 
             if(op == 0)
-               insert_anni_up(mpo[no - 1],row,col,val);
+               insert_anni_up(mpo[nv],row,col,val);
             else if(op == 1)
-               insert_anni_down_s(mpo[no - 1],row,col,val);
+               insert_anni_down_s(mpo[nv],row,col,val);
+
+            ++col;
+
+         }
+
+         //to incoming singles: add sign
+         while(col < ostates.size() - 1){
+
+            if(istates[row] == ostates[col])
+               insert_sign(mpo[nv],row,col);
+
+            ++col;
 
          }
 
@@ -2136,21 +2227,253 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
 
       }
 
-      //doubles coming in
+      //doubles coming in to doubles going out
       while(row < istates.size()){
 
-         for(int col = 0;col < ostates.size();++col){
+         col = 0;
+
+         while(ostates[col].size() == 2){
 
             double val;
 
             int op = Ostate::get_double_complement_T2(istates[row],ostates[col],t,val);
 
             if(op == 1)
-               insert_id(mpo[no - 1],row,col,val);
+               insert_id(mpo[nv],row,col,val);
+
+            ++col;
 
          }
 
          ++row;
+
+      }
+
+      istates = ostates;
+      qi = qo;
+
+      for(int i = nv + 1;i < no - 1;++i){
+
+         ostates.clear();
+         qo.clear();
+
+         row = 0;
+
+         //outgoing doubles stay the same
+         while(istates[row].size() == 2){
+
+            ostates.push_back(istates[row]);
+            qo.push_back(qi[row]);
+
+            ++row;
+
+         }
+
+         //then the incoming singles
+         qo.push_back(Q(0,1));//a_down
+         qo.push_back(Q(1,0));//a_up
+
+         state.push_anni_down(i);
+         ostates.push_back(state);
+         state.clear();
+
+         state.push_anni_up(i);
+         ostates.push_back(state);
+         state.clear();
+
+         while(row < istates.size() - 1){
+
+            qo.push_back(qi[row]);//a_down
+            ostates.push_back(istates[row]);
+
+            ++row;
+
+         }
+
+         //end with unity
+         qo.push_back(Q::zero());//I
+         ostates.push_back(istates[istates.size() - 1]);
+
+         mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+         row = 0;
+
+         //incoming 'outgoing' doubles
+         while(istates[row].size() == 2){
+
+            col = 0;
+
+            while(ostates[col].size() == 2){
+
+               if(istates[row] == ostates[col])
+                  insert_id(mpo[i],row,col);
+
+               ++col;
+
+            }
+
+            ++row;
+
+         }
+
+         //incoming singles
+         while(row < istates.size() - 1){
+
+            //to outgoing doubles
+            col = 0;
+
+            while(ostates[col].size() == 2){
+
+               double val;
+
+               int op = Ostate::get_single_complement_T2_bis(i,istates[row],ostates[col],t,val);
+
+               if(op == 0)
+                  insert_anni_up(mpo[i],row,col,val);
+               else if(op == 1)
+                  insert_anni_down_s(mpo[i],row,col,val);
+
+               ++col;
+
+            }
+
+            //to incoming singles: add sign
+            while(col < ostates.size() - 1){
+
+               if(istates[row] == ostates[col])
+                  insert_sign(mpo[i],row,col);
+
+               ++col;
+
+            }
+
+            ++row;
+
+         }
+
+         //finally incoming id
+         int col = 0;
+
+         while(ostates[col].size() == 2){
+
+            int ai = ostates[col].gsite(0);
+            int as = ostates[col].gspin(0);
+
+            int bi = ostates[col].gsite(1);
+            int bs = ostates[col].gspin(1);
+
+            if(as == 0 && bs == 1)//- because of extra minus sign!
+               insert_anni_down_anni_up(mpo[i],istates.size() - 1,col,-t(i,i,ai - no,bi - no));
+            else if(as == 1 && bs == 0)
+               insert_anni_down_anni_up(mpo[i],istates.size() - 1,col,t(i,i,ai - no,bi - no));
+
+            ++col;
+
+         }
+
+         //insert single for 'outgoing' incoming singles
+         while(col < ostates.size() - 1){
+
+            int ci = ostates[col].gsite(0);
+            int cs = ostates[col].gspin(0);
+
+            if(ci == i && cs == 0)//insert anni_up
+               insert_anni_up_s(mpo[i],istates.size() - 1,col,1.0);
+            else if(ci == i && cs == 1)
+               insert_anni_down(mpo[i],istates.size() - 1,col,1.0);
+
+            ++col;
+
+         }
+
+         //insert id finally
+         insert_id(mpo[i],istates.size() - 1,ostates.size() - 1);
+
+         qi = qo;
+         istates = ostates;
+
+      }
+
+      //site no  - 1: close down all the singles
+      ostates.clear();
+      qo.clear();
+
+      row = 0;
+
+      //only outgoing doubles
+      while(istates[row].size() == 2){
+
+         ostates.push_back(istates[row]);
+         qo.push_back(qi[row]);
+
+         ++row;
+
+      }
+
+      mpo[no - 1].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+      row = 0;
+
+      //incoming 'outgoing' doubles
+      while(istates[row].size() == 2){
+
+         col = 0;
+
+         while(ostates[col].size() == 2){
+
+            if(istates[row] == ostates[col])
+               insert_id(mpo[no - 1],row,col);
+
+            ++col;
+
+         }
+
+         ++row;
+
+      }
+
+      //incoming singles
+      while(row < istates.size() - 1){
+
+         //to outgoing doubles
+         col = 0;
+
+         while(ostates[col].size() == 2){
+
+            double val;
+
+            int op = Ostate::get_single_complement_T2_bis(no - 1,istates[row],ostates[col],t,val);
+
+            if(op == 0)
+               insert_anni_up(mpo[no - 1],row,col,val);
+            else if(op == 1)
+               insert_anni_down_s(mpo[no - 1],row,col,val);
+
+            ++col;
+
+         }
+
+         ++row;
+
+      }
+
+      //finally incoming id
+      col = 0;
+
+      while(ostates[col].size() == 2){
+
+         int ai = ostates[col].gsite(0);
+         int as = ostates[col].gspin(0);
+
+         int bi = ostates[col].gsite(1);
+         int bs = ostates[col].gspin(1);
+
+         if(as == 0 && bs == 1)//- because of extra minus sign!
+            insert_anni_down_anni_up(mpo[no - 1],istates.size() - 1,col,-t(no - 1,no - 1,ai - no,bi - no));
+         else if(as == 1 && bs == 0)
+            insert_anni_down_anni_up(mpo[no - 1],istates.size() - 1,col,t(no - 1,no - 1,ai - no,bi - no));
+
+         ++col;
 
       }
 
@@ -2165,7 +2488,7 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
       state.push_id();
       ostates.push_back(state);
       state.clear();
-      
+
       qo.push_back(Q::zero());
 
       //going to single operators
@@ -2196,7 +2519,7 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
          }
 
       }
-      
+
       mpo[no].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
 
       //first column close with pairs
@@ -2208,7 +2531,7 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
       }
 
       //singles going out, add one operator
-      int col = 1;
+      col = 1;
 
       while(ostates[col].size() == 1){
 
@@ -2360,7 +2683,7 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
                if(ri == ci && rs == cs)
                   insert_sign(mpo[i],row,col);
 
-                  ++row;
+               ++row;
 
             }
 
@@ -2434,139 +2757,162 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
       insert_crea_up_crea_down(mpo[L - 1],3,0,1.0);
 
    }
-   else{
+   else{//nv >= no
 
-      //last occupied: i = no - 1
-      ostates.clear();
-      qo.clear();
-
-      qo.push_back(Q(1,1));//a_up a_down
-
-      state.push_anni_up(no-1);
-      state.push_anni_down(no-1);
-      ostates.push_back(state);
-      state.clear();
-
-      //add a down
-      int row = 1;
-
-      while(istates[row].size() == 1){
-
-         state.push_anni_down(no-1);
-         state.insert(state.end(),istates[row].begin(),istates[row].end());
-         ostates.push_back(state);
-         state.clear();
-
-         Quantum tmp = qi[row];
-         tmp.anni_down();
-         qo.push_back(tmp);
-
-         ++row;
-
-      }
-
-      //add an up
-      row = 1;
-
-      while(istates[row].size() == 1){
-
-         state.push_anni_up(no-1);
-         state.insert(state.end(),istates[row].begin(),istates[row].end());
-         ostates.push_back(state);
-         state.clear();
-
-         Quantum tmp = qi[row];
-         tmp.anni_up();
-         qo.push_back(tmp);
-
-         ++row;
-
-      }
-
-      //id for the pairs coming in
-      while(row < istates.size()){
-
-         qo.push_back(qi[row]);
-         ostates.push_back(istates[row]);
-         ++row;
-
-      }
-
-      //start filling
-      mpo[no - 1].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
-
-      //double remove
-      insert_anni_down_anni_up(mpo[no-1],0,0,1.0);
-
-      //anni down
-      row = 1;
-      int column = 1;
-
-      while(istates[row].size() == 1){
-
-         insert_anni_down_s(mpo[no-1],row,column,1.0);
-         column++;
-         row++;
-
-      }
-
-      //anni up
-      row = 1;
-
-      while(istates[row].size() == 1){
-
-         //fermion sign!
-         insert_anni_up(mpo[no-1],row,column,1.0);
-         ++column;
-         ++row;
-
-      }
-
-      while(row < istates.size()){
-
-         //finally identity
-         insert_id(mpo[no-1],row,column);
-         ++row;
-         ++column;
-
-      }
-
-      istates = ostates;
-      qi = qo;
-
-      if(no + 1 == nv){
+      for(int i = 1;i < no - 1;++i){
 
          ostates.clear();
          qo.clear();
 
-         //first col closed
-         state.push_id();
+         qo.push_back(Q::zero());//I
+
+         ostates.push_back(istates[0]);
+
+         qo.push_back(Q(0,1));//a_down
+         qo.push_back(Q(1,0));//a_up
+
+         state.push_anni_down(i);
          ostates.push_back(state);
          state.clear();
 
-         qo.push_back(Q::zero());
+         state.push_anni_up(i);
+         ostates.push_back(state);
+         state.clear();
 
-         //singles
-         for(int i = no + 1;i < L;++i){
+         int row = 1;
 
-            state.push_crea_up(i);
-            ostates.push_back(state);
-            state.clear();
+         while(istates[row].size() == 1){
 
-            qo.push_back(Q(1,0));
+            qo.push_back(qi[row]);//a_down
+            ostates.push_back(istates[row]);
 
-            state.push_crea_down(i);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(0,1));
+            ++row;
 
          }
 
-         //pairs
+         qo.push_back(Q(1,1));//a_up a_down
+
+         state.push_anni_up(i);
+         state.push_anni_down(i);
+         ostates.push_back(state);
+         state.clear();
+
+         //add a down
+         row = 1;
+
+         while(istates[row].size() == 1){
+
+            state.push_anni_down(i);
+            state.insert(state.end(),istates[row].begin(),istates[row].end());
+            ostates.push_back(state);
+            state.clear();
+
+            Quantum tmp = qi[row];
+            tmp.anni_down();
+            qo.push_back(tmp);
+
+            ++row;
+
+         }
+
+         //add an up
+         row = 1;
+
+         while(istates[row].size() == 1){
+
+            state.push_anni_up(i);
+            state.insert(state.end(),istates[row].begin(),istates[row].end());
+            ostates.push_back(state);
+            state.clear();
+
+            Quantum tmp = qi[row];
+            tmp.anni_up();
+            qo.push_back(tmp);
+
+            ++row;
+
+         }
+
+         //id for the pairs coming in
+         while(row < istates.size()){
+
+            qo.push_back(qi[row]);
+            ostates.push_back(istates[row]);
+            ++row;
+
+         }
+
+         mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+         int column = 0;
+
+         insert_id(mpo[i],0,0);
+         insert_anni_down(mpo[i],0,1,1.0);
+         insert_anni_up_s(mpo[i],0,2,1.0);
+
+         row = 1;
+         column = 3;
+
+         //signs!
+         while(istates[row].size() == 1){
+
+            //fermion sign!
+            insert_sign(mpo[i],row,column);
+            column++;
+            row++;
+
+         }
+
+         //double remove
+         insert_anni_down_anni_up(mpo[i],0,column,1.0);
+         column++;
+
+         //anni down
+         row = 1;
+
+         while(istates[row].size() == 1){
+
+            insert_anni_down_s(mpo[i],row,column,1.0);
+            column++;
+            row++;
+
+         }
+
+         //anni up
+         row = 1;
+
+         while(istates[row].size() == 1){
+
+            //fermion sign!
+            insert_anni_up(mpo[i],row,column,1.0);
+            ++column;
+            ++row;
+
+         }
+
+         while(row < istates.size()){
+
+            //finally identity
+            insert_id(mpo[i],row,column);
+            ++row;
+            ++column;
+
+         }
+
+         istates = ostates;
+         qi = qo;
+
+      }
+
+      if(no == nv){
+
+         //last occupied: i = no - 1: switch from incoming to outgoing
+         ostates.clear();
+         qo.clear();
+
          Ostate istate;
 
-         for(int i = no + 1;i < L;++i){
+         for(int i = no;i < L;++i){
 
             //first up
             istate.push_crea_up(i);
@@ -2627,40 +2973,139 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
 
          }
 
-         mpo[no].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+         mpo[no-1].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
 
-         //first column closed: insert pairs
-         for(int row = 0;row < istates.size();++row){
+         //first row
+         for(int col = 0;col < ostates.size();++col){
 
-            //lets call in i,j
-            int i = istates[row].gsite(1);
-            int j = istates[row].gsite(0);
+            int ai = ostates[col].gsite(0);
+            int as = ostates[col].gspin(0);
 
-            int si = istates[row].gspin(1);
-            int sj = istates[row].gspin(0);
+            int bi = ostates[col].gsite(1);
+            int bs = ostates[col].gspin(1);
 
-            if(si == 0 && sj == 1)
-               insert_crea_up_crea_down(mpo[no],row,0,t(i,j,0,0));
-            else if(si == 1 && sj == 0)
-               insert_crea_up_crea_down(mpo[no],row,0,-t(i,j,0,0));
+            if(as == 0 && bs == 1)//- because of extra minus sign!
+               insert_anni_down_anni_up(mpo[no-1],0,col,-t(no-1,no-1,ai - no,bi - no));
+            else if(as == 1 && bs == 0)
+               insert_anni_down_anni_up(mpo[no-1],0,col,t(no-1,no-1,ai - no,bi - no));
 
          }
 
-         //singles going out:
-         int col = 1;
-         
-         while(ostates[col].size() == 1){
+         //singles coming in
+         int row = 1;
 
-            for(int row = 0;row < istates.size();++row){
+         while(istates[row].size() == 1){
+
+            for(int col = 0;col < ostates.size();++col){
 
                double val;
 
-               int op = Ostate::get_single_complement_T2(no,istates[row],ostates[col],t,val);
+               int op = Ostate::get_single_complement_T2_bis(no-1,istates[row],ostates[col],t,val);
 
                if(op == 0)
-                  insert_crea_up_s(mpo[no],row,col,val);
+                  insert_anni_up(mpo[no - 1],row,col,val);
                else if(op == 1)
-                  insert_crea_down(mpo[no],row,col,val);
+                  insert_anni_down_s(mpo[no - 1],row,col,val);
+
+            }
+
+            ++row;
+
+         }
+
+         //doubles coming in
+         while(row < istates.size()){
+
+            for(int col = 0;col < ostates.size();++col){
+
+               double val;
+
+               int op = Ostate::get_double_complement_T2(istates[row],ostates[col],t,val);
+
+               if(op == 1)
+                  insert_id(mpo[no - 1],row,col,val);
+
+            }
+
+            ++row;
+
+         }
+
+         istates = ostates;
+         qi = qo;
+
+         //first virtual: i = no
+         qo.clear();
+         ostates.clear();
+
+         //start with id for closed states
+         state.push_id();
+         ostates.push_back(state);
+         state.clear();
+
+         qo.push_back(Q::zero());
+
+         //going to single operators
+         for(int j = no + 1;j < L;++j){
+
+            state.push_crea_up(j);
+            ostates.push_back(state);
+            state.clear();
+
+            qo.push_back(Q(1,0));
+
+            state.push_crea_down(j);
+            ostates.push_back(state);
+            state.clear();
+
+            qo.push_back(Q(0,1));
+
+         }
+
+         //going to double operators: copy from incoming
+         for(int row = 0;row < istates.size();++row){
+
+            if(istates[row].gsite(0) != no){
+
+               ostates.push_back(istates[row]);
+               qo.push_back(qi[row]);
+
+            }
+
+         }
+
+         mpo[no].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+         //first column close with pairs
+         for(int row = 0;row < istates.size();++row){
+
+            if(istates[row].gsite(0) == no && istates[row].gsite(1) == no)
+               insert_crea_up_crea_down(mpo[no],row,0,1.0);
+
+         }
+
+         //singles going out, add one operator
+         int col = 1;
+
+         while(ostates[col].size() == 1){
+
+            int bi = ostates[col].gsite(0);
+            int bs = ostates[col].gspin(0);
+
+            for(int row = 0;row < istates.size();++row){
+
+               if(bi == istates[row].gsite(1) && bs == istates[row].gspin(1)){//same outgoing state
+
+                  if(istates[row].gsite(0) == no){//first incoming state is site
+
+                     if(istates[row].gspin(0) == 0)
+                        insert_crea_up_s(mpo[no],row,col,1.0);
+                     else
+                        insert_crea_down(mpo[no],row,col,1.0);
+
+                  }
+
+               }
 
             }
 
@@ -2668,17 +3113,25 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
 
          }
 
-         //switch to outgoing pairs
+         //doubles going out insert id
          while(col < ostates.size()){
+
+            int cai = ostates[col].gsite(0);
+            int cas = ostates[col].gspin(0);
+
+            int cbi = ostates[col].gsite(1);
+            int cbs = ostates[col].gspin(1);
 
             for(int row = 0;row < istates.size();++row){
 
-               double val;
+               int rai = istates[row].gsite(0);
+               int ras = istates[row].gspin(0);
 
-               int op = Ostate::get_double_complement_T2(istates[row],ostates[col],t,val);
+               int rbi = istates[row].gsite(1);
+               int rbs = istates[row].gspin(1);
 
-               if(op == 1)
-                  insert_id(mpo[no],row,col,val);
+               if(cai == rai && cas == ras && cbi == rbi && cbs == rbs)
+                  insert_id(mpo[no],row,col);
 
             }
 
@@ -2858,99 +3311,436 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
          insert_crea_up_crea_down(mpo[L - 1],3,0,1.0);
 
       }
-      else{//nv > no + 1
+      else{
 
-         //for once the ostates and qo from previous site are correct for start of next site
+         //last occupied: i = no - 1
+         ostates.clear();
+         qo.clear();
 
-         //all the virtuals: the have the signature of the operator they are going to: but opposite q-number
-         for(int j = no + 1;j < L;++j){
+         qo.push_back(Q(1,1));//a_up a_down
 
-            qo.push_back(Q(1,0));//go to crea up
-
-            state.push_crea_up(j);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(0,1));//go to crea down 
-
-            state.push_crea_down(j);
-            ostates.push_back(state);
-            state.clear();
-
-         }
-
-         //last column complete closed:
-         qo.push_back(Q(0,0));
-         state.push_id();
+         state.push_anni_up(no-1);
+         state.push_anni_down(no-1);
          ostates.push_back(state);
          state.clear();
 
-         //start the filling
-         mpo[no].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+         //add a down
+         int row = 1;
 
-         //copy the pairs
-         for(int i = 0;i < istates.size();++i)
-            insert_id(mpo[no],i,i);
+         while(istates[row].size() == 1){
 
-         for(int column = istates.size();column < ostates.size() - 1;++column){
+            state.push_anni_down(no-1);
+            state.insert(state.end(),istates[row].begin(),istates[row].end());
+            ostates.push_back(state);
+            state.clear();
 
-            for(int row = 0;row < istates.size();++row){
+            Quantum tmp = qi[row];
+            tmp.anni_down();
+            qo.push_back(tmp);
 
-               double val;
-
-               int op = Ostate::get_single_complement_T2(no,istates[row],ostates[column],t,val);
-
-               if(op == 0)
-                  insert_crea_up_s(mpo[no],row,column,val);
-               else if(op == 1)
-                  insert_crea_down(mpo[no],row,column,val);
-
-            }
+            ++row;
 
          }
 
-         //last column: insert pairs
-         for(int row = 0;row < istates.size();++row){
+         //add an up
+         row = 1;
 
-            //lets call in i,j
-            int i = istates[row].gsite(1);
-            int j = istates[row].gsite(0);
+         while(istates[row].size() == 1){
 
-            int si = istates[row].gspin(1);
-            int sj = istates[row].gspin(0);
+            state.push_anni_up(no-1);
+            state.insert(state.end(),istates[row].begin(),istates[row].end());
+            ostates.push_back(state);
+            state.clear();
 
-            if(si == 0 && sj == 1)
-               insert_crea_up_crea_down(mpo[no],row,ostates.size() - 1,t(i,j,0,0));
-            else if(si == 1 && sj == 0)
-               insert_crea_up_crea_down(mpo[no],row,ostates.size() - 1,-t(i,j,0,0));
+            Quantum tmp = qi[row];
+            tmp.anni_up();
+            qo.push_back(tmp);
+
+            ++row;
+
+         }
+
+         //id for the pairs coming in
+         while(row < istates.size()){
+
+            qo.push_back(qi[row]);
+            ostates.push_back(istates[row]);
+            ++row;
+
+         }
+
+         //start filling
+         mpo[no - 1].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+         //double remove
+         insert_anni_down_anni_up(mpo[no-1],0,0,1.0);
+
+         //anni down
+         row = 1;
+         int column = 1;
+
+         while(istates[row].size() == 1){
+
+            insert_anni_down_s(mpo[no-1],row,column,1.0);
+            column++;
+            row++;
+
+         }
+
+         //anni up
+         row = 1;
+
+         while(istates[row].size() == 1){
+
+            //fermion sign!
+            insert_anni_up(mpo[no-1],row,column,1.0);
+            ++column;
+            ++row;
+
+         }
+
+         while(row < istates.size()){
+
+            //finally identity
+            insert_id(mpo[no-1],row,column);
+            ++row;
+            ++column;
 
          }
 
          istates = ostates;
          qi = qo;
 
-         //next everything until nv
-         for(int i = no + 1;i < nv;++i){
-
-            //current virtual index
-            int vind = i - no;
+         if(no + 1 == nv){
 
             ostates.clear();
             qo.clear();
 
-            //identity for the pairs
-            int row = 0;
+            //first col closed
+            state.push_id();
+            ostates.push_back(state);
+            state.clear();
 
-            while(istates[row].size() == 2){
+            qo.push_back(Q::zero());
 
-               ostates.push_back(istates[row]);
-               qo.push_back(qi[row]);
-               ++row;
+            //singles
+            for(int i = no + 1;i < L;++i){
+
+               state.push_crea_up(i);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Q(1,0));
+
+               state.push_crea_down(i);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Q(0,1));
 
             }
 
-            //the remaining virtuals: they have the signature of the operator they are going to: but opposite q-number
-            for(int j = i + 1;j < L;++j){
+            //pairs
+            Ostate istate;
+
+            for(int i = no + 1;i < L;++i){
+
+               //first up
+               istate.push_crea_up(i);
+
+               state = istate;
+               state.push_crea_down(i);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Q(1,1));
+
+               for(int j = i + 1;j < L;++j){
+
+                  //up up
+                  state = istate;
+                  state.push_crea_up(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Q(2,0));
+
+                  //up down
+                  state = istate;
+                  state.push_crea_down(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Q(1,1));
+
+               }
+
+               istate.clear();
+
+               //first down
+               istate.push_crea_down(i);
+
+               for(int j = i + 1;j < L;++j){
+
+                  //down up
+                  state = istate;
+                  state.push_crea_up(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Q(1,1));
+
+                  //down down
+                  state = istate;
+                  state.push_crea_down(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Q(0,2));
+
+               }
+
+               istate.clear();
+
+            }
+
+            mpo[no].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+            //first column closed: insert pairs
+            for(int row = 0;row < istates.size();++row){
+
+               //lets call in i,j
+               int i = istates[row].gsite(1);
+               int j = istates[row].gsite(0);
+
+               int si = istates[row].gspin(1);
+               int sj = istates[row].gspin(0);
+
+               if(si == 0 && sj == 1)
+                  insert_crea_up_crea_down(mpo[no],row,0,t(i,j,0,0));
+               else if(si == 1 && sj == 0)
+                  insert_crea_up_crea_down(mpo[no],row,0,-t(i,j,0,0));
+
+            }
+
+            //singles going out:
+            int col = 1;
+
+            while(ostates[col].size() == 1){
+
+               for(int row = 0;row < istates.size();++row){
+
+                  double val;
+
+                  int op = Ostate::get_single_complement_T2(no,istates[row],ostates[col],t,val);
+
+                  if(op == 0)
+                     insert_crea_up_s(mpo[no],row,col,val);
+                  else if(op == 1)
+                     insert_crea_down(mpo[no],row,col,val);
+
+               }
+
+               ++col;
+
+            }
+
+            //switch to outgoing pairs
+            while(col < ostates.size()){
+
+               for(int row = 0;row < istates.size();++row){
+
+                  double val;
+
+                  int op = Ostate::get_double_complement_T2(istates[row],ostates[col],t,val);
+
+                  if(op == 1)
+                     insert_id(mpo[no],row,col,val);
+
+               }
+
+               ++col;
+
+            }
+
+            istates = ostates;
+            qi = qo;
+
+            //rest of the virtuals
+            for(int i = no + 1;i < L - 1;++i){
+
+               qo.clear();
+               ostates.clear();
+
+               //start with id for closed states
+               state.push_id();
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Q::zero());
+
+               //going to single operators: copy from incoming
+               int row = 1;
+
+               while(istates[row].size() == 1){
+
+                  if(istates[row].gsite(0) != i){
+
+                     ostates.push_back(istates[row]);
+                     qo.push_back(qi[row]);
+
+                  }
+
+                  ++row;
+
+               }
+
+               //going to double operators: copy from incoming
+               while(row < istates.size()){
+
+                  if(istates[row].gsite(0) != i){
+
+                     ostates.push_back(istates[row]);
+                     qo.push_back(qi[row]);
+
+                  }
+
+                  ++row;
+
+               }
+
+               mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+               //first column closed
+               insert_id(mpo[i],0,0);
+
+               //close the singles
+               row = 1;
+
+               while(istates[row].size() == 1){
+
+                  if(istates[row].gsite(0) == i){
+
+                     if(istates[row].gspin(0) == 0)
+                        insert_crea_up(mpo[i],row,0,1.0);
+                     else
+                        insert_crea_down_s(mpo[i],row,0,1.0);
+
+                  }
+
+                  ++row;
+
+               }
+
+               //close the doubles
+               while(row < istates.size()){
+
+                  if(istates[row].gsite(0) == i && istates[row].gsite(1) == i)
+                     insert_crea_up_crea_down(mpo[i],row,0,1.0);
+
+                  ++row;
+
+               }
+
+               //next the single outgoing columns
+               int col = 1;
+
+               while(ostates[col].size() == 1){
+
+                  int ci = ostates[col].gsite(0);
+                  int cs = ostates[col].gspin(0);
+
+                  //insert sign for incoming singles
+                  row = 1;
+
+                  while(istates[row].size() == 1){
+
+                     int ri = istates[row].gsite(0);
+                     int rs = istates[row].gspin(0);
+
+                     if(ri == ci && rs == cs)
+                        insert_sign(mpo[i],row,col);
+
+                     ++row;
+
+                  }
+
+                  //insert operator for incoming doubles
+                  while(row < istates.size()){
+
+                     if(ci == istates[row].gsite(1) && cs == istates[row].gspin(1)){//same outgoing state
+
+                        if(istates[row].gsite(0) == i){//first incoming state is site
+
+                           if(istates[row].gspin(0) == 0)
+                              insert_crea_up_s(mpo[i],row,col,1.0);
+                           else
+                              insert_crea_down(mpo[i],row,col,1.0);
+
+                        }
+
+                     }
+
+                     ++row;
+
+                  }
+
+                  ++col;
+
+               }
+
+               //find row where incoming doubles begin
+               int rd = 1;
+
+               while(istates[rd].size() == 1)
+                  ++rd;
+
+               //insert id for doubles coming in and going out
+               while(col < ostates.size()){
+
+                  int cai = ostates[col].gsite(0);
+                  int cas = ostates[col].gspin(0);
+
+                  int cbi = ostates[col].gsite(1);
+                  int cbs = ostates[col].gspin(1);
+
+                  for(int row = rd;row < istates.size();++row){
+
+                     int rai = istates[row].gsite(0);
+                     int ras = istates[row].gspin(0);
+
+                     int rbi = istates[row].gsite(1);
+                     int rbs = istates[row].gspin(1);
+
+                     if(cai == rai && cas == ras && cbi == rbi && cbs == rbs)
+                        insert_id(mpo[i],row,col);
+
+                  }
+
+                  ++col;
+
+               }
+
+               istates = ostates;
+               qi = qo;
+
+            }
+
+            //last site: only 4 coming in
+            mpo[L - 1].resize(Q::zero(),make_array(-qi,qp,-qp,qz));
+
+            insert_id(mpo[L - 1],0,0);
+            insert_crea_up(mpo[L - 1],1,0,1.0);
+            insert_crea_down_s(mpo[L - 1],2,0,1.0);
+            insert_crea_up_crea_down(mpo[L - 1],3,0,1.0);
+
+         }
+         else{//nv > no + 1
+
+            //for once the ostates and qo from previous site are correct for start of next site
+
+            //all the virtuals: the have the signature of the operator they are going to: but opposite q-number
+            for(int j = no + 1;j < L;++j){
 
                qo.push_back(Q(1,0));//go to crea up
 
@@ -2966,346 +3756,302 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
 
             }
 
-            //last column closed
+            //last column complete closed:
+            qo.push_back(Q(0,0));
             state.push_id();
             ostates.push_back(state);
             state.clear();
-            qo.push_back(Q(0,0));
 
-            //start filling
-            mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+            //start the filling
+            mpo[no].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
 
-            row = 0;
-            int column = 0;
+            //copy the pairs
+            for(int i = 0;i < istates.size();++i)
+               insert_id(mpo[no],i,i);
 
-            //fill pairs id
-            while(istates[row].size() == 2){
+            for(int column = istates.size();column < ostates.size() - 1;++column){
 
-               insert_id(mpo[i],row,column);
-               ++row;++column;
-
-            }
-
-            //remaining virtuals
-            while(column < ostates.size() - 1){
-
-               row = 0;
-
-               while(istates[row].size() == 2){
+               for(int row = 0;row < istates.size();++row){
 
                   double val;
 
-                  int op = Ostate::get_single_complement_T2(i,istates[row],ostates[column],t,val);
+                  int op = Ostate::get_single_complement_T2(no,istates[row],ostates[column],t,val);
 
                   if(op == 0)
-                     insert_crea_up_s(mpo[i],row,column,val);
+                     insert_crea_up_s(mpo[no],row,column,val);
                   else if(op == 1)
-                     insert_crea_down(mpo[i],row,column,val);
-
-                  ++row;
+                     insert_crea_down(mpo[no],row,column,val);
 
                }
-
-               while(row < istates.size() - 1){
-
-                  if(istates[row].gsite(0) == ostates[column].gsite(0) && istates[row].gspin(0) == ostates[column].gspin(0))
-                     insert_sign(mpo[i],row,column);
-
-                  ++row;
-
-               }
-
-               ++column;
 
             }
 
-            //last column: close down
-            row = 0;
-
-            while(istates[row].size() == 2){
+            //last column: insert pairs
+            for(int row = 0;row < istates.size();++row){
 
                //lets call in i,j
-               int ii = istates[row].gsite(1);
-               int ij = istates[row].gsite(0);
+               int i = istates[row].gsite(1);
+               int j = istates[row].gsite(0);
 
                int si = istates[row].gspin(1);
                int sj = istates[row].gspin(0);
 
                if(si == 0 && sj == 1)
-                  insert_crea_up_crea_down(mpo[i],row,ostates.size() - 1,t(ii,ij,vind,vind));
+                  insert_crea_up_crea_down(mpo[no],row,ostates.size() - 1,t(i,j,0,0));
                else if(si == 1 && sj == 0)
-                  insert_crea_up_crea_down(mpo[i],row,ostates.size() - 1,-t(ii,ij,vind,vind));
-
-               ++row;
+                  insert_crea_up_crea_down(mpo[no],row,ostates.size() - 1,-t(i,j,0,0));
 
             }
-
-            //close down the complementaries:
-            insert_crea_up(mpo[i],row,ostates.size() - 1,1.0);++row;
-            insert_crea_down_s(mpo[i],row,ostates.size() - 1,1.0);
-
-            //unit for the already closed parts
-            insert_id(mpo[i],istates.size() - 1,ostates.size() - 1);
 
             istates = ostates;
             qi = qo;
 
-         }
+            //next everything until nv
+            for(int i = no + 1;i < nv;++i){
 
-         ostates.clear();
-         qo.clear();
+               //current virtual index
+               int vind = i - no;
 
-         //first col closed
-         state.push_id();
-         ostates.push_back(state);
-         state.clear();
+               ostates.clear();
+               qo.clear();
 
-         qo.push_back(Q::zero());
+               //identity for the pairs
+               int row = 0;
 
-         //singles
-         for(int i = nv + 1;i < L;++i){
+               while(istates[row].size() == 2){
 
-            state.push_crea_up(i);
-            ostates.push_back(state);
-            state.clear();
+                  ostates.push_back(istates[row]);
+                  qo.push_back(qi[row]);
+                  ++row;
 
-            qo.push_back(Q(1,0));
+               }
 
-            state.push_crea_down(i);
-            ostates.push_back(state);
-            state.clear();
+               //the remaining virtuals: they have the signature of the operator they are going to: but opposite q-number
+               for(int j = i + 1;j < L;++j){
 
-            qo.push_back(Q(0,1));
+                  qo.push_back(Q(1,0));//go to crea up
 
-         }
+                  state.push_crea_up(j);
+                  ostates.push_back(state);
+                  state.clear();
 
-         //pairs
-         Ostate istate;
+                  qo.push_back(Q(0,1));//go to crea down 
 
-         for(int i = nv + 1;i < L;++i){
+                  state.push_crea_down(j);
+                  ostates.push_back(state);
+                  state.clear();
 
-            //first up
-            istate.push_crea_up(i);
+               }
 
-            state = istate;
-            state.push_crea_down(i);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(1,1));
-
-            for(int j = i + 1;j < L;++j){
-
-               //up up
-               state = istate;
-               state.push_crea_up(j);
+               //last column closed
+               state.push_id();
                ostates.push_back(state);
                state.clear();
+               qo.push_back(Q(0,0));
 
-               qo.push_back(Q(2,0));
+               //start filling
+               mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
 
-               //up down
-               state = istate;
-               state.push_crea_down(j);
-               ostates.push_back(state);
-               state.clear();
+               row = 0;
+               int column = 0;
 
-               qo.push_back(Q(1,1));
+               //fill pairs id
+               while(istates[row].size() == 2){
 
-            }
+                  insert_id(mpo[i],row,column);
+                  ++row;++column;
 
-            istate.clear();
+               }
 
-            //first down
-            istate.push_crea_down(i);
+               //remaining virtuals
+               while(column < ostates.size() - 1){
 
-            for(int j = i + 1;j < L;++j){
+                  row = 0;
 
-               //down up
-               state = istate;
-               state.push_crea_up(j);
-               ostates.push_back(state);
-               state.clear();
+                  while(istates[row].size() == 2){
 
-               qo.push_back(Q(1,1));
+                     double val;
 
-               //down down
-               state = istate;
-               state.push_crea_down(j);
-               ostates.push_back(state);
-               state.clear();
+                     int op = Ostate::get_single_complement_T2(i,istates[row],ostates[column],t,val);
 
-               qo.push_back(Q(0,2));
+                     if(op == 0)
+                        insert_crea_up_s(mpo[i],row,column,val);
+                     else if(op == 1)
+                        insert_crea_down(mpo[i],row,column,val);
 
-            }
+                     ++row;
 
-            istate.clear();
+                  }
 
-         }
+                  while(row < istates.size() - 1){
 
-         mpo[nv].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+                     if(istates[row].gsite(0) == ostates[column].gsite(0) && istates[row].gspin(0) == ostates[column].gspin(0))
+                        insert_sign(mpo[i],row,column);
 
-         //incoming pairs
-         int row = 0;
+                     ++row;
 
-         while(istates[row].size() == 2){
+                  }
 
-            //lets call in i,j
-            int i = istates[row].gsite(1);
-            int j = istates[row].gsite(0);
+                  ++column;
 
-            int si = istates[row].gspin(1);
-            int sj = istates[row].gspin(0);
+               }
 
-            if(si == 0 && sj == 1)
-               insert_crea_up_crea_down(mpo[nv],row,0,t(i,j,nv-no,nv-no));
-            else if(si == 1 && sj == 0)
-               insert_crea_up_crea_down(mpo[nv],row,0,-t(i,j,nv-no,nv-no));
+               //last column: close down
+               row = 0;
 
-            ++row;
+               while(istates[row].size() == 2){
 
-         }
+                  //lets call in i,j
+                  int ii = istates[row].gsite(1);
+                  int ij = istates[row].gsite(0);
 
-         //incoming singles
-         while(row < istates.size() - 1){
+                  int si = istates[row].gspin(1);
+                  int sj = istates[row].gspin(0);
 
-            if(istates[row].gsite(0) == nv){
+                  if(si == 0 && sj == 1)
+                     insert_crea_up_crea_down(mpo[i],row,ostates.size() - 1,t(ii,ij,vind,vind));
+                  else if(si == 1 && sj == 0)
+                     insert_crea_up_crea_down(mpo[i],row,ostates.size() - 1,-t(ii,ij,vind,vind));
 
-               if(istates[row].gspin(0) == 0)
-                  insert_crea_up(mpo[nv],row,0,1.0);
-               else
-                  insert_crea_down_s(mpo[nv],row,0,1.0);
+                  ++row;
 
-            }
+               }
 
-            ++row;
+               //close down the complementaries:
+               insert_crea_up(mpo[i],row,ostates.size() - 1,1.0);++row;
+               insert_crea_down_s(mpo[i],row,ostates.size() - 1,1.0);
 
-         }
+               //unit for the already closed parts
+               insert_id(mpo[i],istates.size() - 1,ostates.size() - 1);
 
-         //for closed terms coming in
-         insert_id(mpo[nv],row,0);
-
-         //next the single columns
-         int col = 1;
-
-         while(ostates[col].size() == 1){
-
-            row = 0;
-
-            //doubles coming in
-            while(istates[row].size() == 2){
-
-               double val;
-
-               int op = Ostate::get_single_complement_T2(nv,istates[row],ostates[col],t,val);
-
-               if(op == 0)
-                  insert_crea_up_s(mpo[nv],row,col,val);
-               else if(op == 1)
-                  insert_crea_down(mpo[nv],row,col,val);
-
-               ++row;
+               istates = ostates;
+               qi = qo;
 
             }
 
-            //sign for incoming to outgoing singles
-            while(row < istates.size() - 1){
-
-               if(istates[row].gsite(0) == ostates[col].gsite(0) && istates[row].gspin(0) == ostates[col].gspin(0))
-                  insert_sign(mpo[nv],row,col);
-
-               ++row;
-
-            }
-
-            ++col;
-
-         }
-
-         while(col < ostates.size()){
-
-            //transform from incoming to outgoing pairs
-            row = 0;
-
-            while(istates[row].size() == 2){
-
-               double val;
-
-               int op = Ostate::get_double_complement_T2(istates[row],ostates[col],t,val);
-
-               if(op == 1)
-                  insert_id(mpo[nv],row,col,val);
-
-               ++row;
-
-            }
-
-            ++col;
-
-         }
-
-         istates = ostates;
-         qi = qo;
-
-         //rest of the virtuals
-         for(int i = nv + 1;i < L - 1;++i){
-
-            qo.clear();
             ostates.clear();
+            qo.clear();
 
-            //start with id for closed states
+            //first col closed
             state.push_id();
             ostates.push_back(state);
             state.clear();
 
             qo.push_back(Q::zero());
 
-            //going to single operators: copy from incoming
-            int row = 1;
+            //singles
+            for(int i = nv + 1;i < L;++i){
 
-            while(istates[row].size() == 1){
+               state.push_crea_up(i);
+               ostates.push_back(state);
+               state.clear();
 
-               if(istates[row].gsite(0) != i){
+               qo.push_back(Q(1,0));
 
-                  ostates.push_back(istates[row]);
-                  qo.push_back(qi[row]);
+               state.push_crea_down(i);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Q(0,1));
+
+            }
+
+            //pairs
+            Ostate istate;
+
+            for(int i = nv + 1;i < L;++i){
+
+               //first up
+               istate.push_crea_up(i);
+
+               state = istate;
+               state.push_crea_down(i);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Q(1,1));
+
+               for(int j = i + 1;j < L;++j){
+
+                  //up up
+                  state = istate;
+                  state.push_crea_up(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Q(2,0));
+
+                  //up down
+                  state = istate;
+                  state.push_crea_down(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Q(1,1));
 
                }
+
+               istate.clear();
+
+               //first down
+               istate.push_crea_down(i);
+
+               for(int j = i + 1;j < L;++j){
+
+                  //down up
+                  state = istate;
+                  state.push_crea_up(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Q(1,1));
+
+                  //down down
+                  state = istate;
+                  state.push_crea_down(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Q(0,2));
+
+               }
+
+               istate.clear();
+
+            }
+
+            mpo[nv].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+            //incoming pairs
+            int row = 0;
+
+            while(istates[row].size() == 2){
+
+               //lets call in i,j
+               int i = istates[row].gsite(1);
+               int j = istates[row].gsite(0);
+
+               int si = istates[row].gspin(1);
+               int sj = istates[row].gspin(0);
+
+               if(si == 0 && sj == 1)
+                  insert_crea_up_crea_down(mpo[nv],row,0,t(i,j,nv-no,nv-no));
+               else if(si == 1 && sj == 0)
+                  insert_crea_up_crea_down(mpo[nv],row,0,-t(i,j,nv-no,nv-no));
 
                ++row;
 
             }
 
-            //going to double operators: copy from incoming
-            while(row < istates.size()){
+            //incoming singles
+            while(row < istates.size() - 1){
 
-               if(istates[row].gsite(0) != i){
-
-                  ostates.push_back(istates[row]);
-                  qo.push_back(qi[row]);
-
-               }
-
-               ++row;
-
-            }
-
-            mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
-
-            //first column closed
-            insert_id(mpo[i],0,0);
-
-            //close the singles
-            row = 1;
-
-            while(istates[row].size() == 1){
-
-               if(istates[row].gsite(0) == i){
+               if(istates[row].gsite(0) == nv){
 
                   if(istates[row].gspin(0) == 0)
-                     insert_crea_up(mpo[i],row,0,1.0);
+                     insert_crea_up(mpo[nv],row,0,1.0);
                   else
-                     insert_crea_down_s(mpo[i],row,0,1.0);
+                     insert_crea_down_s(mpo[nv],row,0,1.0);
 
                }
 
@@ -3313,52 +4059,93 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
 
             }
 
-            //close the doubles
-            while(row < istates.size()){
+            //for closed terms coming in
+            insert_id(mpo[nv],row,0);
 
-               if(istates[row].gsite(0) == i && istates[row].gsite(1) == i)
-                  insert_crea_up_crea_down(mpo[i],row,0,1.0);
-
-               ++row;
-
-            }
-
-            //next the single outgoing columns
+            //next the single columns
             int col = 1;
 
             while(ostates[col].size() == 1){
 
-               int ci = ostates[col].gsite(0);
-               int cs = ostates[col].gspin(0);
+               row = 0;
 
-               //insert sign for incoming singles
-               row = 1;
+               //doubles coming in
+               while(istates[row].size() == 2){
 
-               while(istates[row].size() == 1){
+                  double val;
 
-                  int ri = istates[row].gsite(0);
-                  int rs = istates[row].gspin(0);
+                  int op = Ostate::get_single_complement_T2(nv,istates[row],ostates[col],t,val);
 
-                  if(ri == ci && rs == cs)
-                     insert_sign(mpo[i],row,col);
+                  if(op == 0)
+                     insert_crea_up_s(mpo[nv],row,col,val);
+                  else if(op == 1)
+                     insert_crea_down(mpo[nv],row,col,val);
 
                   ++row;
 
                }
 
-               //insert operator for incoming doubles
-               while(row < istates.size()){
+               //sign for incoming to outgoing singles
+               while(row < istates.size() - 1){
 
-                  if(ci == istates[row].gsite(1) && cs == istates[row].gspin(1)){//same outgoing state
+                  if(istates[row].gsite(0) == ostates[col].gsite(0) && istates[row].gspin(0) == ostates[col].gspin(0))
+                     insert_sign(mpo[nv],row,col);
 
-                     if(istates[row].gsite(0) == i){//first incoming state is site
+                  ++row;
 
-                        if(istates[row].gspin(0) == 0)
-                           insert_crea_up_s(mpo[i],row,col,1.0);
-                        else
-                           insert_crea_down(mpo[i],row,col,1.0);
+               }
 
-                     }
+               ++col;
+
+            }
+
+            while(col < ostates.size()){
+
+               //transform from incoming to outgoing pairs
+               row = 0;
+
+               while(istates[row].size() == 2){
+
+                  double val;
+
+                  int op = Ostate::get_double_complement_T2(istates[row],ostates[col],t,val);
+
+                  if(op == 1)
+                     insert_id(mpo[nv],row,col,val);
+
+                  ++row;
+
+               }
+
+               ++col;
+
+            }
+
+            istates = ostates;
+            qi = qo;
+
+            //rest of the virtuals
+            for(int i = nv + 1;i < L - 1;++i){
+
+               qo.clear();
+               ostates.clear();
+
+               //start with id for closed states
+               state.push_id();
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Q::zero());
+
+               //going to single operators: copy from incoming
+               int row = 1;
+
+               while(istates[row].size() == 1){
+
+                  if(istates[row].gsite(0) != i){
+
+                     ostates.push_back(istates[row]);
+                     qo.push_back(qi[row]);
 
                   }
 
@@ -3366,54 +4153,146 @@ MPO<Q> T2(const DArray<4> &t,bool merge){
 
                }
 
-               ++col;
+               //going to double operators: copy from incoming
+               while(row < istates.size()){
 
-            }
+                  if(istates[row].gsite(0) != i){
 
-            //find row where incoming doubles begin
-            int rd = 1;
+                     ostates.push_back(istates[row]);
+                     qo.push_back(qi[row]);
 
-            while(istates[rd].size() == 1)
-               ++rd;
+                  }
 
-            //insert id for doubles coming in and going out
-            while(col < ostates.size()){
-
-               int cai = ostates[col].gsite(0);
-               int cas = ostates[col].gspin(0);
-
-               int cbi = ostates[col].gsite(1);
-               int cbs = ostates[col].gspin(1);
-
-               for(int row = rd;row < istates.size();++row){
-
-                  int rai = istates[row].gsite(0);
-                  int ras = istates[row].gspin(0);
-
-                  int rbi = istates[row].gsite(1);
-                  int rbs = istates[row].gspin(1);
-
-                  if(cai == rai && cas == ras && cbi == rbi && cbs == rbs)
-                     insert_id(mpo[i],row,col);
+                  ++row;
 
                }
 
-               ++col;
+               mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+
+               //first column closed
+               insert_id(mpo[i],0,0);
+
+               //close the singles
+               row = 1;
+
+               while(istates[row].size() == 1){
+
+                  if(istates[row].gsite(0) == i){
+
+                     if(istates[row].gspin(0) == 0)
+                        insert_crea_up(mpo[i],row,0,1.0);
+                     else
+                        insert_crea_down_s(mpo[i],row,0,1.0);
+
+                  }
+
+                  ++row;
+
+               }
+
+               //close the doubles
+               while(row < istates.size()){
+
+                  if(istates[row].gsite(0) == i && istates[row].gsite(1) == i)
+                     insert_crea_up_crea_down(mpo[i],row,0,1.0);
+
+                  ++row;
+
+               }
+
+               //next the single outgoing columns
+               int col = 1;
+
+               while(ostates[col].size() == 1){
+
+                  int ci = ostates[col].gsite(0);
+                  int cs = ostates[col].gspin(0);
+
+                  //insert sign for incoming singles
+                  row = 1;
+
+                  while(istates[row].size() == 1){
+
+                     int ri = istates[row].gsite(0);
+                     int rs = istates[row].gspin(0);
+
+                     if(ri == ci && rs == cs)
+                        insert_sign(mpo[i],row,col);
+
+                     ++row;
+
+                  }
+
+                  //insert operator for incoming doubles
+                  while(row < istates.size()){
+
+                     if(ci == istates[row].gsite(1) && cs == istates[row].gspin(1)){//same outgoing state
+
+                        if(istates[row].gsite(0) == i){//first incoming state is site
+
+                           if(istates[row].gspin(0) == 0)
+                              insert_crea_up_s(mpo[i],row,col,1.0);
+                           else
+                              insert_crea_down(mpo[i],row,col,1.0);
+
+                        }
+
+                     }
+
+                     ++row;
+
+                  }
+
+                  ++col;
+
+               }
+
+               //find row where incoming doubles begin
+               int rd = 1;
+
+               while(istates[rd].size() == 1)
+                  ++rd;
+
+               //insert id for doubles coming in and going out
+               while(col < ostates.size()){
+
+                  int cai = ostates[col].gsite(0);
+                  int cas = ostates[col].gspin(0);
+
+                  int cbi = ostates[col].gsite(1);
+                  int cbs = ostates[col].gspin(1);
+
+                  for(int row = rd;row < istates.size();++row){
+
+                     int rai = istates[row].gsite(0);
+                     int ras = istates[row].gspin(0);
+
+                     int rbi = istates[row].gsite(1);
+                     int rbs = istates[row].gspin(1);
+
+                     if(cai == rai && cas == ras && cbi == rbi && cbs == rbs)
+                        insert_id(mpo[i],row,col);
+
+                  }
+
+                  ++col;
+
+               }
+
+               istates = ostates;
+               qi = qo;
 
             }
 
-            istates = ostates;
-            qi = qo;
+            //last site: only 4 coming in
+            mpo[L - 1].resize(Q::zero(),make_array(-qi,qp,-qp,qz));
+
+            insert_id(mpo[L - 1],0,0);
+            insert_crea_up(mpo[L - 1],1,0,1.0);
+            insert_crea_down_s(mpo[L - 1],2,0,1.0);
+            insert_crea_up_crea_down(mpo[L - 1],3,0,1.0);
 
          }
-
-         //last site: only 4 coming in
-         mpo[L - 1].resize(Q::zero(),make_array(-qi,qp,-qp,qz));
-
-         insert_id(mpo[L - 1],0,0);
-         insert_crea_up(mpo[L - 1],1,0,1.0);
-         insert_crea_down_s(mpo[L - 1],2,0,1.0);
-         insert_crea_up_crea_down(mpo[L - 1],3,0,1.0);
 
       }
 
@@ -6548,6 +7427,7 @@ template MPO<Quantum> E(int,int,int,int,int,double);
 template MPO<Quantum> tpint(int,int,int,int,int,double);
 template MPO<Quantum> T1(const DArray<2> &,bool);
 template MPO<Quantum> T2(const DArray<4> &,bool);
+template MPO<Quantum> T2_test(const DArray<4> &);
 template MPO<Quantum> qcham(const DArray<2> &,const DArray<4> &,bool);
 template MPO<Quantum> one_body(const DArray<2> &,bool);
 template MPO<Quantum> crea_up(int L,int i);

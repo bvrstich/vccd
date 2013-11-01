@@ -66,6 +66,9 @@ template<class Q>
 MPO<Q> T2(const DArray<4> &,bool);
 
 template<class Q>
+MPO<Q> T2_test(const DArray<4> &);
+
+template<class Q>
 MPO<Q> qcham(const DArray<2> &,const DArray<4> &,bool);
 
 template<class Q>

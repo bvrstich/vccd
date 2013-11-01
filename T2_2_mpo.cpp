@@ -135,105 +135,105 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
 
    Qshapes<Quantum> qi = qo;
 
-   for(int i = 1;i < no - 1;++i){
+   if(nv < no){
 
-      ostates.clear();
-      qo.clear();
+      for(int i = 1;i < nv;++i){
 
-      qo.push_back(Quantum::zero());//I
+         ostates.clear();
+         qo.clear();
 
-      ostates.push_back(istates[0]);
+         qo.push_back(Quantum::zero());//I
 
-      qo.push_back(Quantum(0,1));//a_down
-      qo.push_back(Quantum(1,0));//a_up
+         ostates.push_back(istates[0]);
 
-      state.push_anni_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      state.push_anni_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      int row = 1;
-
-      while(istates[row].size() == 1){
-
-         qo.push_back(qi[row]);//a_down
-         ostates.push_back(istates[row]);
-
-         ++row;
-
-      }
-
-      qo.push_back(Quantum(1,1));//a_up a_down
-
-      state.push_anni_up(i);
-      state.push_anni_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      //add a down
-      row = 1;
-
-      while(istates[row].size() == 1){
+         qo.push_back(Quantum(0,1));//a_down
+         qo.push_back(Quantum(1,0));//a_up
 
          state.push_anni_down(i);
-         state.insert(state.end(),istates[row].begin(),istates[row].end());
          ostates.push_back(state);
          state.clear();
-
-         Quantum tmp = qi[row];
-         tmp.anni_down();
-         qo.push_back(tmp);
-
-         ++row;
-
-      }
-
-      //add an up
-      row = 1;
-
-      while(istates[row].size() == 1){
 
          state.push_anni_up(i);
-         state.insert(state.end(),istates[row].begin(),istates[row].end());
          ostates.push_back(state);
          state.clear();
 
-         Quantum tmp = qi[row];
-         tmp.anni_up();
-         qo.push_back(tmp);
+         int row = 1;
 
-         ++row;
+         while(istates[row].size() == 1){
+
+            qo.push_back(qi[row]);//a_down
+            ostates.push_back(istates[row]);
+
+            ++row;
+
+         }
+
+         qo.push_back(Quantum(1,1));//a_up a_down
+
+         state.push_anni_up(i);
+         state.push_anni_down(i);
+         ostates.push_back(state);
+         state.clear();
+
+         //add a down
+         row = 1;
+
+         while(istates[row].size() == 1){
+
+            state.push_anni_down(i);
+            state.insert(state.end(),istates[row].begin(),istates[row].end());
+            ostates.push_back(state);
+            state.clear();
+
+            Quantum tmp = qi[row];
+            tmp.anni_down();
+            qo.push_back(tmp);
+
+            ++row;
+
+         }
+
+         //add an up
+         row = 1;
+
+         while(istates[row].size() == 1){
+
+            state.push_anni_up(i);
+            state.insert(state.end(),istates[row].begin(),istates[row].end());
+            ostates.push_back(state);
+            state.clear();
+
+            Quantum tmp = qi[row];
+            tmp.anni_up();
+            qo.push_back(tmp);
+
+            ++row;
+
+         }
+
+         //id for the pairs coming in
+         while(row < istates.size()){
+
+            qo.push_back(qi[row]);
+            ostates.push_back(istates[row]);
+            ++row;
+
+         }
+
+         //get merged row
+         get_merged_index(-qi,q_merged,ind_merged,inverse);
+         merged_row.push_back(inverse);
+
+         //get merged column
+         get_merged_index(qo,q_merged,ind_merged,inverse);
+         merged_col.push_back(inverse);
+
+         istates = ostates;
+         qi = qo;
 
       }
 
-      //id for the pairs coming in
-      while(row < istates.size()){
-
-         qo.push_back(qi[row]);
-         ostates.push_back(istates[row]);
-         ++row;
-
-      }
-
-      //get merged row
-      get_merged_index(-qi,q_merged,ind_merged,inverse);
-      merged_row.push_back(inverse);
-
-      //get merged column
-      get_merged_index(qo,q_merged,ind_merged,inverse);
-      merged_col.push_back(inverse);
-
-      istates = ostates;
-      qi = qo;
-
-   }
-
-   if(no == nv){
-
-      //last occupied: i = no - 1: switch from incoming to outgoing
+      //switch from incoming to outgoing doubles
       ostates.clear();
       qo.clear();
 
@@ -300,6 +300,33 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
 
       }
 
+      //then the incoming singles
+      qo.push_back(Quantum(0,1));//a_down
+      qo.push_back(Quantum(1,0));//a_up
+
+      state.push_anni_down(nv);
+      ostates.push_back(state);
+      state.clear();
+
+      state.push_anni_up(nv);
+      ostates.push_back(state);
+      state.clear();
+
+      int row = 1;
+
+      while(istates[row].size() == 1){
+
+         qo.push_back(qi[row]);//a_down
+         ostates.push_back(istates[row]);
+
+         ++row;
+
+      }
+
+      //finally the id
+      qo.push_back(Quantum::zero());//I
+      ostates.push_back(istates[0]);
+
       //get merged row
       get_merged_index(-qi,q_merged,ind_merged,inverse);
       merged_row.push_back(inverse);
@@ -309,7 +336,9 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
       merged_col.push_back(inverse);
 
       //first row
-      for(int col = 0;col < ostates.size();++col){
+      int col = 0;
+
+      while(ostates[col].size() == 2){
 
          int ai = ostates[col].gsite(0);
          int as = ostates[col].gspin(0);
@@ -317,95 +346,176 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
          int bi = ostates[col].gsite(1);
          int bs = ostates[col].gspin(1);
 
-         int o = ij2o[no-1][no-1];
+         int o = ij2o[nv][nv];
          int v = ab2v[ai-no][bi-no];
 
          int s = ov2s[o][v];
 
          if(as == 0 && bs == 1)
-            push_anni_down_anni_up(s,no-1,0,col,1);
+            push_anni_down_anni_up(s,nv,0,col,1);
          else if(as == 1 && bs == 0)
-            push_anni_down_anni_up(s,no-1,0,col,-1);
+            push_anni_down_anni_up(s,nv,0,col,-1);
+
+         ++col;
 
       }
 
-      //singles coming in
-      int row = 1;
-
-      while(istates[row].size() == 1){
-
-         for(int col = 0;col < ostates.size();++col)
-            push_single_in_complement(no-1,istates[row],row,ostates[col],col);
-
-         ++row;
-
-      }
-
-      //doubles coming in
-      while(row < istates.size()){
-
-         for(int col = 0;col < ostates.size();++col)
-            push_double_complement(no-1,istates[row],row,ostates[col],col);
-
-         ++row;
-
-      }
-
-   }
-   else{//no < nv
-
-      //last occupied: i = no - 1
-      ostates.clear();
-      qo.clear();
-
-      qo.push_back(Quantum(1,1));//a_up a_down
-
-      state.push_anni_up(no-1);
-      state.push_anni_down(no-1);
-      ostates.push_back(state);
-      state.clear();
-
-      //add a down
-      int row = 1;
-
-      while(istates[row].size() == 1){
-
-         state.push_anni_down(no-1);
-         state.insert(state.end(),istates[row].begin(),istates[row].end());
-         ostates.push_back(state);
-         state.clear();
-
-         Quantum tmp = qi[row];
-         tmp.anni_down();
-         qo.push_back(tmp);
-
-         ++row;
-
-      }
-
-      //add an up
+      //singles coming in 
       row = 1;
 
       while(istates[row].size() == 1){
 
-         state.push_anni_up(no-1);
-         state.insert(state.end(),istates[row].begin(),istates[row].end());
-         ostates.push_back(state);
-         state.clear();
+         //to outgoing doubles
+         col = 0;
 
-         Quantum tmp = qi[row];
-         tmp.anni_up();
-         qo.push_back(tmp);
+         while(ostates[col].size() == 2){
+
+            push_single_in_complement(nv,istates[row],row,ostates[col],col);
+
+            ++col;
+
+         }
 
          ++row;
 
       }
 
-      //id for the pairs coming in
+      //doubles coming in to doubles going out
       while(row < istates.size()){
 
-         qo.push_back(qi[row]);
+         col = 0;
+
+         while(ostates[col].size() == 2){
+
+            push_double_complement(nv,istates[row],row,ostates[col],col);
+
+            ++col;
+
+         }
+
+         ++row;
+
+      }
+
+      istates = ostates;
+      qi = qo;
+
+      for(int i = nv + 1;i < no - 1;++i){
+
+         ostates.clear();
+         qo.clear();
+
+         row = 0;
+
+         //outgoing doubles stay the same
+         while(istates[row].size() == 2){
+
+            ostates.push_back(istates[row]);
+            qo.push_back(qi[row]);
+
+            ++row;
+
+         }
+
+         //then the incoming singles
+         qo.push_back(Quantum(0,1));//a_down
+         qo.push_back(Quantum(1,0));//a_up
+
+         state.push_anni_down(i);
+         ostates.push_back(state);
+         state.clear();
+
+         state.push_anni_up(i);
+         ostates.push_back(state);
+         state.clear();
+
+         while(row < istates.size() - 1){
+
+            qo.push_back(qi[row]);//a_down
+            ostates.push_back(istates[row]);
+
+            ++row;
+
+         }
+
+         //end with unity
+         qo.push_back(Quantum::zero());//I
+         ostates.push_back(istates[istates.size() - 1]);
+
+         //get merged row
+         get_merged_index(-qi,q_merged,ind_merged,inverse);
+         merged_row.push_back(inverse);
+
+         //get merged column
+         get_merged_index(qo,q_merged,ind_merged,inverse);
+         merged_col.push_back(inverse);
+
+         row = 0;
+
+         //incoming 'outgoing' doubles
+         while(istates[row].size() == 2)
+            ++row;
+
+         //incoming singles
+         while(row < istates.size() - 1){
+
+            //to outgoing doubles
+            col = 0;
+
+            while(ostates[col].size() == 2){
+
+               push_single_in_complement(i,istates[row],row,ostates[col],col);
+
+               ++col;
+
+            }
+
+            ++row;
+
+         }
+
+         //finally incoming id
+         int col = 0;
+
+         while(ostates[col].size() == 2){
+
+            int ai = ostates[col].gsite(0);
+            int as = ostates[col].gspin(0);
+
+            int bi = ostates[col].gsite(1);
+            int bs = ostates[col].gspin(1);
+
+            int o = ij2o[i][i];
+            int v = ab2v[ai-no][bi-no];
+
+            int s = ov2s[o][v];
+
+            if(as == 0 && bs == 1)
+               push_anni_down_anni_up(s,i,istates.size() - 1,col,1);
+            else if(as == 1 && bs == 0)
+               push_anni_down_anni_up(s,i,istates.size() - 1,col,-1);
+
+            ++col;
+
+         }
+
+         qi = qo;
+         istates = ostates;
+
+      }
+
+      //site no  - 1: close down all the singles
+      ostates.clear();
+      qo.clear();
+
+      row = 0;
+
+      //only outgoing doubles
+      while(istates[row].size() == 2){
+
          ostates.push_back(istates[row]);
+         qo.push_back(qi[row]);
+
          ++row;
 
       }
@@ -418,42 +528,159 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
       get_merged_index(qo,q_merged,ind_merged,inverse);
       merged_col.push_back(inverse);
 
-      istates = ostates;
-      qi = qo;
+      //incoming singles
+      while(row < istates.size() - 1){
 
-      if(no + 1 == nv){
+         //to outgoing doubles
+         col = 0;
+
+         while(ostates[col].size() == 2){
+
+            push_single_in_complement(no - 1,istates[row],row,ostates[col],col);
+
+            ++col;
+
+         }
+
+         ++row;
+
+      }
+
+      //finally incoming id
+      col = 0;
+
+      while(ostates[col].size() == 2){
+
+         int ai = ostates[col].gsite(0);
+         int as = ostates[col].gspin(0);
+
+         int bi = ostates[col].gsite(1);
+         int bs = ostates[col].gspin(1);
+
+         int o = ij2o[no - 1][no - 1];
+         int v = ab2v[ai-no][bi-no];
+
+         int s = ov2s[o][v];
+
+         if(as == 0 && bs == 1)
+            push_anni_down_anni_up(s,no - 1,istates.size() - 1,col,1);
+         else if(as == 1 && bs == 0)
+            push_anni_down_anni_up(s,no - 1,istates.size() - 1,col,-1);
+
+         ++col;
+
+         ++col;
+
+      }
+
+   }
+   else{//nv >= no
+
+      for(int i = 1;i < no - 1;++i){
 
          ostates.clear();
          qo.clear();
 
-         //first col closed
-         state.push_id();
+         qo.push_back(Quantum::zero());//I
+
+         ostates.push_back(istates[0]);
+
+         qo.push_back(Quantum(0,1));//a_down
+         qo.push_back(Quantum(1,0));//a_up
+
+         state.push_anni_down(i);
          ostates.push_back(state);
          state.clear();
 
-         qo.push_back(Quantum::zero());
+         state.push_anni_up(i);
+         ostates.push_back(state);
+         state.clear();
 
-         //singles
-         for(int i = no + 1;i < L;++i){
+         int row = 1;
 
-            state.push_crea_up(i);
-            ostates.push_back(state);
-            state.clear();
+         while(istates[row].size() == 1){
 
-            qo.push_back(Quantum(1,0));
+            qo.push_back(qi[row]);//a_down
+            ostates.push_back(istates[row]);
 
-            state.push_crea_down(i);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Quantum(0,1));
+            ++row;
 
          }
 
-         //pairs
+         qo.push_back(Quantum(1,1));//a_up a_down
+
+         state.push_anni_up(i);
+         state.push_anni_down(i);
+         ostates.push_back(state);
+         state.clear();
+
+         //add a down
+         row = 1;
+
+         while(istates[row].size() == 1){
+
+            state.push_anni_down(i);
+            state.insert(state.end(),istates[row].begin(),istates[row].end());
+            ostates.push_back(state);
+            state.clear();
+
+            Quantum tmp = qi[row];
+            tmp.anni_down();
+            qo.push_back(tmp);
+
+            ++row;
+
+         }
+
+         //add an up
+         row = 1;
+
+         while(istates[row].size() == 1){
+
+            state.push_anni_up(i);
+            state.insert(state.end(),istates[row].begin(),istates[row].end());
+            ostates.push_back(state);
+            state.clear();
+
+            Quantum tmp = qi[row];
+            tmp.anni_up();
+            qo.push_back(tmp);
+
+            ++row;
+
+         }
+
+         //id for the pairs coming in
+         while(row < istates.size()){
+
+            qo.push_back(qi[row]);
+            ostates.push_back(istates[row]);
+            ++row;
+
+         }
+
+         //get merged row
+         get_merged_index(-qi,q_merged,ind_merged,inverse);
+         merged_row.push_back(inverse);
+
+         //get merged column
+         get_merged_index(qo,q_merged,ind_merged,inverse);
+         merged_col.push_back(inverse);
+
+         istates = ostates;
+         qi = qo;
+
+      }
+
+      if(no == nv){
+
+         //last occupied: i = no - 1: switch from incoming to outgoing
+         ostates.clear();
+         qo.clear();
+
          Ostate istate;
 
-         for(int i = no + 1;i < L;++i){
+         for(int i = no;i < L;++i){
 
             //first up
             istate.push_crea_up(i);
@@ -522,77 +749,107 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
          get_merged_index(qo,q_merged,ind_merged,inverse);
          merged_col.push_back(inverse);
 
-         //first column closed: insert pairs
-         for(int row = 0;row < istates.size();++row){
+         //first row
+         for(int col = 0;col < ostates.size();++col){
 
-            //lets call in i,j
-            int i = istates[row].gsite(1);
-            int j = istates[row].gsite(0);
+            int ai = ostates[col].gsite(0);
+            int as = ostates[col].gspin(0);
 
-            int si = istates[row].gspin(1);
-            int sj = istates[row].gspin(0);
+            int bi = ostates[col].gsite(1);
+            int bs = ostates[col].gspin(1);
 
-            int o = ij2o[i][j];
-            int v = ab2v[0][0];
+            int o = ij2o[no-1][no-1];
+            int v = ab2v[ai-no][bi-no];
 
             int s = ov2s[o][v];
 
-            if(si == 0 && sj == 1)
-               push_crea_up_crea_down(s,no,row,0,1);
-            else if(si == 1 && sj == 0)
-               push_crea_up_crea_down(s,no,row,0,-1);
+            if(as == 0 && bs == 1)
+               push_anni_down_anni_up(s,no-1,0,col,1);
+            else if(as == 1 && bs == 0)
+               push_anni_down_anni_up(s,no-1,0,col,-1);
 
          }
 
-         //singles going out:
-         int col = 1;
+         //singles coming in
+         int row = 1;
 
-         while(ostates[col].size() == 1){
+         while(istates[row].size() == 1){
 
-            for(int row = 0;row < istates.size();++row)
-               push_single_out_complement(no,istates[row],row,ostates[col],col);
+            for(int col = 0;col < ostates.size();++col)
+               push_single_in_complement(no-1,istates[row],row,ostates[col],col);
 
-            ++col;
+            ++row;
 
          }
 
-         //switch to outgoing pairs
-         while(col < ostates.size()){
+         //doubles coming in
+         while(row < istates.size()){
 
-            for(int row = 0;row < istates.size();++row)
-               push_double_complement(no,istates[row],row,ostates[col],col);
+            for(int col = 0;col < ostates.size();++col)
+               push_double_complement(no-1,istates[row],row,ostates[col],col);
 
-            ++col;
+            ++row;
 
          }
 
       }
-      else{//nv > no + 1
+      else{//no < nv
 
-         //for once the ostates and qo from previous site are correct for start of next site
+         //last occupied: i = no - 1
+         ostates.clear();
+         qo.clear();
 
-         //all the virtuals: the have the signature of the operator they are going to: but opposite q-number
-         for(int j = no + 1;j < L;++j){
+         qo.push_back(Quantum(1,1));//a_up a_down
 
-            qo.push_back(Quantum(1,0));//go to crea up
+         state.push_anni_up(no-1);
+         state.push_anni_down(no-1);
+         ostates.push_back(state);
+         state.clear();
 
-            state.push_crea_up(j);
+         //add a down
+         int row = 1;
+
+         while(istates[row].size() == 1){
+
+            state.push_anni_down(no-1);
+            state.insert(state.end(),istates[row].begin(),istates[row].end());
             ostates.push_back(state);
             state.clear();
 
-            qo.push_back(Quantum(0,1));//go to crea down 
+            Quantum tmp = qi[row];
+            tmp.anni_down();
+            qo.push_back(tmp);
 
-            state.push_crea_down(j);
-            ostates.push_back(state);
-            state.clear();
+            ++row;
 
          }
 
-         //last column complete closed:
-         qo.push_back(Quantum(0,0));
-         state.push_id();
-         ostates.push_back(state);
-         state.clear();
+         //add an up
+         row = 1;
+
+         while(istates[row].size() == 1){
+
+            state.push_anni_up(no-1);
+            state.insert(state.end(),istates[row].begin(),istates[row].end());
+            ostates.push_back(state);
+            state.clear();
+
+            Quantum tmp = qi[row];
+            tmp.anni_up();
+            qo.push_back(tmp);
+
+            ++row;
+
+         }
+
+         //id for the pairs coming in
+         while(row < istates.size()){
+
+            qo.push_back(qi[row]);
+            ostates.push_back(istates[row]);
+            ++row;
+
+         }
 
          //get merged row
          get_merged_index(-qi,q_merged,ind_merged,inverse);
@@ -602,57 +859,161 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
          get_merged_index(qo,q_merged,ind_merged,inverse);
          merged_col.push_back(inverse);
 
-         for(int col = istates.size();col < ostates.size() - 1;++col)
-            for(int row = 0;row < istates.size();++row)
-               push_single_out_complement(no,istates[row],row,ostates[col],col);
-
-         //last column: insert pairs
-         for(int row = 0;row < istates.size();++row){
-
-            //lets call in i,j
-            int i = istates[row].gsite(1);
-            int j = istates[row].gsite(0);
-
-            int si = istates[row].gspin(1);
-            int sj = istates[row].gspin(0);
-
-            int o = ij2o[i][j];
-            int v = ab2v[0][0];
-
-            int s = ov2s[o][v];
-
-            if(si == 0 && sj == 1)
-               push_crea_up_crea_down(s,no,row,ostates.size() - 1,1);
-            else if(si == 1 && sj == 0)
-               push_crea_up_crea_down(s,no,row,ostates.size() - 1,-1);
-
-         }
-
          istates = ostates;
          qi = qo;
 
-         //next everything until nv
-         for(int i = no + 1;i < nv;++i){
-
-            //current virtual index
-            int vind = i - no;
+         if(no + 1 == nv){
 
             ostates.clear();
             qo.clear();
 
-            //identity for the pairs
-            int row = 0;
+            //first col closed
+            state.push_id();
+            ostates.push_back(state);
+            state.clear();
 
-            while(istates[row].size() == 2){
+            qo.push_back(Quantum::zero());
 
-               ostates.push_back(istates[row]);
-               qo.push_back(qi[row]);
-               ++row;
+            //singles
+            for(int i = no + 1;i < L;++i){
+
+               state.push_crea_up(i);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Quantum(1,0));
+
+               state.push_crea_down(i);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Quantum(0,1));
 
             }
 
-            //the remaining virtuals: they have the signature of the operator they are going to: but opposite q-number
-            for(int j = i + 1;j < L;++j){
+            //pairs
+            Ostate istate;
+
+            for(int i = no + 1;i < L;++i){
+
+               //first up
+               istate.push_crea_up(i);
+
+               state = istate;
+               state.push_crea_down(i);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Quantum(1,1));
+
+               for(int j = i + 1;j < L;++j){
+
+                  //up up
+                  state = istate;
+                  state.push_crea_up(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Quantum(2,0));
+
+                  //up down
+                  state = istate;
+                  state.push_crea_down(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Quantum(1,1));
+
+               }
+
+               istate.clear();
+
+               //first down
+               istate.push_crea_down(i);
+
+               for(int j = i + 1;j < L;++j){
+
+                  //down up
+                  state = istate;
+                  state.push_crea_up(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Quantum(1,1));
+
+                  //down down
+                  state = istate;
+                  state.push_crea_down(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Quantum(0,2));
+
+               }
+
+               istate.clear();
+
+            }
+
+            //get merged row
+            get_merged_index(-qi,q_merged,ind_merged,inverse);
+            merged_row.push_back(inverse);
+
+            //get merged column
+            get_merged_index(qo,q_merged,ind_merged,inverse);
+            merged_col.push_back(inverse);
+
+            //first column closed: insert pairs
+            for(int row = 0;row < istates.size();++row){
+
+               //lets call in i,j
+               int i = istates[row].gsite(1);
+               int j = istates[row].gsite(0);
+
+               int si = istates[row].gspin(1);
+               int sj = istates[row].gspin(0);
+
+               int o = ij2o[i][j];
+               int v = ab2v[0][0];
+
+               int s = ov2s[o][v];
+
+               if(si == 0 && sj == 1)
+                  push_crea_up_crea_down(s,no,row,0,1);
+               else if(si == 1 && sj == 0)
+                  push_crea_up_crea_down(s,no,row,0,-1);
+
+            }
+
+            //singles going out:
+            int col = 1;
+
+            while(ostates[col].size() == 1){
+
+               for(int row = 0;row < istates.size();++row)
+                  push_single_out_complement(no,istates[row],row,ostates[col],col);
+
+               ++col;
+
+            }
+
+            //switch to outgoing pairs
+            while(col < ostates.size()){
+
+               for(int row = 0;row < istates.size();++row)
+                  push_double_complement(no,istates[row],row,ostates[col],col);
+
+               ++col;
+
+            }
+
+         }
+         else{//nv > no + 1
+
+            //for once the ostates and qo from previous site are correct for start of next site
+
+            //all the virtuals: the have the signature of the operator they are going to: but opposite q-number
+            for(int j = no + 1;j < L;++j){
 
                qo.push_back(Quantum(1,0));//go to crea up
 
@@ -668,11 +1029,11 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
 
             }
 
-            //last column closed
+            //last column complete closed:
+            qo.push_back(Quantum(0,0));
             state.push_id();
             ostates.push_back(state);
             state.clear();
-            qo.push_back(Quantum(0,0));
 
             //get merged row
             get_merged_index(-qi,q_merged,ind_merged,inverse);
@@ -682,20 +1043,276 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
             get_merged_index(qo,q_merged,ind_merged,inverse);
             merged_col.push_back(inverse);
 
-            int col = 0;
+            for(int col = istates.size();col < ostates.size() - 1;++col)
+               for(int row = 0;row < istates.size();++row)
+                  push_single_out_complement(no,istates[row],row,ostates[col],col);
 
-            //go past the pairs
-            while(ostates[col].size() == 2)
-               ++col;
+            //last column: insert pairs
+            for(int row = 0;row < istates.size();++row){
 
-            //remaining virtuals
-            while(col < ostates.size() - 1){
+               //lets call in i,j
+               int i = istates[row].gsite(1);
+               int j = istates[row].gsite(0);
 
+               int si = istates[row].gspin(1);
+               int sj = istates[row].gspin(0);
+
+               int o = ij2o[i][j];
+               int v = ab2v[0][0];
+
+               int s = ov2s[o][v];
+
+               if(si == 0 && sj == 1)
+                  push_crea_up_crea_down(s,no,row,ostates.size() - 1,1);
+               else if(si == 1 && sj == 0)
+                  push_crea_up_crea_down(s,no,row,ostates.size() - 1,-1);
+
+            }
+
+            istates = ostates;
+            qi = qo;
+
+            //next everything until nv
+            for(int i = no + 1;i < nv;++i){
+
+               //current virtual index
+               int vind = i - no;
+
+               ostates.clear();
+               qo.clear();
+
+               //identity for the pairs
                int row = 0;
 
                while(istates[row].size() == 2){
 
-                  push_single_out_complement(i,istates[row],row,ostates[col],col);
+                  ostates.push_back(istates[row]);
+                  qo.push_back(qi[row]);
+                  ++row;
+
+               }
+
+               //the remaining virtuals: they have the signature of the operator they are going to: but opposite q-number
+               for(int j = i + 1;j < L;++j){
+
+                  qo.push_back(Quantum(1,0));//go to crea up
+
+                  state.push_crea_up(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Quantum(0,1));//go to crea down 
+
+                  state.push_crea_down(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+               }
+
+               //last column closed
+               state.push_id();
+               ostates.push_back(state);
+               state.clear();
+               qo.push_back(Quantum(0,0));
+
+               //get merged row
+               get_merged_index(-qi,q_merged,ind_merged,inverse);
+               merged_row.push_back(inverse);
+
+               //get merged column
+               get_merged_index(qo,q_merged,ind_merged,inverse);
+               merged_col.push_back(inverse);
+
+               int col = 0;
+
+               //go past the pairs
+               while(ostates[col].size() == 2)
+                  ++col;
+
+               //remaining virtuals
+               while(col < ostates.size() - 1){
+
+                  int row = 0;
+
+                  while(istates[row].size() == 2){
+
+                     push_single_out_complement(i,istates[row],row,ostates[col],col);
+
+                     ++row;
+
+                  }
+
+                  ++col;
+
+               }
+
+               //last column: close down
+               row = 0;
+
+               while(istates[row].size() == 2){
+
+                  //lets call in i,j
+                  int ii = istates[row].gsite(1);
+                  int ij = istates[row].gsite(0);
+
+                  int si = istates[row].gspin(1);
+                  int sj = istates[row].gspin(0);
+
+                  int o = ij2o[ii][ij];
+                  int v = ab2v[vind][vind];
+
+                  int s = ov2s[o][v];
+
+                  if(si == 0 && sj == 1)
+                     push_crea_up_crea_down(s,i,row,ostates.size() - 1,1);
+                  else if(si == 1 && sj == 0)
+                     push_crea_up_crea_down(s,i,row,ostates.size() - 1,-1);
+
+                  ++row;
+
+               }
+
+               istates = ostates;
+               qi = qo;
+
+            }
+
+            ostates.clear();
+            qo.clear();
+
+            //first col closed
+            state.push_id();
+            ostates.push_back(state);
+            state.clear();
+
+            qo.push_back(Quantum::zero());
+
+            //singles
+            for(int i = nv + 1;i < L;++i){
+
+               state.push_crea_up(i);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Quantum(1,0));
+
+               state.push_crea_down(i);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Quantum(0,1));
+
+            }
+
+            //pairs
+            Ostate istate;
+
+            for(int i = nv + 1;i < L;++i){
+
+               //first up
+               istate.push_crea_up(i);
+
+               state = istate;
+               state.push_crea_down(i);
+               ostates.push_back(state);
+               state.clear();
+
+               qo.push_back(Quantum(1,1));
+
+               for(int j = i + 1;j < L;++j){
+
+                  //up up
+                  state = istate;
+                  state.push_crea_up(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Quantum(2,0));
+
+                  //up down
+                  state = istate;
+                  state.push_crea_down(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Quantum(1,1));
+
+               }
+
+               istate.clear();
+
+               //first down
+               istate.push_crea_down(i);
+
+               for(int j = i + 1;j < L;++j){
+
+                  //down up
+                  state = istate;
+                  state.push_crea_up(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Quantum(1,1));
+
+                  //down down
+                  state = istate;
+                  state.push_crea_down(j);
+                  ostates.push_back(state);
+                  state.clear();
+
+                  qo.push_back(Quantum(0,2));
+
+               }
+
+               istate.clear();
+
+            }
+
+            //get merged row
+            get_merged_index(-qi,q_merged,ind_merged,inverse);
+            merged_row.push_back(inverse);
+
+            //get merged column
+            get_merged_index(qo,q_merged,ind_merged,inverse);
+            merged_col.push_back(inverse);
+
+            //incoming pairs
+            int row = 0;
+
+            while(istates[row].size() == 2){
+
+               //lets call in i,j
+               int i = istates[row].gsite(1);
+               int j = istates[row].gsite(0);
+
+               int si = istates[row].gspin(1);
+               int sj = istates[row].gspin(0);
+
+               int o = ij2o[i][j];
+               int v = ab2v[nv - no][nv - no];
+
+               int s = ov2s[o][v];
+
+               if(si == 0 && sj == 1)
+                  push_crea_up_crea_down(s,nv,row,0,1);
+               else if(si == 1 && sj == 0)
+                  push_crea_up_crea_down(s,nv,row,0,-1);
+
+               ++row;
+
+            }
+
+            //next the single columns
+            int col = 1;
+
+            while(ostates[col].size() == 1){
+
+               row = 0;
+
+               //doubles coming in
+               while(istates[row].size() == 2){
+
+                  push_single_out_complement(nv,istates[row],row,ostates[col],col);
 
                   ++row;
 
@@ -705,196 +1322,22 @@ T2_2_mpo::T2_2_mpo(int no,int nv){
 
             }
 
-            //last column: close down
-            row = 0;
+            while(col < ostates.size()){
 
-            while(istates[row].size() == 2){
+               //transform from incoming to outgoing pairs
+               row = 0;
 
-               //lets call in i,j
-               int ii = istates[row].gsite(1);
-               int ij = istates[row].gsite(0);
+               while(istates[row].size() == 2){
 
-               int si = istates[row].gspin(1);
-               int sj = istates[row].gspin(0);
+                  push_double_complement(nv,istates[row],row,ostates[col],col);
 
-               int o = ij2o[ii][ij];
-               int v = ab2v[vind][vind];
+                  ++row;
 
-               int s = ov2s[o][v];
+               }
 
-               if(si == 0 && sj == 1)
-                  push_crea_up_crea_down(s,i,row,ostates.size() - 1,1);
-               else if(si == 1 && sj == 0)
-                  push_crea_up_crea_down(s,i,row,ostates.size() - 1,-1);
-
-               ++row;
+               ++col;
 
             }
-
-            istates = ostates;
-            qi = qo;
-
-         }
-
-         ostates.clear();
-         qo.clear();
-
-         //first col closed
-         state.push_id();
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Quantum::zero());
-
-         //singles
-         for(int i = nv + 1;i < L;++i){
-
-            state.push_crea_up(i);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Quantum(1,0));
-
-            state.push_crea_down(i);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Quantum(0,1));
-
-         }
-
-         //pairs
-         Ostate istate;
-
-         for(int i = nv + 1;i < L;++i){
-
-            //first up
-            istate.push_crea_up(i);
-
-            state = istate;
-            state.push_crea_down(i);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Quantum(1,1));
-
-            for(int j = i + 1;j < L;++j){
-
-               //up up
-               state = istate;
-               state.push_crea_up(j);
-               ostates.push_back(state);
-               state.clear();
-
-               qo.push_back(Quantum(2,0));
-
-               //up down
-               state = istate;
-               state.push_crea_down(j);
-               ostates.push_back(state);
-               state.clear();
-
-               qo.push_back(Quantum(1,1));
-
-            }
-
-            istate.clear();
-
-            //first down
-            istate.push_crea_down(i);
-
-            for(int j = i + 1;j < L;++j){
-
-               //down up
-               state = istate;
-               state.push_crea_up(j);
-               ostates.push_back(state);
-               state.clear();
-
-               qo.push_back(Quantum(1,1));
-
-               //down down
-               state = istate;
-               state.push_crea_down(j);
-               ostates.push_back(state);
-               state.clear();
-
-               qo.push_back(Quantum(0,2));
-
-            }
-
-            istate.clear();
-
-         }
-
-         //get merged row
-         get_merged_index(-qi,q_merged,ind_merged,inverse);
-         merged_row.push_back(inverse);
-
-         //get merged column
-         get_merged_index(qo,q_merged,ind_merged,inverse);
-         merged_col.push_back(inverse);
-
-         //incoming pairs
-         int row = 0;
-
-         while(istates[row].size() == 2){
-
-            //lets call in i,j
-            int i = istates[row].gsite(1);
-            int j = istates[row].gsite(0);
-
-            int si = istates[row].gspin(1);
-            int sj = istates[row].gspin(0);
-
-            int o = ij2o[i][j];
-            int v = ab2v[nv - no][nv - no];
-
-            int s = ov2s[o][v];
-
-            if(si == 0 && sj == 1)
-               push_crea_up_crea_down(s,nv,row,0,1);
-            else if(si == 1 && sj == 0)
-               push_crea_up_crea_down(s,nv,row,0,-1);
-
-            ++row;
-
-         }
-
-         //next the single columns
-         int col = 1;
-
-         while(ostates[col].size() == 1){
-
-            row = 0;
-
-            //doubles coming in
-            while(istates[row].size() == 2){
-
-               push_single_out_complement(nv,istates[row],row,ostates[col],col);
-
-               ++row;
-
-            }
-
-            ++col;
-
-         }
-
-         while(col < ostates.size()){
-
-            //transform from incoming to outgoing pairs
-            row = 0;
-
-            while(istates[row].size() == 2){
-
-               push_double_complement(nv,istates[row],row,ostates[col],col);
-
-               ++row;
-
-            }
-
-            ++col;
 
          }
 
