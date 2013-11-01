@@ -22,7 +22,9 @@ double rgen() { return 2.0*(static_cast<double>(rand())/RAND_MAX) - 1.0; }
 using namespace btas;
 using namespace mpsxx;
 
-int main(void){
+int main(int argc,char *argv[]){
+
+   char *dirpath = argv[1];
 
    cout.precision(10);
    srand(time(NULL));
@@ -31,8 +33,8 @@ int main(void){
    int L = 14;
 
    //number of particles
-   int n_u = 2;
-   int n_d = 2;
+   int n_u = 5;
+   int n_d = 5;
 
    int no = n_u;
    int nv = L - no;
@@ -42,75 +44,75 @@ int main(void){
    Qshapes<Quantum> qp;
    physical(qp);
 
-   std::vector<int> order(L);
-
-   ifstream in_order("input/Be/cc-pVDZ/order.in");
-
-   for(int i = 0;i < L;++i)
-      in_order >> i >> order[i]; 
-
-   DArray<2> t(L,L);
-   t = 0;
-   read_oei("input/Be/cc-pVDZ/OEI.in",t,order);
-
-   DArray<4> V(L,L,L,L);
-   V = 0.0;
-   read_tei("input/Be/cc-pVDZ/TEI.in",V,order);
-
-   std::vector<double> e(L);
-
-   ifstream in_ener("input/Be/cc-pVDZ/ener.in");
-
-   for(int i = 0;i < L;++i)
-      in_ener >> i >> e[i]; 
-
-   //construct quantum chemistry MPO
-   MPO<Quantum> qc = qcham<Quantum>(t,V);
-   compress(qc,mpsxx::Right,0);
-   compress(qc,mpsxx::Left,0);
-
-   //input HF state
+   //make the HF state
    std::vector<int> occ(L);
-
-   //bra
-   for(int i = 0;i < L;++i)
-      occ[i] = 0;
 
    for(int i = 0;i < no;++i)
       occ[i] = 3;
 
-   MPS<Quantum> A = product_state(L,qp,occ);
+   for(int i = no;i < L;++i)
+      occ[i] = 0;
 
-   double hf = inprod(mpsxx::Left,A,qc,A);
+   //hf energies
+   std::vector<double> e;
 
-   double mp2 = 0.0;
+   char enerfile[100];
+   sprintf(enerfile,"%sener.in",dirpath);
 
-   for(int i = 0;i < no;++i)
-      for(int j = 0;j < no;++j)
-         for(int a = no;a < L;++a)
-            for(int b = no;b < L;++b)
-               mp2 += 2.0 * V(i,j,a,b) * V(i,j,a,b) / (e[i] + e[j] - e[a] - e[b]) - V(i,j,b,a) * V(i,j,a,b) / (e[i] + e[j] - e[a] - e[b]);
+   std::ifstream ener_in(enerfile);
 
-   cout << hf <<endl;
-   cout << hf + mp2 << endl;
+   int i;
+   double value;
 
-   //T2 operator: fill with MP2 input
-   DArray<4> t2(no,no,nv,nv);
-   fill_mp2(t2,V,e);
+   while(ener_in >> i >> value)
+      e.push_back(value);
 
-   //construct T2 MPO
-   MPO<Quantum> T2_op = T2<Quantum>(t2);
-   compress(T2_op,mpsxx::Right,0);
-   compress(T2_op,mpsxx::Left,0);
+   MPS<Quantum> hf = product_state(L,qp,occ);
 
-   std::vector<int> cutoff(no);
-   for(int i = 0;i < no;++i)
-      cutoff[i] = 0;
+   std::vector<int> order;
 
-   MPS<Quantum> eTA = exp(T2_op,A,cutoff);
+   char orderfile[100];
+   sprintf(orderfile,"%sorder.in",dirpath);
 
-   normalize(eTA);
-   cout << dot(mpsxx::Left,eTA,eTA) << "\t" << inprod(mpsxx::Left,eTA,qc,eTA) << endl;
+   std::ifstream ord_in(orderfile);
+
+   int j;
+
+   while(ord_in >> i >> j)
+      order.push_back(j);
+
+   char oeifile[100];
+   sprintf(oeifile,"%sOEI.in",dirpath);
+
+   //construct the qc hamiltonian
+   DArray<2> K(L,L);
+   read_oei(oeifile,K,order);
+
+   char teifile[100];
+   sprintf(teifile,"%sTEI.in",dirpath);
+
+   //construct the qc hamiltonian
+   DArray<4> V(L,L,L,L);
+   read_tei(teifile,V,order);
+
+   MPO<Quantum> qc = qcham<Quantum>(K,V,false);
+
+   cout << compress(qc,mpsxx::Left,0) << endl;
+   cout << compress(qc,mpsxx::Right,0) << endl;
+
+   print_dim(qc);
+
+   //hartree fock energy
+   cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
+
+   //construct the mp2 guess
+   DArray<4> t(no,no,nv,nv);
+
+   fill_mp2(t,V,e);
+   
+   //solve
+   //vccd::solve(t,qc,hf,e,0,0);
+   vccd::conjugate_gradient(t,qc,hf,e,100,no);
 
    return 0;
 

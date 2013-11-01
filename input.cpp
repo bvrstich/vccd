@@ -19,10 +19,20 @@ void read_oei(const char *filename,DArray<2> &t,const std::vector<int> &order){
    int i,j;
    double value;
 
+   t = 0.0;
+/*
    while(input >> i >> j >> value){
 
       t(order[i],order[j]) = value;
       t(order[j],order[i]) = value;
+
+   }
+*/
+
+   while(input >> value >> i >> j){
+
+      t(order[i - 1],order[j - 1]) = value;
+      t(order[j - 1],order[i - 1]) = value;
 
    }
 
@@ -38,6 +48,8 @@ void read_tei(const char *filename,DArray<4> &V,const std::vector<int> &order){
    int a,b,c,d;
    double value;
 
+   V = 0.0;
+/*
    while(input >> a >> c >> b >> d >> value){
 
       V(order[a],order[b],order[c],order[d]) = value;//ab;cd
@@ -48,6 +60,20 @@ void read_tei(const char *filename,DArray<4> &V,const std::vector<int> &order){
       V(order[d],order[a],order[b],order[c]) = value;//da;bc
       V(order[c],order[d],order[a],order[b]) = value;//cd;ab
       V(order[d],order[c],order[b],order[a]) = value;//dc;ba
+
+   }
+*/
+
+   while(input >> value >> a >> c >> b >> d){
+
+      V(order[a-1],order[b-1],order[c-1],order[d-1]) = value;
+      V(order[b-1],order[a-1],order[d-1],order[c-1]) = value;
+      V(order[c-1],order[b-1],order[a-1],order[d-1]) = value;
+      V(order[b-1],order[c-1],order[d-1],order[a-1]) = value;
+      V(order[a-1],order[d-1],order[c-1],order[b-1]) = value;
+      V(order[d-1],order[a-1],order[b-1],order[c-1]) = value;
+      V(order[c-1],order[d-1],order[a-1],order[b-1]) = value;
+      V(order[d-1],order[c-1],order[b-1],order[a-1]) = value;
 
    }
 

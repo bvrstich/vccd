@@ -50,9 +50,19 @@ class Ostate : public std::vector<int> {
 
       static std::vector<int> get_single_complement(int site,const Ostate &in,const Ostate &out,const DArray<4> &V,double &);
 
+      static int get_single_complement_T2(int site,const Ostate &in,const Ostate &out,const DArray<4> &t,double &);
+
+      static int get_single_complement_T2_bis(int site,const Ostate &in,const Ostate &out,const DArray<4> &t,double &);
+
+      static int get_double_complement_T2(const Ostate &in,const Ostate &out,const DArray<4> &t,double &);
+
+      static int transfer_pair_in_pair_out(const Ostate &in,const Ostate &out,const DArray<4> &V,double &);
+
       static std::vector<int> get_double_complement(int site,const Ostate &in,const Ostate &out,const DArray<4> &V,std::vector<double> &);
       
-      static std::vector<int> get_closing_pair(int site,const Ostate &in,const DArray<4> &V,std::vector<double> &);
+      static std::vector<int> get_closing_pair_in(int site,const Ostate &in,const DArray<4> &V,std::vector<double> &);
+
+      static std::vector<int> get_closing_pair_out(int site,const Ostate &out,const DArray<4> &V,std::vector<double> &);
 
       static std::vector<int> get_closing_single(int site,const Ostate &in,const DArray<2> &t,double &);
 

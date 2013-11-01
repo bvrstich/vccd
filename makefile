@@ -11,7 +11,12 @@ BINNAME = mps_btas
 CPPSRC	= mps_btas.cpp\
            FermiHamiltonian.cpp\
            Ostate.cpp\
-           input.cpp
+           input.cpp\
+           ro.cpp\
+           grad.cpp\
+           T1_2_mpo.cpp\
+           T2_2_mpo.cpp\
+           vccd.cpp
 
 
 OBJ	= $(CPPSRC:.cpp=.o)
@@ -38,8 +43,8 @@ CXX	= g++
 # -----------------------------------------------------------------------------
 #   Compiler & Linker flags
 # -----------------------------------------------------------------------------
-CFLAGS	= -I$(INCLUDE) -g -std=c++11 -D_HAS_CBLAS -D_HAS_INTEL_MKL
-LDFLAGS	= -g
+CFLAGS	= -I$(INCLUDE) -std=c++11 -D_HAS_CBLAS -D_HAS_INTEL_MKL -O3 -flto
+LDFLAGS	= -O3 -flto
 
 # =============================================================================
 #   Targets & Rules

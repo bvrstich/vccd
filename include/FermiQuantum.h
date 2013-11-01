@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <boost/serialization/serialization.hpp>
 
 /**
  * class which defines the quantumnumbers of the system, this is the case of spin-1/2 fermions
@@ -233,6 +234,15 @@ class FermiQuantum
       }
 
    private:
+
+      friend class boost::serialization::access;
+
+      template <class Archive>
+         void serialize(Archive& ar, const unsigned int version) {
+            
+            ar & n_up & n_down;
+         
+         }
 
       //! the number of up-particles
       int n_up;

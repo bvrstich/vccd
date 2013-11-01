@@ -4,6 +4,11 @@ namespace btas { typedef FermiQuantum Quantum; };
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/vector.hpp>
 
 #include <btas/blas_cxx_interface.h>
 
@@ -18,3 +23,8 @@ namespace btas { typedef FermiQuantum Quantum; };
 #include "FermiHamiltonian.h"
 #include "Ostate.h"
 #include "input.h"
+#include "ro.h"
+#include "grad.h"
+#include "T1_2_mpo.h"
+#include "T2_2_mpo.h"
+#include "vccd.h"
