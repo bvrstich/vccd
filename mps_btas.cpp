@@ -40,6 +40,9 @@ int main(int argc,char *argv[]){
    int nv = L - no;
 
    Ostate::construct_oplist(L);
+   HamOp::init(L);
+
+   HamOp::print_states();
 
    Qshapes<Quantum> qp;
    physical(qp);
@@ -101,7 +104,7 @@ int main(int argc,char *argv[]){
    cout << compress(qc,mpsxx::Right,0) << endl;
 
    print_dim(qc);
-
+/*
    //hartree fock energy
    cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
 
@@ -109,11 +112,23 @@ int main(int argc,char *argv[]){
    DArray<4> t(no,no,nv,nv);
 
    fill_mp2(t,V,e);
-   
-   //solve
-   //vccd::solve(t,qc,hf,e,0,0);
-   vccd::conjugate_gradient(t,qc,hf,e,100,no);
 
+   MPO<Quantum> T = T2<Quantum>(t,false);
+
+   cout << compress(T,mpsxx::Left,0) << endl;
+   cout << compress(T,mpsxx::Right,0) << endl;
+
+   MPS<Quantum> eTA = exp(T,hf,no,100);
+   normalize(eTA);
+
+   print_dim(eTA);
+
+   cout << inprod(mpsxx::Left,eTA,qc,eTA) << endl;
+  
+   //MPO<Quantum> tmp = ro::construct(mpsxx::Left,eTA,T,qc,eTA);
+
+   ro::construct(mpsxx::Left,eTA);
+*/
    return 0;
 
 }

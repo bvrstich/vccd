@@ -28,3 +28,5 @@ namespace btas { typedef FermiQuantum Quantum; };
 #include "T1_2_mpo.h"
 #include "T2_2_mpo.h"
 #include "vccd.h"
+
+#include "HamOp.h"

@@ -24,9 +24,13 @@ namespace ro {
 
       MPO<Quantum> construct(const MPS_DIRECTION &dir,const MPS<Quantum> &,const MPO<Quantum> &,const MPO<Quantum> &,const MPS<Quantum> &);
 
+      void construct(const MPS_DIRECTION &dir,const MPS<Quantum> &wccd);
+
       void check(const MPS<Quantum> &ror,const MPS<Quantum> &rol);
 
       void check(const MPO<Quantum> &ror,const MPO<Quantum> &rol);
+
+      void print_id(int site,const QSDArray<3> A);
 
 }
 

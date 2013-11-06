@@ -16,7 +16,8 @@ CPPSRC	= mps_btas.cpp\
            grad.cpp\
            T1_2_mpo.cpp\
            T2_2_mpo.cpp\
-           vccd.cpp
+           vccd.cpp\
+           HamOp.cpp
 
 
 OBJ	= $(CPPSRC:.cpp=.o)
@@ -43,8 +44,8 @@ CXX	= g++
 # -----------------------------------------------------------------------------
 #   Compiler & Linker flags
 # -----------------------------------------------------------------------------
-CFLAGS	= -I$(INCLUDE) -std=c++11 -D_HAS_CBLAS -D_HAS_INTEL_MKL -O3 -flto
-LDFLAGS	= -O3 -flto
+CFLAGS	= -I$(INCLUDE) -std=c++11 -D_HAS_CBLAS -D_HAS_INTEL_MKL -g
+LDFLAGS	= -g
 
 # =============================================================================
 #   Targets & Rules

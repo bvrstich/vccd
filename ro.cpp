@@ -298,4 +298,277 @@ namespace ro {
 
    }
 
+   /**
+    * construct a renormalized operator for <wccd| H |wccd> dmrg style, write everything to disk
+    * @param dir left renormalized or right renormalized
+    * @param wccd input MPS
+    */
+   void construct(const MPS_DIRECTION &dir,const MPS<Quantum> &wccd){
+
+      int L = wccd.size();
+     
+      enum {j,k,l,m,n,o,p};
+
+      Qshapes<Quantum> qp;
+      physical(qp);
+
+      Qshapes<Quantum> qz; // 0 quantum number
+      qz.push_back(Quantum::zero());
+
+      Qshapes<Quantum> qo;
+      Qshapes<Quantum> qi;
+
+      //first make the incoming and outgoing states:
+      std::vector< Ostate > istates;
+
+      //identity only incoming
+      Ostate state;
+      state.push_id();
+      istates.push_back(state);
+      state.clear();
+
+      std::vector< Ostate > ostates;
+
+      //identity
+      state.push_id();
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Quantum::zero());//I
+
+      //singles
+
+      //a^+_up
+      state.push_crea_up(0);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Quantum(-1,0));
+
+      //a^+_down 
+      state.push_crea_down(0);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Quantum(0,-1));
+
+      //a_up 
+      state.push_anni_up(0);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Quantum(1,0));
+
+      //a_down
+      state.push_anni_down(0);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Quantum(0,1));
+
+      //doubles:
+
+      //a^+_up a^+_down
+      state.push_crea_down(0);
+      state.push_crea_up(0);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Quantum(-1,-1));
+
+      //doubles: a^+_up a_up
+      state.push_anni_up(0);
+      state.push_crea_up(0);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Quantum::zero());
+
+      //doubles: a^+_up a_down
+      state.push_anni_down(0);
+      state.push_crea_up(0);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Quantum(-1,1));
+
+      //doubles: a^+_down a_up
+      state.push_anni_up(0);
+      state.push_crea_down(0);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Quantum(1,-1));
+
+      //doubles: a^+_down a_down
+      state.push_anni_down(0);
+      state.push_crea_down(0);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Quantum::zero());
+
+      //doubles: a_up a_down
+      state.push_anni_up(0);
+      state.push_anni_down(0);
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Quantum(1,1));
+
+      //complementary operators: triples: they have the state signature of the operator they are going to, but the opposite quantumnumber
+      for(int j = 1;j < L;++j){
+
+         state.push_crea_up(j);
+         ostates.push_back(state);
+         state.clear();
+
+         qo.push_back(Quantum(1,0));
+
+         state.push_crea_down(j);
+         ostates.push_back(state);
+         state.clear();
+
+         qo.push_back(Quantum(0,1));
+
+         state.push_anni_up(j);
+         ostates.push_back(state);
+         state.clear();
+
+         qo.push_back(Quantum(-1,0));
+
+         state.push_anni_down(j);
+         ostates.push_back(state);
+         state.clear();
+
+         qo.push_back(Quantum(0,-1));
+
+      }
+
+      //finally the local term:
+      state.push_id();
+      ostates.push_back(state);
+      state.clear();
+
+      qo.push_back(Quantum::zero());
+/*
+      //insert doubles
+      insert_crea_up_crea_down(mpo[0],0,5,1.0);
+      insert_crea_up_anni_up(mpo[0],0,6,1.0);
+      insert_crea_up_anni_down(mpo[0],0,7,1.0);
+      insert_crea_down_anni_up(mpo[0],0,8,1.0);
+      insert_crea_down_anni_down(mpo[0],0,9,1.0);
+      insert_anni_down_anni_up(mpo[0],0,10,1.0);
+
+      column = 11;
+
+      //insert triples: complementary operator
+      for(int j = 1;j < L;++j){
+
+         insert_triple_crea_up_first(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
+         insert_triple_crea_down_first(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
+         insert_triple_anni_up_first(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
+         insert_triple_anni_down_first(mpo[0],0,column,t(0,j),V(0,0,j,0));column++;
+
+      }
+
+      //last term:
+      insert_local(mpo[0],0,column,t(0,0),V(0,0,0,0));
+
+      //print id
+      print_id(0,wccd[0]);
+
+      //print singles
+      print_crea_up_s(0,1,wccd[0]);
+      print_crea_down(0,2,wccd[0]);
+      print_anni_up_s(0,3,wccd[0]);
+      print_anni_down(0,4,wccd[0]);
+*/
+      istates = ostates;
+      qi = qo;
+
+   }
+   
+   /**
+    * print the contraction of two QSDArrays A on site 'site'
+    */
+   void print_id(int site,const QSDArray<3> A){
+
+      enum {j,k,l,m};
+
+      QSDArray<2> E;
+
+      QSDindexed_contract(1.0,A,shape(j,k,l),A.conjugate(),shape(j,k,m),0.0,E,shape(l,m));
+
+      char name[100];
+
+      sprintf(name,"scratch/site_%d/0.mpx",site);
+
+      std::ofstream fout(name);
+      boost::archive::binary_oarchive oar(fout);
+
+      oar << E;
+
+   }
+
+   /**
+    * insert creator of up spin
+    */
+   void insert_crea_up(QSDArray<4> &O,int row,int column,double value){
+
+      DArray<4> Ip(1,1,1,1);
+      Ip = value;
+
+      O.insert(shape(row,1,0,column),Ip);
+      O.insert(shape(row,3,2,column),Ip);
+
+   }
+
+   /**
+    * insert creator of up spin with sign down
+    */
+   void insert_crea_up_s(QSDArray<4> &O,int row,int column,double value){
+
+      DArray<4> Ip(1,1,1,1);
+      Ip = value;
+
+      //a^+_up (-1)^n_down
+      O.insert(shape(row,1,0,column),Ip);
+
+      Ip = -value;
+
+      O.insert(shape(row,3,2,column),Ip);
+
+   }
+
+   /**
+    * insert creator of down spin
+    */
+   void insert_crea_down(QSDArray<4> &O,int row,int column,double value){
+
+      DArray<4> Ip(1,1,1,1);
+      Ip = value;
+
+      //a^dagger_down 
+      O.insert(shape(row,2,0,column),Ip);
+      O.insert(shape(row,3,1,column),Ip);
+
+   }
+
+   /**
+    * insert creator of down spin with up spin sign
+    */
+   void insert_crea_down_s(QSDArray<4> &O,int row,int column,double value){
+
+      DArray<4> Ip(1,1,1,1);
+
+      //a^dagger_down 
+      Ip = value;
+      O.insert(shape(row,2,0,column),Ip);
+
+      Ip = -value;
+      O.insert(shape(row,3,1,column),Ip);
+
+   }
+
 }
