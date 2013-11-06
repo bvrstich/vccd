@@ -30,3 +30,4 @@ namespace btas { typedef FermiQuantum Quantum; };
 #include "vccd.h"
 
 #include "HamOp.h"
+#include "Operator.h"

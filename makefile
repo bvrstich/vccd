@@ -17,7 +17,8 @@ CPPSRC	= mps_btas.cpp\
            T1_2_mpo.cpp\
            T2_2_mpo.cpp\
            vccd.cpp\
-           HamOp.cpp
+           HamOp.cpp\
+           Operator.cpp
 
 
 OBJ	= $(CPPSRC:.cpp=.o)
