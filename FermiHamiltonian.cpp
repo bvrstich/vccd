@@ -5417,145 +5417,8 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
    Qshapes<Q> qz; // 0 quantum number
    qz.push_back(Q::zero());
 
-   Qshapes<Q> qo;
-   Qshapes<Q> qi;
-
-   //first make the incoming and outgoing states:
-   std::vector< Ostate > istates;
-
-   //identity only incoming
-   Ostate state;
-   state.push_id();
-   istates.push_back(state);
-   state.clear();
-
-   std::vector< Ostate > ostates;
-
-   //identity
-   state.push_id();
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q::zero());//I
-
-   //singles
-
-   //a^+_up
-   state.push_crea_up(0);
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q(-1,0));
-
-   //a^+_down 
-   state.push_crea_down(0);
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q(0,-1));
-
-   //a_up 
-   state.push_anni_up(0);
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q(1,0));
-
-   //a_down
-   state.push_anni_down(0);
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q(0,1));
-
-   //doubles:
-
-   //a^+_up a^+_down
-   state.push_crea_down(0);
-   state.push_crea_up(0);
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q(-1,-1));
-
-   //doubles: a^+_up a_up
-   state.push_anni_up(0);
-   state.push_crea_up(0);
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q::zero());
-
-   //doubles: a^+_up a_down
-   state.push_anni_down(0);
-   state.push_crea_up(0);
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q(-1,1));
-
-   //doubles: a^+_down a_up
-   state.push_anni_up(0);
-   state.push_crea_down(0);
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q(1,-1));
-
-   //doubles: a^+_down a_down
-   state.push_anni_down(0);
-   state.push_crea_down(0);
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q::zero());
-
-   //doubles: a_up a_down
-   state.push_anni_up(0);
-   state.push_anni_down(0);
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q(1,1));
-
-   //complementary operators: triples: they have the state signature of the operator they are going to, but the opposite quantumnumber
-   for(int j = 1;j < L;++j){
-
-      state.push_crea_up(j);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(1,0));
-
-      state.push_crea_down(j);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(0,1));
-
-      state.push_anni_up(j);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(-1,0));
-
-      state.push_anni_down(j);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(0,-1));
-
-   }
-
-   //finally the local term:
-   state.push_id();
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q::zero());
-
    //now fill
-   mpo[0].resize(Q::zero(),make_array(qz,qp,-qp,qo));
+   mpo[0].resize(Q::zero(),make_array(qz,qp,-qp,HamOp::qo[0]));
 
    int row = 0;
    int column = 0;
@@ -5594,230 +5457,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
    //last term:
    insert_local(mpo[0],0,column,t(0,0),V(0,0,0,0));
 
-   istates = ostates;
-   qi = qo;
-
    //middle tensors
    for(int i = 1;i < L/2;++i){
 
-      //first construct the ingoing and outgoing states
-      ostates.clear();
-      qo.clear();
-
-      //identity
-      state.push_id();
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q::zero());//I
-
-      //singles
-
-      //a^+_up
-      state.push_crea_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(-1,0));
-
-      //a^+_down 
-      state.push_crea_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(0,-1));
-
-      //a_up 
-      state.push_anni_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(1,0));
-
-      //a_down
-      state.push_anni_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(0,1));
-
-      //copy the singles from previous tensor
-      row = 1;
-
-      while(istates[row].size() == 1){
-
-         ostates.push_back(istates[row]);
-         qo.push_back(qi[row]);
-         ++row;
-
-      }
-
-      //doubles:
-
-      //a^+_up a^+_down
-      state.push_crea_down(i);
-      state.push_crea_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(-1,-1));
-
-      //doubles: a^+_up a_up
-      state.push_anni_up(i);
-      state.push_crea_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q::zero());
-
-      //doubles: a^+_up a_down
-      state.push_anni_down(i);
-      state.push_crea_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(-1,1));
-
-      //doubles: a^+_down a_up
-      state.push_anni_up(i);
-      state.push_crea_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(1,-1));
-
-      //doubles: a^+_down a_down
-      state.push_anni_down(i);
-      state.push_crea_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q::zero());
-
-      //doubles: a_down a_up 
-      state.push_anni_up(i);
-      state.push_anni_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(1,1));
-
-      //make new doubles by adding on single f^'s and f's
-      row = 1;
-
-      while(istates[row].size() == 1){//create up
-
-         state.push_crea_up(i);
-         state.insert(state.end(),istates[row].begin(),istates[row].end());
-         ostates.push_back(state);
-         state.clear();
-
-         Quantum tmp = qi[row];
-         tmp.crea_up();
-         qo.push_back(tmp);
-
-         ++row;
-
-      }
-
-      row = 1;
-
-      while(istates[row].size() == 1){//create down
-
-         state.push_crea_down(i);
-         state.insert(state.end(),istates[row].begin(),istates[row].end());
-         ostates.push_back(state);
-         state.clear();
-
-         Quantum tmp = qi[row];
-         tmp.crea_down();
-         qo.push_back(tmp);
-
-         ++row;
-
-      }
-
-      row = 1;
-
-      while(istates[row].size() == 1){//anni up
-
-         state.push_anni_up(i);
-         state.insert(state.end(),istates[row].begin(),istates[row].end());
-         ostates.push_back(state);
-         state.clear();
-
-         Quantum tmp = qi[row];
-         tmp.anni_up();
-         qo.push_back(tmp);
-
-         ++row;
-
-      }
-
-      row = 1;
-
-      while(istates[row].size() == 1){//anni down 
-
-         state.push_anni_down(i);
-         state.insert(state.end(),istates[row].begin(),istates[row].end());
-         ostates.push_back(state);
-         state.clear();
-
-         Quantum tmp = qi[row];
-         tmp.anni_down();
-         qo.push_back(tmp);
-
-         ++row;
-
-      }
-
-      //copy the doubles from previous tensor
-      while(istates[row].size() == 2){
-
-         ostates.push_back(istates[row]);
-         qo.push_back(qi[row]);
-         ++row;
-
-      }
-
-      //complementary operators: triples
-      for(int j = i + 1;j < L;++j){
-
-         state.push_crea_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(1,0));
-
-         state.push_crea_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(0,1));
-
-         state.push_anni_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(-1,0));
-
-         state.push_anni_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(0,-1));
-
-      }
-
-      //finally the local term:
-      state.push_id();
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q::zero());
-
       //now fill
-      mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+      mpo[i].resize(Q::zero(),make_array(-HamOp::qo[i-1],qp,-qp,HamOp::qo[i]));
 
       row = 0;
       column = 0;
@@ -5835,7 +5479,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       row = 1;
       column = 5;
 
-      while(istates[row].size() == 1){
+      while(HamOp::ostates[i-1][row].size() == 1){
 
          insert_sign(mpo[i],row,column);
          ++row;
@@ -5854,7 +5498,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       //insert singles to form outgoing doubles
       row = 1;
 
-      while(istates[row].size() == 1){//create up
+      while(HamOp::ostates[i-1][row].size() == 1){//create up
 
          insert_crea_up(mpo[i],row,column,1.0);
          ++row;
@@ -5864,7 +5508,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
 
       row = 1;
 
-      while(istates[row].size() == 1){//create down with sign
+      while(HamOp::ostates[i-1][row].size() == 1){//create down with sign
 
          insert_crea_down_s(mpo[i],row,column,1.0);
          ++row;
@@ -5874,7 +5518,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
 
       row = 1;
 
-      while(istates[row].size() == 1){//annihilate up
+      while(HamOp::ostates[i-1][row].size() == 1){//annihilate up
 
          insert_anni_up(mpo[i],row,column,1.0);
          ++row;
@@ -5884,7 +5528,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
 
       row = 1;
 
-      while(istates[row].size() == 1){//annihilate down with sign
+      while(HamOp::ostates[i-1][row].size() == 1){//annihilate down with sign
 
          insert_anni_down_s(mpo[i],row,column,1.0);
          ++row;
@@ -5893,7 +5537,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       }
 
       //copy the doubles from previous tensor: identity
-      while(istates[row].size() == 2){
+      while(HamOp::ostates[i-1][row].size() == 2){
 
          insert_id(mpo[i],row,column);
          ++row;
@@ -5902,11 +5546,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       }
 
       //HERE STARTS THE COMPLEMENTARY OPERATOR STUFF!
-      while(column < ostates.size() - 1){
+      while(column < HamOp::ostates[i].size() - 1){
 
-         int j = ostates[column].gsite(0);
-         int sj = ostates[column].gspin(0);
-         int aj = ostates[column].gact(0);
+         int j = HamOp::ostates[i][column].gsite(0);
+         int sj = HamOp::ostates[i][column].gspin(0);
+         int aj = HamOp::ostates[i][column].gact(0);
 
          //first row
          if(sj == 0 && aj == 0)
@@ -5921,11 +5565,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
          //singles coming in:
          row = 1;
 
-         while(istates[row].size() == 1){
+         while(HamOp::ostates[i-1][row].size() == 1){
 
             std::vector<double> val(2);
 
-            std::vector<int> v = Ostate::get_double_complement(i,istates[row],ostates[column],V,val);
+            std::vector<int> v = Ostate::get_double_complement(i,HamOp::ostates[i-1][row],HamOp::ostates[i][column],V,val);
 
             if(v.size() == 1){
 
@@ -5947,11 +5591,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
          }
 
          //pairs coming in
-         while(istates[row].size() == 2){
+         while(HamOp::ostates[i-1][row].size() == 2){
 
             double val;
 
-            std::vector<int> v = Ostate::get_single_complement(i,istates[row],ostates[column],V,val);
+            std::vector<int> v = Ostate::get_single_complement(i,HamOp::ostates[i-1][row],HamOp::ostates[i][column],V,val);
 
             if(v.size() > 0){
 
@@ -5971,7 +5615,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
          }
 
          //signs: find row and column which are connected
-         while(istates[row] != ostates[column])
+         while(HamOp::ostates[i-1][row] != HamOp::ostates[i][column])
             ++row;
 
          insert_sign(mpo[i],row,column);
@@ -5988,12 +5632,12 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       //close down the singles coming in with a triplet
       row = 1;
 
-      while(istates[row].size() == 1){
+      while(HamOp::ostates[i-1][row].size() == 1){
 
          //incoming operator
-         int k = istates[row].gsite(0);
-         int sk = istates[row].gspin(0);
-         int ak = istates[row].gact(0);
+         int k = HamOp::ostates[i-1][row].gsite(0);
+         int sk = HamOp::ostates[i-1][row].gspin(0);
+         int ak = HamOp::ostates[i-1][row].gact(0);
 
          if(sk == 0 && ak == 0)//create up coming in
             insert_triple_crea_up_last(mpo[i],row,column,V(k,i,i,i));
@@ -6009,11 +5653,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       }
 
       //close down the doubles coming in with a pair
-      while(istates[row].size() == 2){
+      while(HamOp::ostates[i-1][row].size() == 2){
 
          std::vector<double> val(2);
 
-         std::vector<int> v = Ostate::get_closing_pair_in(i,istates[row],V,val);
+         std::vector<int> v = Ostate::get_closing_pair_in(i,HamOp::ostates[i-1][row],V,val);
 
          if(v.size() == 1){
 
@@ -6049,317 +5693,12 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       ++row;
 
       //finally insert the identity on the lower right element
-      insert_id(mpo[i],istates.size() - 1,ostates.size() - 1);
-
-      istates = ostates;
-      qi = qo;
+      insert_id(mpo[i],HamOp::ostates[i-1].size() - 1,HamOp::ostates[i].size() - 1);
 
    }
-
-   //now switch around incoming and outgoing pairs to reduce the dimension of the MPO
-   ostates.clear();
-   qo.clear();
-
-   //first row is closed
-   state.push_id();
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q::zero());//I
-
-   //outgoing singles
-   for(int j = L/2 + 1;j < L;++j){
-
-      state.push_crea_up(j);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(1,0));
-
-      state.push_crea_down(j);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(0,1));
-
-      state.push_anni_up(j);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(-1,0));
-
-      state.push_anni_down(j);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(0,-1));
-
-   }
-
-   //outgoing pairs: inverse quantum numbers!
-   Ostate istate;
-
-   for(int i = L/2 + 1;i < L;++i){
-
-      //first crea up
-      istate.push_crea_up(i);
-
-      //first on-site terms
-
-      //a^+_up a^+_down
-      state = istate;
-      state.push_crea_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(1,1));
-
-      //a^+_up a_up
-      state = istate;
-      state.push_anni_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q::zero());
-
-      //a^+_up a_down
-      state = istate;
-      state.push_anni_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(1,-1));
-
-      //two-site terms
-      for(int j = i + 1;j < L;++j){
-
-         //a^+_up a^+_up
-         state = istate;
-         state.push_crea_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(2,0));
-
-         //a^+_up a^+_down
-         state = istate;
-         state.push_crea_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(1,1));
-
-         //a^+_up a_down
-         state = istate;
-         state.push_anni_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(1,-1));
-
-         //a^+_up a_up
-         state = istate;
-         state.push_anni_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(0,0));
-
-      }
-
-      istate.clear();
-
-      //first crea down
-      istate.push_crea_down(i);
-
-      //a^+_down a_up
-      state = istate;
-      state.push_anni_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(-1,1));
-
-      //a^+_down a_down
-      state = istate;
-      state.push_anni_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q::zero());
-
-      for(int j = i + 1;j < L;++j){
-
-         //a^+_down a^+_up
-         state = istate;
-         state.push_crea_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(1,1));
-
-         //a^+_down a^+_down
-         state = istate;
-         state.push_crea_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(0,2));
-
-         //a^+_down a_down
-         state = istate;
-         state.push_anni_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(0,0));
-
-         //a^+_down a_up
-         state = istate;
-         state.push_anni_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(-1,1));
-
-      }
-
-      istate.clear();
-
-      //first anni down
-      istate.push_anni_down(i);
-
-      //a_down a_up 
-      state = istate;
-      state.push_anni_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(-1,-1));
-
-      for(int j = i + 1;j < L;++j){
-
-         //a_down a^+_up
-         state = istate;
-         state.push_crea_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(1,-1));
-
-         //a_down a^+_down
-         state = istate;
-         state.push_crea_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(0,0));
-
-         //a_down a_down
-         state = istate;
-         state.push_anni_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(0,-2));
-
-         //a_down a_up
-         state = istate;
-         state.push_anni_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(-1,-1));
-
-      }
-      
-      istate.clear();
-
-      //first is anni up 
-      istate.push_anni_up(i);
-
-      for(int j = i + 1;j < L;++j){
-
-         //a_up a^+_up
-         state = istate;
-         state.push_crea_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(0,0));
-
-         //a_up a^+_down
-         state = istate;
-         state.push_crea_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(-1,1));
-
-         //a_up a_down
-         state = istate;
-         state.push_anni_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(-1,-1));
-
-         //a_up a_up
-         state = istate;
-         state.push_anni_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(-2,0));
-
-      }
-
-      istate.clear();
-
-   }
-
-   //incoming singles
-   for(int i = 0;i < L/2 + 1;++i){
-
-      //a^+_up
-      state.push_crea_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(-1,0));
-
-      //a^+_down
-      state.push_crea_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(0,-1));
-
-      //a_down
-      state.push_anni_down(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(0,1));
-
-      //a_up
-      state.push_anni_up(i);
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q(1,0));
-
-   }
-
-   //finally last column the identity
-   state.push_id();
-   ostates.push_back(state);
-   state.clear();
-
-   qo.push_back(Q::zero());
 
    //now fill
-   mpo[L/2].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+   mpo[L/2].resize(Q::zero(),make_array(-HamOp::qo[L/2-1],qp,-qp,HamOp::qo[L/2]));
 
    //first row completely closed
    insert_local(mpo[L/2],0,0,t(L/2,L/2),V(L/2,L/2,L/2,L/2));
@@ -6367,12 +5706,12 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
    //insert complementary triples:
    row = 1;
 
-   while(istates[row].size() == 1){
+   while(HamOp::ostates[L/2 - 1][row].size() == 1){
 
       //incoming operator
-      int k = istates[row].gsite(0);
-      int sk = istates[row].gspin(0);
-      int ak = istates[row].gact(0);
+      int k = HamOp::ostates[L/2 - 1][row].gsite(0);
+      int sk = HamOp::ostates[L/2 - 1][row].gspin(0);
+      int ak = HamOp::ostates[L/2 - 1][row].gact(0);
 
       if(sk == 0 && ak == 0)//create up coming in
          insert_triple_crea_up_last(mpo[L/2],row,0,V(k,L/2,L/2,L/2));
@@ -6388,11 +5727,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
    }
 
    //close down the doubles coming in with a pair
-   while(istates[row].size() == 2){
+   while(HamOp::ostates[L/2 - 1][row].size() == 2){
 
       std::vector<double> val(2);
 
-      std::vector<int> v = Ostate::get_closing_pair_in(L/2,istates[row],V,val);
+      std::vector<int> v = Ostate::get_closing_pair_in(L/2,HamOp::ostates[L/2 - 1][row],V,val);
 
       if(v.size() == 1){
 
@@ -6428,16 +5767,16 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
    ++row;
 
    //finally insert the identity for the already closed terms coming in
-   insert_id(mpo[L/2],istates.size() - 1,0);
+   insert_id(mpo[L/2],HamOp::ostates[L/2 - 1].size() - 1,0);
 
    //next columns: outgoing singles
    int col = 1;
 
-   while(ostates[col].size() == 1){
+   while(HamOp::ostates[L/2][col].size() == 1){
 
-      int j = ostates[col].gsite(0);
-      int sj = ostates[col].gspin(0);
-      int aj = ostates[col].gact(0);
+      int j = HamOp::ostates[L/2][col].gsite(0);
+      int sj = HamOp::ostates[L/2][col].gspin(0);
+      int aj = HamOp::ostates[L/2][col].gact(0);
 
       //first row
       if(sj == 0 && aj == 0)
@@ -6452,11 +5791,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       //singles coming in:
       row = 1;
 
-      while(istates[row].size() == 1){
+      while(HamOp::ostates[L/2 - 1][row].size() == 1){
 
          std::vector<double> val(2);
 
-         std::vector<int> v = Ostate::get_double_complement(L/2,istates[row],ostates[col],V,val);
+         std::vector<int> v = Ostate::get_double_complement(L/2,HamOp::ostates[L/2 - 1][row],HamOp::ostates[L/2][col],V,val);
 
          if(v.size() == 1){
 
@@ -6478,11 +5817,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       }
 
       //pairs coming in
-      while(istates[row].size() == 2){
+      while(HamOp::ostates[L/2 - 1][row].size() == 2){
 
          double val;
 
-         std::vector<int> v = Ostate::get_single_complement(L/2,istates[row],ostates[col],V,val);
+         std::vector<int> v = Ostate::get_single_complement(L/2,HamOp::ostates[L/2 - 1][row],HamOp::ostates[L/2][col],V,val);
 
          if(v.size() > 0){
 
@@ -6502,7 +5841,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       }
 
       //signs: find row and column which are connected
-      while(istates[row] != ostates[col])
+      while(HamOp::ostates[L/2 - 1][row] != HamOp::ostates[L/2][col])
          ++row;
 
       insert_sign(mpo[L/2],row,col);
@@ -6512,20 +5851,20 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
    }
 
    //now outgoing pairs!
-   while(ostates[col].size() == 2){
+   while(HamOp::ostates[L/2][col].size() == 2){
 
-      int k = ostates[col].gsite(0);
-      int sk = ostates[col].gspin(0);
-      int ak = ostates[col].gact(0);
+      int k = HamOp::ostates[L/2][col].gsite(0);
+      int sk = HamOp::ostates[L/2][col].gspin(0);
+      int ak = HamOp::ostates[L/2][col].gact(0);
 
-      int l = ostates[col].gsite(1);
-      int sl = ostates[col].gspin(1);
-      int al = ostates[col].gact(1);
+      int l = HamOp::ostates[L/2][col].gsite(1);
+      int sl = HamOp::ostates[L/2][col].gspin(1);
+      int al = HamOp::ostates[L/2][col].gact(1);
 
       //first row: id coming in, insert pairs
       std::vector<double> val(2);
 
-      std::vector<int> v = Ostate::get_closing_pair_out(L/2,ostates[col],V,val);
+      std::vector<int> v = Ostate::get_closing_pair_out(L/2,HamOp::ostates[L/2][col],V,val);
 
       if(v.size() == 1){
 
@@ -6545,11 +5884,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       //singles coming in: insert single to match outgoing pair
       row = 1;
 
-      while(istates[row].size() == 1){
+      while(HamOp::ostates[L/2 - 1][row].size() == 1){
 
          double val;
 
-         std::vector<int> v = Ostate::get_single_complement(L/2,ostates[col],istates[row],V,val);
+         std::vector<int> v = Ostate::get_single_complement(L/2,HamOp::ostates[L/2][col],HamOp::ostates[L/2 - 1][row],V,val);
 
          if(v.size() > 0){
 
@@ -6570,11 +5909,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
 
       //pairs coming in: convert incoming to outgoing pairs
 
-      while(istates[row].size() == 2){
+      while(HamOp::ostates[L/2 - 1][row].size() == 2){
 
          double val;
 
-         int op = Ostate::transfer_pair_in_pair_out(istates[row],ostates[col],V,val);
+         int op = Ostate::transfer_pair_in_pair_out(HamOp::ostates[L/2 - 1][row],HamOp::ostates[L/2][col],V,val);
 
          if(op == 1)
             insert_id(mpo[L/2],row,col,val);
@@ -6588,11 +5927,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
    }
 
    //then the outgoing "incoming" singles
-   while(col < ostates.size() - 1){
+   while(col < HamOp::ostates[L/2].size() - 1){
 
-      int ci = ostates[col].gsite(0);
-      int cs = ostates[col].gspin(0);
-      int ca = ostates[col].gact(0);
+      int ci = HamOp::ostates[L/2][col].gsite(0);
+      int cs = HamOp::ostates[L/2][col].gspin(0);
+      int ca = HamOp::ostates[L/2][col].gact(0);
 
       //insert single operators on the first row
       if(ci == L/2){
@@ -6610,11 +5949,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
 
       row = 1;
 
-      while(istates[row].size() == 1){
+      while(HamOp::ostates[L/2 - 1][row].size() == 1){
 
-         int ri = istates[row].gsite(0);
-         int rs = istates[row].gspin(0);
-         int ra = istates[row].gact(0);
+         int ri = HamOp::ostates[L/2 - 1][row].gsite(0);
+         int rs = HamOp::ostates[L/2 - 1][row].gspin(0);
+         int ra = HamOp::ostates[L/2 - 1][row].gact(0);
 
          if(ri == ci && rs == cs && ra == ca)
             insert_sign(mpo[L/2],row,col);
@@ -6628,317 +5967,13 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
    }
 
    //finally insert id for incoming id
-   insert_id(mpo[L/2],0,ostates.size() - 1);
-
-   istates = ostates;
-   qi = qo;
+   insert_id(mpo[L/2],0,HamOp::ostates[L/2].size() - 1);
 
    //the rest of the blocks: L/2 + 1 --> L - 1
    for(int i = L/2 + 1;i < L - 1;++i){
 
-      ostates.clear();
-      qo.clear();
-
-      //first row is closed
-      state.push_id();
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q::zero());//I
-
-      //outgoing singles
-      for(int j = i + 1;j < L;++j){
-
-         state.push_crea_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(1,0));
-
-         state.push_crea_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(0,1));
-
-         state.push_anni_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(-1,0));
-
-         state.push_anni_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(0,-1));
-
-      }
-
-      //outgoing pairs: inverse quantum numbers!
-      Ostate istate;
-
-      for(int j = i + 1;j < L;++j){
-
-         //first crea up
-         istate.push_crea_up(j);
-
-         //first on-site terms
-
-         //a^+_up a^+_down
-         state = istate;
-         state.push_crea_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(1,1));
-
-         //a^+_up a_up
-         state = istate;
-         state.push_anni_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q::zero());
-
-         //a^+_up a_down
-         state = istate;
-         state.push_anni_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(1,-1));
-
-         //two-site terms
-         for(int k = j + 1;k < L;++k){
-
-            //a^+_up a^+_up
-            state = istate;
-            state.push_crea_up(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(2,0));
-
-            //a^+_up a^+_down
-            state = istate;
-            state.push_crea_down(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(1,1));
-
-            //a^+_up a_down
-            state = istate;
-            state.push_anni_down(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(1,-1));
-
-            //a^+_up a_up
-            state = istate;
-            state.push_anni_up(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(0,0));
-
-         }
-
-         istate.clear();
-
-         //first crea down
-         istate.push_crea_down(j);
-
-         //a^+_down a_up
-         state = istate;
-         state.push_anni_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(-1,1));
-
-         //a^+_down a_down
-         state = istate;
-         state.push_anni_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q::zero());
-
-         for(int k = j + 1;k < L;++k){
-
-            //a^+_down a^+_up
-            state = istate;
-            state.push_crea_up(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(1,1));
-
-            //a^+_down a^+_down
-            state = istate;
-            state.push_crea_down(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(0,2));
-
-            //a^+_down a_down
-            state = istate;
-            state.push_anni_down(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(0,0));
-
-            //a^+_down a_up
-            state = istate;
-            state.push_anni_up(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(-1,1));
-
-         }
-
-         istate.clear();
-
-         //first anni down
-         istate.push_anni_down(j);
-
-         //a_down a_up 
-         state = istate;
-         state.push_anni_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(-1,-1));
-
-         for(int k = j + 1;k < L;++k){
-
-            //a_down a^+_up
-            state = istate;
-            state.push_crea_up(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(1,-1));
-
-            //a_down a^+_down
-            state = istate;
-            state.push_crea_down(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(0,0));
-
-            //a_down a_down
-            state = istate;
-            state.push_anni_down(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(0,-2));
-
-            //a_down a_up
-            state = istate;
-            state.push_anni_up(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(-1,-1));
-
-         }
-
-         istate.clear();
-
-         //first is anni up 
-         istate.push_anni_up(j);
-
-         for(int k = j + 1;k < L;++k){
-
-            //a_up a^+_up
-            state = istate;
-            state.push_crea_up(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(0,0));
-
-            //a_up a^+_down
-            state = istate;
-            state.push_crea_down(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(-1,1));
-
-            //a_up a_down
-            state = istate;
-            state.push_anni_down(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(-1,-1));
-
-            //a_up a_up
-            state = istate;
-            state.push_anni_up(k);
-            ostates.push_back(state);
-            state.clear();
-
-            qo.push_back(Q(-2,0));
-
-         }
-
-         istate.clear();
-
-      }
-
-      //incoming singles
-      for(int j = 0;j <= i;++j){
-
-         //a^+_up
-         state.push_crea_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(-1,0));
-
-         //a^+_down
-         state.push_crea_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(0,-1));
-
-         //a_down
-         state.push_anni_down(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(0,1));
-
-         //a_up
-         state.push_anni_up(j);
-         ostates.push_back(state);
-         state.clear();
-
-         qo.push_back(Q(1,0));
-
-      }
-
-      //finally last column the identity
-      state.push_id();
-      ostates.push_back(state);
-      state.clear();
-
-      qo.push_back(Q::zero());
-
       //now fill
-      mpo[i].resize(Q::zero(),make_array(-qi,qp,-qp,qo));
+      mpo[i].resize(Q::zero(),make_array(-HamOp::qo[i - 1],qp,-qp,HamOp::qo[i]));
 
       col = 0;
 
@@ -6948,11 +5983,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       //for incoming complementary triples, close down with single
       row = 1;
 
-      while(istates[row].size() == 1){
+      while(HamOp::ostates[i - 1][row].size() == 1){
 
-         int ri = istates[row].gsite(0);
-         int rs = istates[row].gspin(0);
-         int ra = istates[row].gact(0);
+         int ri = HamOp::ostates[i-1][row].gsite(0);
+         int rs = HamOp::ostates[i-1][row].gspin(0);
+         int ra = HamOp::ostates[i-1][row].gact(0);
 
          if(ri == i){
 
@@ -6972,15 +6007,15 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       }
 
       //close down incoming complementary doubles with pairs
-      while(istates[row].size() == 2){
+      while(HamOp::ostates[i - 1][row].size() == 2){
 
-         int ri_1 = istates[row].gsite(0);
-         int rs_1 = istates[row].gspin(0);
-         int ra_1 = istates[row].gact(0);
+         int ri_1 = HamOp::ostates[i-1][row].gsite(0);
+         int rs_1 = HamOp::ostates[i-1][row].gspin(0);
+         int ra_1 = HamOp::ostates[i-1][row].gact(0);
 
-         int ri_2 = istates[row].gsite(1);
-         int rs_2 = istates[row].gspin(1);
-         int ra_2 = istates[row].gact(1);
+         int ri_2 = HamOp::ostates[i-1][row].gsite(1);
+         int rs_2 = HamOp::ostates[i-1][row].gspin(1);
+         int ra_2 = HamOp::ostates[i-1][row].gact(1);
 
          if(ri_1 == i && ri_2 == i){
 
@@ -7024,12 +6059,12 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       }
 
       //incoming singles, close with triples!
-      while(row < istates.size() - 1){
+      while(row < HamOp::ostates[i - 1].size() - 1){
 
          //incoming operator
-         int k = istates[row].gsite(0);
-         int sk = istates[row].gspin(0);
-         int ak = istates[row].gact(0);
+         int k = HamOp::ostates[i-1][row].gsite(0);
+         int sk = HamOp::ostates[i-1][row].gspin(0);
+         int ak = HamOp::ostates[i-1][row].gact(0);
 
          if(sk == 0 && ak == 0)//create up coming in
             insert_triple_crea_up_last(mpo[i],row,0,V(k,i,i,i));
@@ -7045,25 +6080,25 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       }
 
       //insert local terms
-      insert_local(mpo[i],istates.size() - 1,0,t(i,i),V(i,i,i,i));
+      insert_local(mpo[i],HamOp::ostates[i - 1].size() - 1,0,t(i,i),V(i,i,i,i));
 
       //outgoing complementary triples
       col = 1;
 
-      while(ostates[col].size() == 1){
+      while(HamOp::ostates[i][col].size() == 1){
 
-         int ci = ostates[col].gsite(0);
-         int cs = ostates[col].gspin(0);
-         int ca = ostates[col].gact(0);
+         int ci = HamOp::ostates[i][col].gsite(0);
+         int cs = HamOp::ostates[i][col].gspin(0);
+         int ca = HamOp::ostates[i][col].gact(0);
 
          //incoming complementary triples
          row = 1;
 
-         while(istates[row].size() == 1){
+         while(HamOp::ostates[i-1][row].size() == 1){
 
-            int ri = istates[row].gsite(0);
-            int rs = istates[row].gspin(0);
-            int ra = istates[row].gact(0);
+            int ri = HamOp::ostates[i-1][row].gsite(0);
+            int rs = HamOp::ostates[i-1][row].gspin(0);
+            int ra = HamOp::ostates[i-1][row].gact(0);
 
             if(ci == ri && cs == rs && ca == ra)
                insert_sign(mpo[i],row,col,1.0);
@@ -7073,15 +6108,15 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
          }
 
          //incoming complementary pairs: add single
-         while(istates[row].size() == 2){
+         while(HamOp::ostates[i-1][row].size() == 2){
 
-            int ri1 = istates[row].gsite(0);
-            int rs1 = istates[row].gspin(0);
-            int ra1 = istates[row].gact(0);
+            int ri1 = HamOp::ostates[i-1][row].gsite(0);
+            int rs1 = HamOp::ostates[i-1][row].gspin(0);
+            int ra1 = HamOp::ostates[i-1][row].gact(0);
 
-            int ri2 = istates[row].gsite(1);
-            int rs2 = istates[row].gspin(1);
-            int ra2 = istates[row].gact(1);
+            int ri2 = HamOp::ostates[i-1][row].gsite(1);
+            int rs2 = HamOp::ostates[i-1][row].gspin(1);
+            int ra2 = HamOp::ostates[i-1][row].gact(1);
 
             if(ri1 == i){//if first site of the complementary is this site i:
 
@@ -7105,11 +6140,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
          }
 
          //singles coming in:
-         while(row < istates.size() - 1){
+         while(row < HamOp::ostates[i-1].size() - 1){
 
             std::vector<double> val(2);
 
-            std::vector<int> v = Ostate::get_double_complement(i,istates[row],ostates[col],V,val);
+            std::vector<int> v = Ostate::get_double_complement(i,HamOp::ostates[i-1][row],HamOp::ostates[i][col],V,val);
 
             if(v.size() == 1){
 
@@ -7143,15 +6178,15 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
 
       }
 
-      while(ostates[col].size() == 2){
+      while(HamOp::ostates[i][col].size() == 2){
 
          //now start from the bottom, with the last row
-         row = istates.size() - 1;
+         row = HamOp::ostates[i-1].size() - 1;
 
          //last row: id coming in, insert pairs
          std::vector<double> val(2);
 
-         std::vector<int> v = Ostate::get_closing_pair_out(i,ostates[col],V,val);
+         std::vector<int> v = Ostate::get_closing_pair_out(i,HamOp::ostates[i][col],V,val);
 
          if(v.size() == 1){
 
@@ -7171,11 +6206,11 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
          row--;
 
          //now decrease the row: incoming singles
-         while(istates[row].size() == 1){
+         while(HamOp::ostates[i-1][row].size() == 1){
 
             double val;
 
-            std::vector<int> v = Ostate::get_single_complement(i,ostates[col],istates[row],V,val);
+            std::vector<int> v = Ostate::get_single_complement(i,HamOp::ostates[i][col],HamOp::ostates[i-1][row],V,val);
 
             if(v.size() > 0){
 
@@ -7195,9 +6230,9 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
          }
 
          //incoming complementary pairs: put in id on the right place
-         while(istates[row].size() == 2){
+         while(HamOp::ostates[i-1][row].size() == 2){
 
-            if(istates[row] == ostates[col])
+            if(HamOp::ostates[i-1][row] == HamOp::ostates[i][col])
                insert_id(mpo[i],row,col);
 
             --row;
@@ -7209,13 +6244,13 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       }
 
       //outgoing singles
-      while(col < ostates.size() - 1){
+      while(col < HamOp::ostates[i].size() - 1){
 
-         int ci = ostates[col].gsite(0);
-         int cs = ostates[col].gspin(0);
-         int ca = ostates[col].gact(0);
+         int ci = HamOp::ostates[i][col].gsite(0);
+         int cs = HamOp::ostates[i][col].gspin(0);
+         int ca = HamOp::ostates[i][col].gact(0);
 
-         row = istates.size() - 1;
+         row = HamOp::ostates[i - 1].size() - 1;
 
          //insert correct operator:
          if(ci == i){
@@ -7234,9 +6269,9 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
          row--;
 
          //insert sign for incoming singles to transfer to outgoing singles
-         while(istates[row].size() == 1){
+         while(HamOp::ostates[i - 1][row].size() == 1){
 
-            if(istates[row] == ostates[col])
+            if(HamOp::ostates[i - 1][row] == HamOp::ostates[i][col])
                insert_sign(mpo[i],row,col);
 
             --row;
@@ -7248,27 +6283,23 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       }
 
       //finally insert id in bottom right
-      insert_id(mpo[i],istates.size() - 1,ostates.size() - 1);
-
-      //transfer for following site
-      qi = qo;
-      istates = ostates;
+      insert_id(mpo[i],HamOp::ostates[i - 1].size() - 1,HamOp::ostates[i].size() - 1);
 
    }
 
    //finally the last mpo:
-   mpo[L - 1].resize(Q::zero(),make_array(-qi,qp,-qp,qz));
+   mpo[L - 1].resize(Q::zero(),make_array(-HamOp::qo[L - 2],qp,-qp,qz));
 
    insert_id(mpo[L - 1],0,0);
 
    //for incoming complementary triples, close down with single
    row = 1;
 
-   while(istates[row].size() == 1){
+   while(HamOp::ostates[L - 2][row].size() == 1){
 
-      int ri = istates[row].gsite(0);
-      int rs = istates[row].gspin(0);
-      int ra = istates[row].gact(0);
+      int ri = HamOp::ostates[L-2][row].gsite(0);
+      int rs = HamOp::ostates[L-2][row].gspin(0);
+      int ra = HamOp::ostates[L-2][row].gact(0);
 
       if(ri == L - 1){
 
@@ -7288,15 +6319,15 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
    }
 
    //close down incoming complementary doubles with pairs
-   while(istates[row].size() == 2){
+   while(HamOp::ostates[L-2][row].size() == 2){
 
-      int ri_1 = istates[row].gsite(0);
-      int rs_1 = istates[row].gspin(0);
-      int ra_1 = istates[row].gact(0);
+      int ri_1 = HamOp::ostates[L-2][row].gsite(0);
+      int rs_1 = HamOp::ostates[L-2][row].gspin(0);
+      int ra_1 = HamOp::ostates[L-2][row].gact(0);
 
-      int ri_2 = istates[row].gsite(1);
-      int rs_2 = istates[row].gspin(1);
-      int ra_2 = istates[row].gact(1);
+      int ri_2 = HamOp::ostates[L-2][row].gsite(1);
+      int rs_2 = HamOp::ostates[L-2][row].gspin(1);
+      int ra_2 = HamOp::ostates[L-2][row].gact(1);
 
       if(ri_1 == L - 1 && ri_2 == L - 1){
 
@@ -7340,12 +6371,12 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
    }
 
    //incoming singles, close with triples!
-   while(row < istates.size() - 1){
+   while(row < HamOp::ostates[L-2].size() - 1){
 
       //incoming operator
-      int k = istates[row].gsite(0);
-      int sk = istates[row].gspin(0);
-      int ak = istates[row].gact(0);
+      int k = HamOp::ostates[L-2][row].gsite(0);
+      int sk = HamOp::ostates[L-2][row].gspin(0);
+      int ak = HamOp::ostates[L-2][row].gact(0);
 
       if(sk == 0 && ak == 0)//create up coming in
          insert_triple_crea_up_last(mpo[L - 1],row,0,V(k,L - 1,L - 1,L - 1));
@@ -7361,7 +6392,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
    }
 
    //insert local terms
-   insert_local(mpo[L - 1],istates.size() - 1,0,t(L - 1,L - 1),V(L - 1,L - 1,L - 1,L - 1));
+   insert_local(mpo[L - 1],HamOp::ostates[L-2].size() - 1,0,t(L - 1,L - 1),V(L - 1,L - 1,L - 1,L - 1));
 
    if(merge == true){
 

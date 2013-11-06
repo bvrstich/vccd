@@ -42,8 +42,6 @@ int main(int argc,char *argv[]){
    Ostate::construct_oplist(L);
    HamOp::init(L);
 
-   HamOp::print_states();
-
    Qshapes<Quantum> qp;
    physical(qp);
 
@@ -104,6 +102,7 @@ int main(int argc,char *argv[]){
    cout << compress(qc,mpsxx::Right,0) << endl;
 
    print_dim(qc);
+
 /*
    //hartree fock energy
    cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
