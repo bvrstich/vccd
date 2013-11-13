@@ -40,23 +40,7 @@ int main(int argc,char *argv[]){
    int nv = L - no;
 
    Ostate::construct_oplist(L);
-
    HamOp::init(L);
-   Operator::init();
-
-   Operator::print();
-/*
-   Qshapes<Quantum> qp;
-   physical(qp);
-
-   //make the HF state
-   std::vector<int> occ(L);
-
-   for(int i = 0;i < no;++i)
-      occ[i] = 3;
-
-   for(int i = no;i < L;++i)
-      occ[i] = 0;
 
    //hf energies
    std::vector<double> e;
@@ -72,9 +56,7 @@ int main(int argc,char *argv[]){
    while(ener_in >> i >> value)
       e.push_back(value);
 
-   MPS<Quantum> hf = product_state(L,qp,occ);
-
-   std::vector<int> order;
+      std::vector<int> order;
 
    char orderfile[100];
    sprintf(orderfile,"%sorder.in",dirpath);
@@ -91,14 +73,34 @@ int main(int argc,char *argv[]){
 
    //construct the qc hamiltonian
    DArray<2> K(L,L);
-   read_oei(oeifile,K,order);
+   //read_oei(oeifile,K,order);
+   random_oei(K);
 
    char teifile[100];
    sprintf(teifile,"%sTEI.in",dirpath);
 
    //construct the qc hamiltonian
    DArray<4> V(L,L,L,L);
-   read_tei(teifile,V,order);
+   //read_tei(teifile,V,order);
+   random_tei(V);
+
+   //construct the complementary operators
+   Operator::init(K,V);
+
+   //here start the construction of states and stuff..., the actual program
+   Qshapes<Quantum> qp;
+   physical(qp);
+
+   //make the HF state
+   std::vector<int> occ(L);
+
+   for(int i = 0;i < no;++i)
+      occ[i] = 3;
+
+   for(int i = no;i < L;++i)
+      occ[i] = 0;
+
+   MPS<Quantum> hf = product_state(L,qp,occ);
 
    MPO<Quantum> qc = qcham<Quantum>(K,V,false);
 
@@ -109,7 +111,7 @@ int main(int argc,char *argv[]){
 
    //hartree fock energy
    cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
-
+/*
    //construct the mp2 guess
    DArray<4> t(no,no,nv,nv);
 
@@ -126,11 +128,17 @@ int main(int argc,char *argv[]){
    print_dim(eTA);
 
    cout << inprod(mpsxx::Left,eTA,qc,eTA) << endl;
-  
+ */ 
+   
+   MPS<Quantum> A = mpsxx::create(L,Quantum(n_u,n_d),qp,40,rgen);
+
+   cout << compress(A,mpsxx::Left,100) << endl;
+   cout << compress(A,mpsxx::Right,100) << endl;
+
    //MPO<Quantum> tmp = ro::construct(mpsxx::Left,eTA,T,qc,eTA);
 
-   ro::construct(mpsxx::Left,eTA);
-*/
+   ro::construct(mpsxx::Left,A);
+
    return 0;
 
 }

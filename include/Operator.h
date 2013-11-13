@@ -25,7 +25,7 @@ class Operator {
       //destructor
       virtual ~Operator();
 
-      static void init();
+      static void init(const DArray<2> &,const DArray<4> &);
 
       //!identity
       static QSDArray<2> id;
@@ -75,23 +75,20 @@ class Operator {
       //!annihilator of an up annihilator of a down
       static QSDArray<2> auad;
 
-      //!triple operator with signature of an up spin creator
-      static QSDArray<2> tcu;
+      //!complementary triple operator with signature of an up spin creator
+      static std::vector< QSDArray<2> > tcuf;
 
-      //!triple operator with signature of a down spin creator
-      static QSDArray<2> tcd;
+      //!complementary triple operator with signature of a down spin creator
+      static std::vector< QSDArray<2> > tcdf;
 
-      //!triple operator with signature of an down spin annihilator
-      static QSDArray<2> tad;
+      //!complementary triple operator with signature of an down spin annihilator
+      static std::vector< QSDArray<2> > tadf;
 
-      //!triple operator with signature of an up spin annihilator
-      static QSDArray<2> tau;
+      //!complementary triple operator with signature of an up spin annihilator
+      static std::vector< QSDArray<2> > tauf;
 
-      //!local two-body operator
-      static QSDArray<2> ltb;
-
-      //!local one-body operator
-      static QSDArray<2> lob;
+      //!local operator
+      static QSDArray<2> local;
 
       //!print out all the operators
       static void print();

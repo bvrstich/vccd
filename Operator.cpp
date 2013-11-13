@@ -26,12 +26,11 @@ QSDArray<2> Operator::cuad;
 QSDArray<2> Operator::cdau;
 QSDArray<2> Operator::cdad;
 QSDArray<2> Operator::auad;
-QSDArray<2> Operator::tcu;
-QSDArray<2> Operator::tcd;
-QSDArray<2> Operator::tad;
-QSDArray<2> Operator::tau;
-QSDArray<2> Operator::lob;
-QSDArray<2> Operator::ltb;
+std::vector< QSDArray<2> > Operator::tcuf;
+std::vector< QSDArray<2> > Operator::tcdf;
+std::vector< QSDArray<2> > Operator::tadf;
+std::vector< QSDArray<2> > Operator::tauf;
+QSDArray<2> Operator::local;
 
 //standard constructor
 Operator::Operator(){ }
@@ -41,9 +40,11 @@ Operator::Operator(const Operator &){ }
 Operator::~Operator(){ } 
 
 /**
- * initialize all the operators
+ * initialize all the operators, construct the complementary operators for the qc Hamiltonian
  */
-void Operator::init(){ 
+void Operator::init(const DArray<2> &t,const DArray<4> &V){ 
+
+   int L = t.shape(0);
   
    Qshapes<Quantum> qp;
    physical(qp);
@@ -175,50 +176,73 @@ void Operator::init(){
 
    auad.insert(shape(0,3),Im);
 
-   //complementary operator for a_up: behaves as a creator of up
-   qt = Quantum(1,0);
+   //create the complementary triple operators
+   tcuf.resize(L - 1);
+   tcdf.resize(L - 1);
+   tadf.resize(L - 1);
+   tauf.resize(L - 1);
 
-   tcu.resize(qt,make_array(qp,-qp));
+   for(int i = 0;i < L-1;++i){
 
-   tcu.insert(shape(3,2),Ip);
+      //complementary of create up, first: triple comes to the left
+      qt = Quantum(-1,0);
 
-   //complementary operator for a_down: behaves as a creator of down 
-   qt = Quantum(0,1);
+      tcuf[i].resize(qt,make_array(qp,-qp));
 
-   tcd.resize(qt,make_array(qp,-qp));
+      Ip = t(0,i);
+      tcuf[i].insert(shape(0,1),Ip);
 
-   tcd.insert(shape(3,1),Ip);
+      Ip = -t(0,i) - V(0,0,i,0);
+      tcuf[i].insert(shape(2,3),Ip);
 
-   //complementary operator for a^+_down: behaves as an annihilator of down 
-   qt = Quantum(0,-1);
+      //complementary of create down, first: triple comes to the left
+      qt = Quantum(0,-1);
 
-   tad.resize(qt,make_array(qp,-qp));
+      tcdf[i].resize(qt,make_array(qp,-qp));
 
-   tad.insert(shape(1,3),Ip);
+      Ip = t(0,i);
+      tcdf[i].insert(shape(0,2),Ip);
 
-   //complementary operator for a^+_up: behaves as an annihilator of up
-   qt = Quantum(-1,0);
+      Ip = t(0,i) + V(0,0,i,0);
+      tcdf[i].insert(shape(1,3),Ip);
 
-   tau.resize(qt,make_array(qp,-qp));
+      //complementary of anni down, first: triple comes to the left
+      qt = Quantum(0,1);
 
-   tau.insert(shape(2,3),Ip);
+      tadf[i].resize(qt,make_array(qp,-qp));
 
-   //local two body term
+      Ip = t(0,i);
+      tadf[i].insert(shape(2,0),Ip);
+
+      Ip = t(0,i) + V(0,0,i,0);
+      tadf[i].insert(shape(3,1),Ip);
+
+      //complementary of anni up, first: triple comes to the left
+      qt = Quantum(1,0);
+
+      tauf[i].resize(qt,make_array(qp,-qp));
+
+      Ip = t(0,i);
+      tauf[i].insert(shape(1,0),Ip);
+
+      Ip = -t(0,i) - V(0,0,i,0);
+      tauf[i].insert(shape(2,3),Ip);
+
+   }
+
+   //local term
    qt = Quantum::zero();
 
-   ltb.resize(qt,make_array(qp,-qp));
+   local.resize(qt,make_array(qp,-qp));
 
-   ltb.insert(shape(3,3),Ip);
+   Ip = t(0,0);
 
-   //local one body term
-   lob.resize(qt,make_array(qp,-qp));
+   local.insert(shape(1,1),Ip);
+   local.insert(shape(2,2),Ip);
 
-   lob.insert(shape(1,1),Ip);
-   lob.insert(shape(2,2),Ip);
+   Ip = 2*t(0,0) + V(0,0,0,0);
 
-   Ip = 2.0;
-
-   lob.insert(shape(3,3),Ip);
+   local.insert(shape(3,3),Ip);
 
 }
 
@@ -305,36 +329,6 @@ void Operator::print(){
    cout << "au ad" << endl;
    cout << endl;
    cout << Operator::auad << endl;
-   cout << endl;
-
-   cout << "tcu" << endl;
-   cout << endl;
-   cout << Operator::tcu << endl;
-   cout << endl;
-
-   cout << "tcd" << endl;
-   cout << endl;
-   cout << Operator::tcd << endl;
-   cout << endl;
-
-   cout << "tad" << endl;
-   cout << endl;
-   cout << Operator::tad << endl;
-   cout << endl;
-
-   cout << "tau" << endl;
-   cout << endl;
-   cout << Operator::tau << endl;
-   cout << endl;
-
-   cout << "local two body" << endl;
-   cout << endl;
-   cout << Operator::ltb << endl;
-   cout << endl;
-
-   cout << "local one body" << endl;
-   cout << endl;
-   cout << Operator::lob << endl;
    cout << endl;
 
 }

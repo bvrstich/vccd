@@ -20,14 +20,6 @@ void read_oei(const char *filename,DArray<2> &t,const std::vector<int> &order){
    double value;
 
    t = 0.0;
-/*
-   while(input >> i >> j >> value){
-
-      t(order[i],order[j]) = value;
-      t(order[j],order[i]) = value;
-
-   }
-*/
 
    while(input >> value >> i >> j){
 
@@ -35,6 +27,27 @@ void read_oei(const char *filename,DArray<2> &t,const std::vector<int> &order){
       t(order[j - 1],order[i - 1]) = value;
 
    }
+
+}
+
+/**
+ * Fill the one electron integral matrix random
+ */
+void random_oei(DArray<2> &t){
+
+   int L = t.shape(0);
+
+   t = 0.0;
+
+   for(int i = 0;i < L;++i)
+      for(int j = i;i < L;++i){
+
+         double value = 2.0*(static_cast<double>(rand())/RAND_MAX) - 1.0;
+
+         t(i,j) = value;
+         t(j,i) = value;
+
+      }
 
 }
 
@@ -49,20 +62,6 @@ void read_tei(const char *filename,DArray<4> &V,const std::vector<int> &order){
    double value;
 
    V = 0.0;
-/*
-   while(input >> a >> c >> b >> d >> value){
-
-      V(order[a],order[b],order[c],order[d]) = value;//ab;cd
-      V(order[b],order[a],order[d],order[c]) = value;//ba;dc
-      V(order[c],order[b],order[a],order[d]) = value;//cb;ad
-      V(order[b],order[c],order[d],order[a]) = value;//bc;da
-      V(order[a],order[d],order[c],order[b]) = value;//ad;cb
-      V(order[d],order[a],order[b],order[c]) = value;//da;bc
-      V(order[c],order[d],order[a],order[b]) = value;//cd;ab
-      V(order[d],order[c],order[b],order[a]) = value;//dc;ba
-
-   }
-*/
 
    while(input >> value >> a >> c >> b >> d){
 
@@ -76,5 +75,35 @@ void read_tei(const char *filename,DArray<4> &V,const std::vector<int> &order){
       V(order[d-1],order[c-1],order[b-1],order[a-1]) = value;
 
    }
+
+}
+
+/**
+ * Fill the two-electron matrix whit random number
+ */
+void random_tei(DArray<4> &V){
+
+   int L = V.shape(0);
+
+   V = 0.0;
+
+   for(int a = 0;a < L;++a)
+      for(int b = 0;b < L;++b)
+         for(int c = 0;c < L;++c)
+            for(int d = 0;d < L;++d){
+
+               double value = 2.0*(static_cast<double>(rand())/RAND_MAX) - 1.0;
+
+               V(a,b,c,d) = value;
+               V(b,a,d,c) = value;
+               V(c,b,a,d) = value;
+               V(b,c,d,a) = value;
+               V(a,d,c,b) = value;
+               V(d,a,b,c) = value;
+               V(c,d,a,b) = value;
+               V(d,c,b,a) = value;
+
+            }
+
 
 }

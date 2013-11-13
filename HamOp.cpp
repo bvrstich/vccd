@@ -1008,5 +1008,3 @@ void HamOp::print_states(){
    }
 
 }
-
-

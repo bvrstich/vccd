@@ -30,7 +30,7 @@ namespace ro {
 
       void check(const MPO<Quantum> &ror,const MPO<Quantum> &rol);
 
-      void print_id(int site,const QSDArray<3> A);
+      void print_op(int site,int opnum,const QSDArray<2> &op,const QSDArray<3> &A);
 
 }
 
