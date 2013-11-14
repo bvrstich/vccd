@@ -26,11 +26,11 @@ QSDArray<2> Operator::cuad;
 QSDArray<2> Operator::cdau;
 QSDArray<2> Operator::cdad;
 QSDArray<2> Operator::auad;
-std::vector< QSDArray<2> > Operator::tcuf;
-std::vector< QSDArray<2> > Operator::tcdf;
-std::vector< QSDArray<2> > Operator::tadf;
-std::vector< QSDArray<2> > Operator::tauf;
-QSDArray<2> Operator::local;
+std::vector< std::vector< QSDArray<2> > > Operator::tcuf;
+std::vector< std::vector< QSDArray<2> > > Operator::tcdf;
+std::vector< std::vector< QSDArray<2> > > Operator::tadf;
+std::vector< std::vector< QSDArray<2> > > Operator::tauf;
+std::vector< QSDArray<2> > Operator::local;
 
 //standard constructor
 Operator::Operator(){ }
@@ -184,65 +184,80 @@ void Operator::init(const DArray<2> &t,const DArray<4> &V){
 
    for(int i = 0;i < L-1;++i){
 
-      //complementary of create up, first: triple comes to the left
-      qt = Quantum(-1,0);
+      tcuf[i].resize(L - 1 - i);
+      tcdf[i].resize(L - 1 - i);
+      tadf[i].resize(L - 1 - i);
+      tauf[i].resize(L - 1 - i);
 
-      tcuf[i].resize(qt,make_array(qp,-qp));
+      for(int j = i + 1;j < L;++j){
 
-      Ip = t(0,i);
-      tcuf[i].insert(shape(0,1),Ip);
+         //complementary of create up, first: triple comes to the left
+         qt = Quantum(-1,0);
 
-      Ip = -t(0,i) - V(0,0,i,0);
-      tcuf[i].insert(shape(2,3),Ip);
+         tcuf[i][j - i - 1].resize(qt,make_array(qp,-qp));
 
-      //complementary of create down, first: triple comes to the left
-      qt = Quantum(0,-1);
+         Ip = t(i,j);
+         tcuf[i][j - i - 1].insert(shape(0,1),Ip);
 
-      tcdf[i].resize(qt,make_array(qp,-qp));
+         Ip = -t(i,j) - V(i,i,j,i);
+         tcuf[i][j - i - 1].insert(shape(2,3),Ip);
 
-      Ip = t(0,i);
-      tcdf[i].insert(shape(0,2),Ip);
+         //complementary of create down, first: triple comes to the left
+         qt = Quantum(0,-1);
 
-      Ip = t(0,i) + V(0,0,i,0);
-      tcdf[i].insert(shape(1,3),Ip);
+         tcdf[i][j - i - 1].resize(qt,make_array(qp,-qp));
 
-      //complementary of anni down, first: triple comes to the left
-      qt = Quantum(0,1);
+         Ip = t(i,j);
+         tcdf[i][j - i - 1].insert(shape(0,2),Ip);
 
-      tadf[i].resize(qt,make_array(qp,-qp));
+         Ip = t(i,j) + V(i,i,j,i);
+         tcdf[i][j - i - 1].insert(shape(1,3),Ip);
 
-      Ip = t(0,i);
-      tadf[i].insert(shape(2,0),Ip);
+         //complementary of anni down, first: triple comes to the left
+         qt = Quantum(0,1);
 
-      Ip = t(0,i) + V(0,0,i,0);
-      tadf[i].insert(shape(3,1),Ip);
+         tadf[i][j - i - 1].resize(qt,make_array(qp,-qp));
 
-      //complementary of anni up, first: triple comes to the left
-      qt = Quantum(1,0);
+         Ip = t(i,j);
+         tadf[i][j - i - 1].insert(shape(2,0),Ip);
 
-      tauf[i].resize(qt,make_array(qp,-qp));
+         Ip = t(i,j) + V(i,i,j,i);
+         tadf[i][j - i - 1].insert(shape(3,1),Ip);
 
-      Ip = t(0,i);
-      tauf[i].insert(shape(1,0),Ip);
+         //complementary of anni up, first: triple comes to the left
+         qt = Quantum(1,0);
 
-      Ip = -t(0,i) - V(0,0,i,0);
-      tauf[i].insert(shape(2,3),Ip);
+         tauf[i][j - i - 1].resize(qt,make_array(qp,-qp));
+
+         Ip = t(i,j);
+         tauf[i][j - i - 1].insert(shape(1,0),Ip);
+
+         Ip = -t(i,j) - V(i,i,j,i);
+         tauf[i][j - i - 1].insert(shape(2,3),Ip);
+
+      }
 
    }
 
-   //local term
-   qt = Quantum::zero();
+   local.resize(L);
 
-   local.resize(qt,make_array(qp,-qp));
+   for(int i = 0;i < L;++i){
 
-   Ip = t(0,0);
+      //local term
+      qt = Quantum::zero();
 
-   local.insert(shape(1,1),Ip);
-   local.insert(shape(2,2),Ip);
+      local[i].resize(qt,make_array(qp,-qp));
 
-   Ip = 2*t(0,0) + V(0,0,0,0);
+      Ip = t(i,i);
 
-   local.insert(shape(3,3),Ip);
+      local[i].insert(shape(1,1),Ip);
+      local[i].insert(shape(2,2),Ip);
+
+      Ip = 2*t(i,i) + V(i,i,i,i);
+
+      local[i].insert(shape(3,3),Ip);
+
+   }
 
 }
 

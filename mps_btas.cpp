@@ -130,10 +130,10 @@ int main(int argc,char *argv[]){
    cout << inprod(mpsxx::Left,eTA,qc,eTA) << endl;
  */ 
    
-   MPS<Quantum> A = mpsxx::create(L,Quantum(n_u,n_d),qp,40,rgen);
+   MPS<Quantum> A = mpsxx::create(L,Quantum(n_u,n_d),qp,100,rgen);
 
-   cout << compress(A,mpsxx::Left,100) << endl;
-   cout << compress(A,mpsxx::Right,100) << endl;
+   cout << compress(A,mpsxx::Left,0) << endl;
+   cout << compress(A,mpsxx::Right,1000) << endl;
 
    //MPO<Quantum> tmp = ro::construct(mpsxx::Left,eTA,T,qc,eTA);
 

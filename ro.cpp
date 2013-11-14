@@ -329,122 +329,129 @@ namespace ro {
       //insert triples: construct complementary operator
       for(int j = 1;j < L;++j){
 
-         print_op(0,col,Operator::tcuf[j-1],wccd[0]);col++;
-         print_op(0,col,Operator::tcdf[j-1],wccd[0]);col++;
-         print_op(0,col,Operator::tauf[j-1],wccd[0]);col++;
-         print_op(0,col,Operator::tadf[j-1],wccd[0]);col++;
+         print_op(0,col,Operator::tcuf[0][j-1],wccd[0]);col++;
+         print_op(0,col,Operator::tcdf[0][j-1],wccd[0]);col++;
+         print_op(0,col,Operator::tauf[0][j-1],wccd[0]);col++;
+         print_op(0,col,Operator::tadf[0][j-1],wccd[0]);col++;
 
       }
 
       //last term, local term already closed:
-      print_op(0,col,Operator::local,wccd[0]);
+      print_op(0,col,Operator::local[0],wccd[0]);
 
       //middle sites
       for(int i = 1;i < 2;++i){
 
-/*
+         //read in id
+         int row = 0;
+
+         QSDArray<4> tmp;
+
+         get_op(i-1,row,wccd[i],tmp);
+
+         //print id
+         col = 0;
+
+         print_op(i,col,Operator::id,tmp);
+
          //insert singles
-         insert_crea_up_s(mpo[i],0,1,1.0);
-         insert_crea_down(mpo[i],0,2,1.0);
-         insert_anni_up_s(mpo[i],0,3,1.0);
-         insert_anni_down(mpo[i],0,4,1.0);
+         print_op(i,col,Operator::cus,tmp);++col;
+         print_op(i,col,Operator::cd,tmp);++col;
+         print_op(i,col,Operator::aus,tmp);++col;
+         print_op(i,col,Operator::ad,tmp);++col;
 
-         //insert signs
-         row = 1;
-         column = 5;
+         //real singles outgoing
+         while(HamOp::ostates[i][col].size() == 1)
+            ++col;
 
-         while(HamOp::ostates[i-1][row].size() == 1){
+         print_op(i,col,Operator::cucd,tmp);++col;
+         print_op(i,col,Operator::cuau,tmp);++col;
+         print_op(i,col,Operator::cuad,tmp);++col;
+         print_op(i,col,Operator::cdau,tmp);++col;
+         print_op(i,col,Operator::cdad,tmp);++col;
+         print_op(i,col,Operator::auad,tmp);++col;//wrong sign
 
-            insert_sign(mpo[i],row,column);
-            ++row;
-            ++column;
+         while(HamOp::ostates[i][col].size() == 2)
+            ++col;
 
-         }
+         //insert triples: construct complementary operator
+         for(int j = i + 1;j < L;++j){
 
-         //insert doubles
-         insert_crea_up_crea_down(mpo[i],0,column,1.0);++column;
-         insert_crea_up_anni_up(mpo[i],0,column,1.0);++column;
-         insert_crea_up_anni_down(mpo[i],0,column,1.0);++column;
-         insert_crea_down_anni_up(mpo[i],0,column,1.0);++column;
-         insert_crea_down_anni_down(mpo[i],0,column,1.0);++column;
-         insert_anni_down_anni_up(mpo[i],0,column,1.0);++column;
-
-         //insert singles to form outgoing doubles
-         row = 1;
-
-         while(HamOp::ostates[i-1][row].size() == 1){//create up
-
-            insert_crea_up(mpo[i],row,column,1.0);
-            ++row;
-            ++column;
+            print_op(i,col,Operator::tcuf[i][j-i-1],tmp);col++;
+            print_op(i,col,Operator::tcdf[i][j-i-1],tmp);col++;
+            print_op(i,col,Operator::tauf[i][j-i-1],tmp);col++;
+            print_op(i,col,Operator::tadf[i][j-i-1],tmp);col++;
 
          }
+
+         //last term, local term already closed:
+         print_op(i,col,Operator::local[i],tmp);
 
          row = 1;
 
-         while(HamOp::ostates[i-1][row].size() == 1){//create down with sign
+         //incoming singles, read in the correct previous operator!
+         while(HamOp::ostates[i - 1][row].size() == 1){
 
-            insert_crea_down_s(mpo[i],row,column,1.0);
-            ++row;
-            ++column;
+            int ri = HamOp::ostates[i - 1][row].gsite(0);
+            int rs = HamOp::ostates[i - 1][row].gspin(0);
+            int ra = HamOp::ostates[i - 1][row].gact(0);
 
-         }
+            tmp.clear();
 
-         row = 1;
+            //create operator
+            get_op(i-1,row,wccd[i],tmp);
 
-         while(HamOp::ostates[i-1][row].size() == 1){//annihilate up
+            //singles going out
+            col = 1;
 
-            insert_anni_up(mpo[i],row,column,1.0);
-            ++row;
-            ++column;
+            while(HamOp::ostates[i][col].size() == 1){
 
-         }
+               if(col == row + 4)
+                  print_op(i,col,Operator::s,tmp);
 
-         row = 1;
+               ++col;
 
-         while(HamOp::ostates[i-1][row].size() == 1){//annihilate down with sign
+            }
 
-            insert_anni_down_s(mpo[i],row,column,1.0);
-            ++row;
-            ++column;
+            //doubles going out: match incoming singles to outgoing doubles
+            while(HamOp::ostates[i][col].size() == 2){
 
-         }
+               int ci1 = HamOp::ostates[i][col].gsite(1);
+               int cs1 = HamOp::ostates[i][col].gspin(1);
+               int ca1 = HamOp::ostates[i][col].gact(1);
 
-         //copy the doubles from previous tensor: identity
-         while(HamOp::ostates[i-1][row].size() == 2){
+               int ci2 = HamOp::ostates[i][col].gsite(0);
+               int cs2 = HamOp::ostates[i][col].gspin(0);
+               int ca2 = HamOp::ostates[i][col].gact(0);
 
-            insert_id(mpo[i],row,column);
-            ++row;
-            ++column;
+               if(ri == ci1 && rs == cs1 && ra == ca1){
 
-         }
+                  if(ci2 == i){
 
-         //HERE STARTS THE COMPLEMENTARY OPERATOR STUFF!
-         while(column < HamOp::ostates[i].size() - 1){
+                     if(cs2 == 0 && ca2 == 0)
+                        print_op(i,col,Operator::cu,tmp);
+                     else if(cs2 == 1 && ca2 == 0)
+                        print_op(i,col,Operator::cds,tmp);
+                     else if(cs2 == 0 && ca2 == 1)
+                        print_op(i,col,Operator::au,tmp);
+                     else if(cs2 == 1 && ca2 == 1)
+                        print_op(i,col,Operator::ads,tmp);
 
-            int j = HamOp::ostates[i][column].gsite(0);
-            int sj = HamOp::ostates[i][column].gspin(0);
-            int aj = HamOp::ostates[i][column].gact(0);
+                  }
 
-            //first row
-            if(sj == 0 && aj == 0)
-               insert_triple_crea_up_first(mpo[i],0,column,t(i,j),V(i,i,j,i));
-            else if(sj == 1 && aj == 0)
-               insert_triple_crea_down_first(mpo[i],0,column,t(i,j),V(i,i,j,i));
-            else if(sj == 0 && aj == 1)
-               insert_triple_anni_up_first(mpo[i],0,column,t(i,j),V(i,i,j,i));
-            else
-               insert_triple_anni_down_first(mpo[i],0,column,t(i,j),V(i,i,j,i));
+               }
 
-            //singles coming in:
-            row = 1;
+               ++col;
 
-            while(HamOp::ostates[i-1][row].size() == 1){
+            }
+
+            //outgoing singles, complementary triples
+            while(col < HamOp::ostates[i].size() - 1){
 
                std::vector<double> val(2);
 
                std::vector<int> v = Ostate::get_double_complement(i,HamOp::ostates[i-1][row],HamOp::ostates[i][column],V,val);
-
+/*
                if(v.size() == 1){
 
                   if(v[0] == 0)
@@ -460,115 +467,12 @@ namespace ro {
                else if(v.size() == 2)//with sign because in the middle!
                   insert_pair_s(mpo[i],row,column,val);
 
-               ++row;
-
             }
-
-            //pairs coming in
-            while(HamOp::ostates[i-1][row].size() == 2){
-
-               double val;
-
-               std::vector<int> v = Ostate::get_single_complement(i,HamOp::ostates[i-1][row],HamOp::ostates[i][column],V,val);
-
-               if(v.size() > 0){
-
-                  if(v[0] == 0 && v[1] == 0)//create spin up
-                     insert_crea_up_s(mpo[i],row,column,val);
-                  else if(v[0] == 1 && v[1] == 0)//create spin down
-                     insert_crea_down(mpo[i],row,column,val);
-                  else if(v[0] == 0 && v[1] == 1)//annihilate spin up
-                     insert_anni_up_s(mpo[i],row,column,val);
-                  else//annihilate spin down
-                     insert_anni_down(mpo[i],row,column,val);
-
-               }
-
-               ++row;
-
-            }
-
-            //signs: find row and column which are connected
-            while(HamOp::ostates[i-1][row] != HamOp::ostates[i][column])
-               ++row;
-
-            insert_sign(mpo[i],row,column);
-
-            column++;
-
-         }
-
-         //last column! closing down everything!
-
-         //first row
-         insert_local(mpo[i],0,column,t(i,i),V(i,i,i,i));
-
-         //close down the singles coming in with a triplet
-         row = 1;
-
-         while(HamOp::ostates[i-1][row].size() == 1){
-
-            //incoming operator
-            int k = HamOp::ostates[i-1][row].gsite(0);
-            int sk = HamOp::ostates[i-1][row].gspin(0);
-            int ak = HamOp::ostates[i-1][row].gact(0);
-
-            if(sk == 0 && ak == 0)//create up coming in
-               insert_triple_crea_up_last(mpo[i],row,column,V(k,i,i,i));
-            else if(sk == 1 && ak == 0)//create down coming in
-               insert_triple_crea_down_last(mpo[i],row,column,-V(i,k,i,i));
-            else if(sk == 0 && ak == 1)//annihilate up coming in
-               insert_triple_anni_up_last(mpo[i],row,column,V(i,i,k,i));
-            else //annihilate down coming in
-               insert_triple_anni_down_last(mpo[i],row,column,-V(i,i,i,k));
-
-            ++row;
-
-         }
-
-         //close down the doubles coming in with a pair
-         while(HamOp::ostates[i-1][row].size() == 2){
-
-            std::vector<double> val(2);
-
-            std::vector<int> v = Ostate::get_closing_pair_in(i,HamOp::ostates[i-1][row],V,val);
-
-            if(v.size() == 1){
-
-               if(v[0] == 0)
-                  insert_anni_down_anni_up(mpo[i],row,column,-val[0]);//extra minus sign!
-               else if(v[0] == 1)
-                  insert_crea_up_crea_down(mpo[i],row,column,val[0]);
-               else if(v[0] == 2)
-                  insert_crea_up_anni_down(mpo[i],row,column,val[0]);
-               else
-                  insert_crea_down_anni_up(mpo[i],row,column,val[0]);
-
-            }
-            else if(v.size() == 2)
-               insert_pair(mpo[i],row,column,val);
-
-            ++row;
-
-         }
-
-         //close down the complementary operators of this site
-         //basically the first 4 incoming states should be closed down
-         insert_crea_up(mpo[i],row,column,1.0);
-         ++row;
-
-         insert_crea_down_s(mpo[i],row,column,1.0);
-         ++row;
-
-         insert_anni_up(mpo[i],row,column,1.0);
-         ++row;
-
-         insert_anni_down_s(mpo[i],row,column,1.0);
-         ++row;
-
-         //finally insert the identity on the lower right element
-         insert_id(mpo[i],HamOp::ostates[i-1].size() - 1,HamOp::ostates[i].size() - 1);
 */
+            ++row;
+
+         }
+
       }
 
 
@@ -591,8 +495,6 @@ namespace ro {
 
          QSDindexed_contract(1.0,tmp,shape(j,k,l),A.conjugate(),shape(j,k,m),0.0,E,shape(l,m));
 
-         cout << E << endl;
-
          char name[100];
 
          sprintf(name,"scratch/site_%d/%d.mpx",site,opnum);
@@ -603,6 +505,55 @@ namespace ro {
          oar << E;
 
       }
+
+   }
+
+   /**
+    * read in the operator on the previous site with number opnum, paste the next site to it:
+    */
+   void get_op(int site,int opnum,const QSDArray<3> &A,QSDArray<4> &E_op){
+
+      enum {i,j,k,l,m};
+
+      char name[100];
+
+      sprintf(name,"scratch/site_%d/%d.mpx",site,opnum);
+
+      std::ifstream fin(name);
+      boost::archive::binary_iarchive iar(fin);
+
+      QSDArray<2> tmp2;
+
+      iar >> tmp2;
+
+      QSDArray<3> tmp3;
+
+      QSDindexed_contract(1.0,tmp2,shape(l,m),A,shape(l,j,k),0.0,tmp3,shape(m,k,j));
+
+      QSDindexed_contract(1.0,tmp3,shape(m,k,j),A.conjugate(),shape(m,i,l),0.0,E_op,shape(k,l,i,j));
+
+   }
+
+   /**
+    * print the contraction of two QSDArrays A on site 'site'
+    */
+   void print_op(int site,int opnum,const QSDArray<2> &op,const QSDArray<4> &E_op){
+
+      enum {i,j,k,l,m};
+
+      QSDArray<2> E;
+      E.clear();
+
+      QSDcontract(1.0,E_op,shape(3,4),op,shape(0,1),0.0,E);
+
+      char name[100];
+
+      sprintf(name,"scratch/site_%d/%d.mpx",site,opnum);
+
+      std::ofstream fout(name);
+      boost::archive::binary_oarchive oar(fout);
+
+      oar << E;
 
    }
 

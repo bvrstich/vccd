@@ -32,6 +32,10 @@ namespace ro {
 
       void print_op(int site,int opnum,const QSDArray<2> &op,const QSDArray<3> &A);
 
+      void print_op(int site,int opnum,const QSDArray<2> &op,const QSDArray<4> &A);
+
+      void get_op(int site,int opnum,const QSDArray<3> &A,QSDArray<4> &);
+
 }
 
 #endif

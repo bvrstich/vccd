@@ -76,19 +76,19 @@ class Operator {
       static QSDArray<2> auad;
 
       //!complementary triple operator with signature of an up spin creator
-      static std::vector< QSDArray<2> > tcuf;
+      static std::vector< std::vector< QSDArray<2> > > tcuf;
 
       //!complementary triple operator with signature of a down spin creator
-      static std::vector< QSDArray<2> > tcdf;
+      static std::vector< std::vector< QSDArray<2> > > tcdf;
 
       //!complementary triple operator with signature of an down spin annihilator
-      static std::vector< QSDArray<2> > tadf;
+      static std::vector< std::vector< QSDArray<2> > > tadf;
 
       //!complementary triple operator with signature of an up spin annihilator
-      static std::vector< QSDArray<2> > tauf;
+      static std::vector< std::vector< QSDArray<2> > > tauf;
 
       //!local operator
-      static QSDArray<2> local;
+      static std::vector< QSDArray<2> > local;
 
       //!print out all the operators
       static void print();
