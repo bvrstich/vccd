@@ -306,7 +306,7 @@ namespace ro {
    void construct(const MPS_DIRECTION &dir,const MPS<Quantum> &wccd){
 
       int L = wccd.size();
-     
+ /*    
       //print id
       print_op(0,0,Operator::id,wccd[0]);
 
@@ -445,37 +445,10 @@ namespace ro {
 
             }
 
-            //outgoing singles, complementary triples
-            while(col < HamOp::ostates[i].size() - 1){
-
-               std::vector<double> val(2);
-
-               std::vector<int> v = Ostate::get_double_complement(i,HamOp::ostates[i-1][row],HamOp::ostates[i][column],V,val);
-/*
-               if(v.size() == 1){
-
-                  if(v[0] == 0)
-                     insert_anni_down_anni_up(mpo[i],row,column,-val[0]);//extra minus sign!
-                  else if(v[0] == 1)
-                     insert_crea_up_crea_down(mpo[i],row,column,val[0]);
-                  else if(v[0] == 2)
-                     insert_crea_up_anni_down(mpo[i],row,column,val[0]);
-                  else
-                     insert_crea_down_anni_up(mpo[i],row,column,val[0]);
-
-               }
-               else if(v.size() == 2)//with sign because in the middle!
-                  insert_pair_s(mpo[i],row,column,val);
-
-            }
-*/
-            ++row;
-
-         }
 
       }
 
-
+*/
    }
 
    /**

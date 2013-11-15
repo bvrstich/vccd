@@ -10,33 +10,19 @@ using std::ifstream;
 
 #include "include.h"
 
-QSDArray<2> Operator::id;
-QSDArray<2> Operator::s;
-QSDArray<2> Operator::cu;
-QSDArray<2> Operator::cd;
-QSDArray<2> Operator::cus;
-QSDArray<2> Operator::cds;
-QSDArray<2> Operator::au;
-QSDArray<2> Operator::ad;
-QSDArray<2> Operator::aus;
-QSDArray<2> Operator::ads;
-QSDArray<2> Operator::cucd;
-QSDArray<2> Operator::cuau;
-QSDArray<2> Operator::cuad;
-QSDArray<2> Operator::cdau;
-QSDArray<2> Operator::cdad;
-QSDArray<2> Operator::auad;
-std::vector< std::vector< QSDArray<2> > > Operator::tcuf;
-std::vector< std::vector< QSDArray<2> > > Operator::tcdf;
-std::vector< std::vector< QSDArray<2> > > Operator::tadf;
-std::vector< std::vector< QSDArray<2> > > Operator::tauf;
-std::vector< QSDArray<2> > Operator::local;
+std::vector< QSDArray<2> ** > Operator::op;
+std::vector< bool * > Operator::sparse;
+std::vector< std::vector<int> > Operator::dim;
 
-//standard constructor
+int Operator::L;
+
+//!standard constructor
 Operator::Operator(){ }
 
+//!copy constructor
 Operator::Operator(const Operator &){ }
 
+//!virtual destructor
 Operator::~Operator(){ } 
 
 /**
@@ -44,79 +30,109 @@ Operator::~Operator(){ }
  */
 void Operator::init(const DArray<2> &t,const DArray<4> &V){ 
 
-   int L = t.shape(0);
-  
-   Qshapes<Quantum> qp;
-   physical(qp);
+   L = t.shape(0);
 
-   Quantum qt;
-   DArray<2> Ip(1,1);
-   DArray<2> Im(1,1);
+   dim.resize(L);
 
-   Ip = 1.0;
-   Im = -1.0;
+   dim[0].resize(2);
 
-   //first id
-   qt = Quantum::zero();
+   //row dim
+   dim[0][0] = 1;
 
-   id.resize(qt,make_array(qp,-qp));
+   for(int i = 1;i < L;++i){
 
-   id.insert(shape(0,0),Ip);
-   id.insert(shape(1,1),Ip);
-   id.insert(shape(2,2),Ip);
-   id.insert(shape(3,3),Ip);
+      dim[i - 1][1] = HamOp::ostates[i - 1].size();
 
-   //sign
-   s.resize(qt,make_array(qp,-qp));
+      dim[i].resize(2);
 
-   Ip = 1.0;
+      dim[i][0] = dim[i - 1][1];
 
-   s.insert(shape(0,0),Ip);
-   s.insert(shape(1,1),Im);
-   s.insert(shape(2,2),Im);
-   s.insert(shape(3,3),Ip);
+   }
 
-   //create up
-   qt = Quantum(1,0);
+   dim[L - 1][1] = 1;
 
-   cu.resize(qt,make_array(qp,-qp));
+   sparse.resize(L);
+   op.resize(L);
 
-   cu.insert(shape(1,0),Ip);
-   cu.insert(shape(3,2),Ip);
+   for(int i = 0;i < L;++i){
 
-   //create up sign
-   cus.resize(qt,make_array(qp,-qp));
+      sparse[i] = new bool [dim[i][0]*dim[i][1]];
+      op[i] = new QSDArray<2> * [dim[i][0]*dim[i][1]];
 
-   cus.insert(shape(1,0),Ip);
-   cus.insert(shape(3,2),Im);
+   }
 
-   //create down
-   qt = Quantum(0,1);
+      /*
+         Qshapes<Quantum> qp;
+         physical(qp);
 
-   cd.resize(qt,make_array(qp,-qp));
+         Quantum qt;
+         DArray<2> Ip(1,1);
+         DArray<2> Im(1,1);
 
-   cd.insert(shape(2,0),Ip);
-   cd.insert(shape(3,1),Ip);
+         Ip = 1.0;
+         Im = -1.0;
 
-   //create down sign
-   cds.resize(qt,make_array(qp,-qp));
+      //first id
+      qt = Quantum::zero();
 
-   cds.insert(shape(2,0),Ip);
-   cds.insert(shape(3,1),Im);
+      id.resize(qt,make_array(qp,-qp));
 
-   //annihilator of up spin
-   qt = Quantum(-1,0);
+      id.insert(shape(0,0),Ip);
+      id.insert(shape(1,1),Ip);
+      id.insert(shape(2,2),Ip);
+      id.insert(shape(3,3),Ip);
 
-   au.resize(qt,make_array(qp,-qp));
+      //sign
+      s.resize(qt,make_array(qp,-qp));
 
-   au.insert(shape(0,1),Ip);
-   au.insert(shape(2,3),Ip);
+      Ip = 1.0;
 
-   //annihilator of up spin sign
-   aus.resize(qt,make_array(qp,-qp));
+      s.insert(shape(0,0),Ip);
+      s.insert(shape(1,1),Im);
+      s.insert(shape(2,2),Im);
+      s.insert(shape(3,3),Ip);
 
-   aus.insert(shape(0,1),Ip);
-   aus.insert(shape(2,3),Im);
+      //create up
+      qt = Quantum(1,0);
+
+      cu.resize(qt,make_array(qp,-qp));
+
+      cu.insert(shape(1,0),Ip);
+      cu.insert(shape(3,2),Ip);
+
+      //create up sign
+      cus.resize(qt,make_array(qp,-qp));
+
+      cus.insert(shape(1,0),Ip);
+      cus.insert(shape(3,2),Im);
+
+      //create down
+      qt = Quantum(0,1);
+
+      cd.resize(qt,make_array(qp,-qp));
+
+      cd.insert(shape(2,0),Ip);
+      cd.insert(shape(3,1),Ip);
+
+      //create down sign
+      cds.resize(qt,make_array(qp,-qp));
+
+      cds.insert(shape(2,0),Ip);
+      cds.insert(shape(3,1),Im);
+
+      //annihilator of up spin
+      qt = Quantum(-1,0);
+
+      au.resize(qt,make_array(qp,-qp));
+
+      au.insert(shape(0,1),Ip);
+      au.insert(shape(2,3),Ip);
+
+      //annihilator of up spin sign
+      aus.resize(qt,make_array(qp,-qp));
+
+      aus.insert(shape(0,1),Ip);
+      aus.insert(shape(2,3),Im);
 
    //annihilator of down spin
    qt = Quantum(0,-1);
@@ -258,92 +274,18 @@ void Operator::init(const DArray<2> &t,const DArray<4> &V){
       local[i].insert(shape(3,3),Ip);
 
    }
-
+   */
 }
 
 /**
- * print all the operators, for testing purposes
+ * delete all the lists and stuff
  */
-void Operator::print(){
+void Operator::clear(){
 
-   cout << "Identity" << endl;
-   cout << endl;
-   cout << Operator::id << endl;
-   cout << endl;
+   for(int i = 0;i < L;++i)
+      delete [] sparse[i];
 
-   cout << "Sign" << endl;
-   cout << endl;
-   cout << Operator::s << endl;
-   cout << endl;
-
-   cout << "create up" << endl;
-   cout << endl;
-   cout << Operator::cu << endl;
-   cout << endl;
-
-   cout << "create up sign" << endl;
-   cout << endl;
-   cout << Operator::cus << endl;
-   cout << endl;
-
-   cout << "create down" << endl;
-   cout << endl;
-   cout << Operator::cd << endl;
-   cout << endl;
-
-   cout << "create down sign" << endl;
-   cout << endl;
-   cout << Operator::cds << endl;
-   cout << endl;
-
-   cout << "annihilate up" << endl;
-   cout << endl;
-   cout << Operator::au << endl;
-   cout << endl;
-
-   cout << "annihilate up sign" << endl;
-   cout << endl;
-   cout << Operator::aus << endl;
-   cout << endl;
-
-   cout << "annihilate down" << endl;
-   cout << endl;
-   cout << Operator::ad << endl;
-   cout << endl;
-
-   cout << "annihilate down isgn" << endl;
-   cout << endl;
-   cout << Operator::ads << endl;
-   cout << endl;
-
-   cout << "cu cd" << endl;
-   cout << endl;
-   cout << Operator::cucd << endl;
-   cout << endl;
-
-   cout << "cu au" << endl;
-   cout << endl;
-   cout << Operator::cuau << endl;
-   cout << endl;
-
-   cout << "cu ad" << endl;
-   cout << endl;
-   cout << Operator::cuad << endl;
-   cout << endl;
-
-   cout << "cd au" << endl;
-   cout << endl;
-   cout << Operator::cdau << endl;
-   cout << endl;
-
-   cout << "cd ad" << endl;
-   cout << endl;
-   cout << Operator::cdad << endl;
-   cout << endl;
-
-   cout << "au ad" << endl;
-   cout << endl;
-   cout << Operator::auad << endl;
-   cout << endl;
+   for(int i = 0;i < L;++i)
+      delete [] op[i];
 
 }
