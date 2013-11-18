@@ -306,149 +306,79 @@ namespace ro {
    void construct(const MPS_DIRECTION &dir,const MPS<Quantum> &wccd){
 
       int L = wccd.size();
- /*    
-      //print id
-      print_op(0,0,Operator::id,wccd[0]);
 
-      //insert singles
-      print_op(0,1,Operator::cus,wccd[0]);
-      print_op(0,2,Operator::cd,wccd[0]);
-      print_op(0,3,Operator::aus,wccd[0]);
-      print_op(0,4,Operator::ad,wccd[0]);
+      //first site:
+      for(int col = 0;col < HamOp::ostates[0].size();++col)
+         print_op(0,col,Operator::gop(0,0,col),wccd[0]);
 
-      //insert doubles
-      print_op(0,5,Operator::cucd,wccd[0]);
-      print_op(0,6,Operator::cuau,wccd[0]);
-      print_op(0,7,Operator::cuad,wccd[0]);
-      print_op(0,8,Operator::cdau,wccd[0]);
-      print_op(0,9,Operator::cdad,wccd[0]);
-      print_op(0,10,Operator::auad,wccd[0]);//wrong sign
+      QSDArray<2> tmp2;
 
-      int col = 11;
+      //middle sites:
+      for(int i = 1;i < L/2;++i){
 
-      //insert triples: construct complementary operator
-      for(int j = 1;j < L;++j){
+         cout << endl;
+         cout << i << endl;
+         cout << endl;
 
-         print_op(0,col,Operator::tcuf[0][j-1],wccd[0]);col++;
-         print_op(0,col,Operator::tcdf[0][j-1],wccd[0]);col++;
-         print_op(0,col,Operator::tauf[0][j-1],wccd[0]);col++;
-         print_op(0,col,Operator::tadf[0][j-1],wccd[0]);col++;
+         //get the previous operator from memory and paste the next sites onto it:
+         QSDArray<4> tmp4;
 
-      }
+         //first row = 0: id coming in
+         get_op(i - 1,0,wccd[i],tmp4);
 
-      //last term, local term already closed:
-      print_op(0,col,Operator::local[0],wccd[0]);
+         int col = 0;
 
-      //middle sites
-      for(int i = 1;i < 2;++i){
+         while(HamOp::ostates[i][col].size() == 1){
 
-         //read in id
-         int row = 0;
+            if(Operator::gsparse(i,0,col))
+               print_op(i,col,Operator::gop(i,0,col),tmp4);
 
-         QSDArray<4> tmp;
-
-         get_op(i-1,row,wccd[i],tmp);
-
-         //print id
-         col = 0;
-
-         print_op(i,col,Operator::id,tmp);
-
-         //insert singles
-         print_op(i,col,Operator::cus,tmp);++col;
-         print_op(i,col,Operator::cd,tmp);++col;
-         print_op(i,col,Operator::aus,tmp);++col;
-         print_op(i,col,Operator::ad,tmp);++col;
-
-         //real singles outgoing
-         while(HamOp::ostates[i][col].size() == 1)
             ++col;
-
-         print_op(i,col,Operator::cucd,tmp);++col;
-         print_op(i,col,Operator::cuau,tmp);++col;
-         print_op(i,col,Operator::cuad,tmp);++col;
-         print_op(i,col,Operator::cdau,tmp);++col;
-         print_op(i,col,Operator::cdad,tmp);++col;
-         print_op(i,col,Operator::auad,tmp);++col;//wrong sign
-
-         while(HamOp::ostates[i][col].size() == 2)
-            ++col;
-
-         //insert triples: construct complementary operator
-         for(int j = i + 1;j < L;++j){
-
-            print_op(i,col,Operator::tcuf[i][j-i-1],tmp);col++;
-            print_op(i,col,Operator::tcdf[i][j-i-1],tmp);col++;
-            print_op(i,col,Operator::tauf[i][j-i-1],tmp);col++;
-            print_op(i,col,Operator::tadf[i][j-i-1],tmp);col++;
 
          }
 
-         //last term, local term already closed:
-         print_op(i,col,Operator::local[i],tmp);
+         while(HamOp::ostates[i][col].size() == 2){
 
-         row = 1;
+            if(Operator::gsparse(i,0,col))
+               print_op(i,col,Operator::gop(i,0,col),tmp4);
 
-         //incoming singles, read in the correct previous operator!
-         while(HamOp::ostates[i - 1][row].size() == 1){
+            ++col;
 
-            int ri = HamOp::ostates[i - 1][row].gsite(0);
-            int rs = HamOp::ostates[i - 1][row].gspin(0);
-            int ra = HamOp::ostates[i - 1][row].gact(0);
+         }
 
-            tmp.clear();
+         int osbar = col;
 
-            //create operator
-            get_op(i-1,row,wccd[i],tmp);
+         std::vector< QSDArray<2> > os(HamOp::ostates[i].size() - osbar);
 
-            //singles going out
-            col = 1;
+         while(col < HamOp::ostates[i].size()){
 
-            while(HamOp::ostates[i][col].size() == 1){
+            QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,0,col),shape(0,1),0.0,os[col - osbar]);
 
-               if(col == row + 4)
-                  print_op(i,col,Operator::s,tmp);
+            ++col;
 
-               ++col;
+         }
 
-            }
+         for(int row = 1;row < HamOp::ostates[i - 1].size();++row){
 
-            //doubles going out: match incoming singles to outgoing doubles
-            while(HamOp::ostates[i][col].size() == 2){
+            tmp4.clear();
+            get_op(i - 1,row,wccd[i],tmp4);
 
-               int ci1 = HamOp::ostates[i][col].gsite(1);
-               int cs1 = HamOp::ostates[i][col].gspin(1);
-               int ca1 = HamOp::ostates[i][col].gact(1);
+            for(int col = 0;col < osbar;++col)
+               if(Operator::gsparse(i,row,col))
+                  print_op(i,col,Operator::gop(i,row,col),tmp4);
 
-               int ci2 = HamOp::ostates[i][col].gsite(0);
-               int cs2 = HamOp::ostates[i][col].gspin(0);
-               int ca2 = HamOp::ostates[i][col].gact(0);
+            for(int col = osbar;col < HamOp::ostates[i].size();++col)
+               if(Operator::gsparse(i,row,col))
+                  QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,os[col - osbar]);
+        
+         }
 
-               if(ri == ci1 && rs == cs1 && ra == ca1){
-
-                  if(ci2 == i){
-
-                     if(cs2 == 0 && ca2 == 0)
-                        print_op(i,col,Operator::cu,tmp);
-                     else if(cs2 == 1 && ca2 == 0)
-                        print_op(i,col,Operator::cds,tmp);
-                     else if(cs2 == 0 && ca2 == 1)
-                        print_op(i,col,Operator::au,tmp);
-                     else if(cs2 == 1 && ca2 == 1)
-                        print_op(i,col,Operator::ads,tmp);
-
-                  }
-
-               }
-
-               ++col;
-
-            }
-
+         //print out the os part for the next site
+         for(int col = osbar;col < HamOp::ostates[i].size();++col)
+            save(i,col,os[col - osbar]);
 
       }
 
-*/
    }
 
    /**
@@ -456,28 +386,24 @@ namespace ro {
     */
    void print_op(int site,int opnum,const QSDArray<2> &op,const QSDArray<3> &A){
 
-      if(site == 0){
+      enum {j,k,l,m};
 
-         enum {j,k,l,m};
+      QSDArray<3> tmp;
 
-         QSDArray<3> tmp;
+      QSDindexed_contract(1.0,A,shape(j,k,l),op,shape(m,k),0.0,tmp,shape(j,m,l));
 
-         QSDindexed_contract(1.0,A,shape(j,k,l),op,shape(m,k),0.0,tmp,shape(j,m,l));
+      QSDArray<2> E;
 
-         QSDArray<2> E;
+      QSDindexed_contract(1.0,tmp,shape(j,k,l),A.conjugate(),shape(j,k,m),0.0,E,shape(l,m));
 
-         QSDindexed_contract(1.0,tmp,shape(j,k,l),A.conjugate(),shape(j,k,m),0.0,E,shape(l,m));
+      char name[100];
 
-         char name[100];
+      sprintf(name,"scratch/site_%d/%d.mpx",site,opnum);
 
-         sprintf(name,"scratch/site_%d/%d.mpx",site,opnum);
+      std::ofstream fout(name);
+      boost::archive::binary_oarchive oar(fout);
 
-         std::ofstream fout(name);
-         boost::archive::binary_oarchive oar(fout);
-
-         oar << E;
-
-      }
+      oar << E;
 
    }
 
@@ -527,6 +453,48 @@ namespace ro {
       boost::archive::binary_oarchive oar(fout);
 
       oar << E;
+
+   }
+
+   /**
+    * read in the matrix on site i with identifier opnum
+    */
+   void read(int site,int opnum,QSDArray<2> &E){
+
+      char name[100];
+
+      sprintf(name,"scratch/site_%d/%d.mpx",site,opnum);
+
+      std::ifstream fin(name);
+      boost::archive::binary_iarchive iar(fin);
+
+      iar >> E;
+
+   }
+
+
+   /**
+    * save the matrix on site i with id opnum
+    */
+   void save(int site,int opnum,const QSDArray<2> &E){
+
+      char name[100];
+
+      sprintf(name,"scratch/site_%d/%d.mpx",site,opnum);
+
+      std::ofstream fout(name);
+      boost::archive::binary_oarchive oar(fout);
+
+      oar << E;
+
+   }
+
+   /**
+    * calculate the contraction of two QSDArrays A on site 'site'
+    */
+   void calc_op(const QSDArray<2> &op,const QSDArray<4> &E_op,QSDArray<2> &tmp){
+
+      QSDcontract(1.0,E_op,shape(3,4),op,shape(0,1),0.0,tmp);
 
    }
 

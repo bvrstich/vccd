@@ -86,7 +86,7 @@ int main(int argc,char *argv[]){
 
    //construct the complementary operators
    Operator::init(K,V);
-/*
+
    //here start the construction of states and stuff..., the actual program
    Qshapes<Quantum> qp;
    physical(qp);
@@ -111,7 +111,7 @@ int main(int argc,char *argv[]){
 
    //hartree fock energy
    cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
-
+/*
    //construct the mp2 guess
    DArray<4> t(no,no,nv,nv);
 
@@ -128,16 +128,14 @@ int main(int argc,char *argv[]){
    print_dim(eTA);
 
    cout << inprod(mpsxx::Left,eTA,qc,eTA) << endl;
-   
+*/   
    MPS<Quantum> A = mpsxx::create(L,Quantum(n_u,n_d),qp,100,rgen);
 
    cout << compress(A,mpsxx::Left,0) << endl;
    cout << compress(A,mpsxx::Right,1000) << endl;
 
-   //MPO<Quantum> tmp = ro::construct(mpsxx::Left,eTA,T,qc,eTA);
-
    ro::construct(mpsxx::Left,A);
-*/
+
    Operator::clear();
 
    return 0;

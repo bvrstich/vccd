@@ -40,7 +40,7 @@ void random_oei(DArray<2> &t){
    t = 0.0;
 
    for(int i = 0;i < L;++i)
-      for(int j = i;i < L;++i){
+      for(int j = i;j < L;++j){
 
          double value = 2.0*(static_cast<double>(rand())/RAND_MAX) - 1.0;
 
