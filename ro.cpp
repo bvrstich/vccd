@@ -307,75 +307,89 @@ namespace ro {
 
       int L = wccd.size();
 
-      //first site:
-      for(int col = 0;col < HamOp::ostates[0].size();++col)
-         print_op(0,col,Operator::gop(0,0,col),wccd[0]);
+      if(dir == mpsxx::Left){
 
-      QSDArray<2> tmp2;
+         //first site:
+         for(int col = 0;col < HamOp::ostates[0].size();++col)
+            print_op(0,col,Operator::gop(0,0,col),wccd[0]);
 
-      //middle sites:
-      for(int i = 1;i < L/2;++i){
+         QSDArray<2> tmp2;
 
-         cout << endl;
-         cout << i << endl;
-         cout << endl;
+         //middle sites:
+         for(int i = 1;i < L - 1;++i){
 
-         //get the previous operator from memory and paste the next sites onto it:
-         QSDArray<4> tmp4;
+            cout << endl;
+            cout << i << endl;
+            cout << endl;
 
-         //first row = 0: id coming in
-         get_op(i - 1,0,wccd[i],tmp4);
+            //get the previous operator from memory and paste the next sites onto it:
+            QSDArray<4> tmp4;
 
-         int col = 0;
+            //first row = 0: id coming in
+            get_op(i - 1,0,wccd[i],tmp4);
 
-         while(HamOp::ostates[i][col].size() == 1){
+            int col = 0;
 
-            if(Operator::gsparse(i,0,col))
-               print_op(i,col,Operator::gop(i,0,col),tmp4);
+            while(HamOp::ostates[i][col].size() == 1){
 
-            ++col;
+               if(Operator::gsparse(i,0,col))
+                  print_op(i,col,Operator::gop(i,0,col),tmp4);
 
-         }
+               ++col;
 
-         while(HamOp::ostates[i][col].size() == 2){
+            }
 
-            if(Operator::gsparse(i,0,col))
-               print_op(i,col,Operator::gop(i,0,col),tmp4);
+            while(HamOp::ostates[i][col].size() == 2){
 
-            ++col;
+               if(Operator::gsparse(i,0,col))
+                  print_op(i,col,Operator::gop(i,0,col),tmp4);
 
-         }
+               ++col;
 
-         int osbar = col;
+            }
 
-         std::vector< QSDArray<2> > os(HamOp::ostates[i].size() - osbar);
+            int osbar = col;
 
-         while(col < HamOp::ostates[i].size()){
+            std::vector< QSDArray<2> > os(HamOp::ostates[i].size() - osbar);
 
-            QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,0,col),shape(0,1),0.0,os[col - osbar]);
+            while(col < HamOp::ostates[i].size()){
 
-            ++col;
+               QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,0,col),shape(0,1),0.0,os[col - osbar]);
 
-         }
+               ++col;
 
-         for(int row = 1;row < HamOp::ostates[i - 1].size();++row){
+            }
 
-            tmp4.clear();
-            get_op(i - 1,row,wccd[i],tmp4);
+            for(int row = 1;row < HamOp::ostates[i - 1].size();++row){
 
-            for(int col = 0;col < osbar;++col)
-               if(Operator::gsparse(i,row,col))
-                  print_op(i,col,Operator::gop(i,row,col),tmp4);
+               cout << i << "\t" << row << "\t" << HamOp::ostates[i-1].size() << endl;
 
+               tmp4.clear();
+               get_op(i - 1,row,wccd[i],tmp4);
+
+               for(int col = 0;col < osbar;++col)
+                  if(Operator::gsparse(i,row,col))
+                     print_op(i,col,Operator::gop(i,row,col),tmp4);
+
+               for(int col = osbar;col < HamOp::ostates[i].size();++col)
+                  if(Operator::gsparse(i,row,col))
+                     QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,os[col - osbar]);
+
+            }
+
+            //print out the os part for the next site
             for(int col = osbar;col < HamOp::ostates[i].size();++col)
-               if(Operator::gsparse(i,row,col))
-                  QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,os[col - osbar]);
-        
+               save(i,col,os[col - osbar]);
+
          }
 
-         //print out the os part for the next site
-         for(int col = osbar;col < HamOp::ostates[i].size();++col)
-            save(i,col,os[col - osbar]);
+      }
+      else{
+
+         //first site:
+         for(int col = 0;col < HamOp::ostates[0].size();++col)
+            print_op(0,col,Operator::gop(0,0,col),wccd[0]);
+
 
       }
 
@@ -486,15 +500,6 @@ namespace ro {
       boost::archive::binary_oarchive oar(fout);
 
       oar << E;
-
-   }
-
-   /**
-    * calculate the contraction of two QSDArrays A on site 'site'
-    */
-   void calc_op(const QSDArray<2> &op,const QSDArray<4> &E_op,QSDArray<2> &tmp){
-
-      QSDcontract(1.0,E_op,shape(3,4),op,shape(0,1),0.0,tmp);
 
    }
 

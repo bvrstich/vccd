@@ -36,8 +36,6 @@ namespace ro {
 
       void get_op(int site,int opnum,const QSDArray<3> &A,QSDArray<4> &);
 
-      void calc_op(const QSDArray<2> &op,const QSDArray<4> &A,QSDArray<2> &);
-
       void read(int site,int opnum,QSDArray<2> &);
       
       void save(int site,int opnum,const QSDArray<2> &);

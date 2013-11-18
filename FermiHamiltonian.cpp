@@ -5458,7 +5458,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
    insert_local(mpo[0],0,column,t(0,0),V(0,0,0,0));
 
    //middle tensors
-   for(int i = 1;i < L/2;++i){
+   for(int i = 1;i < L - 1;++i){
 
       //now fill
       mpo[i].resize(Q::zero(),make_array(-HamOp::qo[i-1],qp,-qp,HamOp::qo[i]));
@@ -5697,681 +5697,16 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
 
    }
 
-   //now fill
-   mpo[L/2].resize(Q::zero(),make_array(-HamOp::qo[L/2-1],qp,-qp,HamOp::qo[L/2]));
+   //Last site
+   mpo[L - 1].resize(Q::zero(),make_array(-HamOp::qo[L-2],qp,-qp,qz));
 
-   //first row completely closed
-   insert_local(mpo[L/2],0,0,t(L/2,L/2),V(L/2,L/2,L/2,L/2));
+   //first row
+   insert_local(mpo[L-1],0,column,t(L-1,L-1),V(L-1,L-1,L-1,L-1));
 
-   //insert complementary triples:
+   //close down the singles coming in with a triplet
    row = 1;
 
-   while(HamOp::ostates[L/2 - 1][row].size() == 1){
-
-      //incoming operator
-      int k = HamOp::ostates[L/2 - 1][row].gsite(0);
-      int sk = HamOp::ostates[L/2 - 1][row].gspin(0);
-      int ak = HamOp::ostates[L/2 - 1][row].gact(0);
-
-      if(sk == 0 && ak == 0)//create up coming in
-         insert_triple_crea_up_last(mpo[L/2],row,0,V(k,L/2,L/2,L/2));
-      else if(sk == 1 && ak == 0)//create down coming in
-         insert_triple_crea_down_last(mpo[L/2],row,0,-V(L/2,k,L/2,L/2));
-      else if(sk == 0 && ak == 1)//annihilate up coming in
-         insert_triple_anni_up_last(mpo[L/2],row,0,V(L/2,L/2,k,L/2));
-      else //annihilate down coming in
-         insert_triple_anni_down_last(mpo[L/2],row,0,-V(L/2,L/2,L/2,k));
-
-      ++row;
-
-   }
-
-   //close down the doubles coming in with a pair
-   while(HamOp::ostates[L/2 - 1][row].size() == 2){
-
-      std::vector<double> val(2);
-
-      std::vector<int> v = Ostate::get_closing_pair_in(L/2,HamOp::ostates[L/2 - 1][row],V,val);
-
-      if(v.size() == 1){
-
-         if(v[0] == 0)
-            insert_anni_down_anni_up(mpo[L/2],row,0,-val[0]);//extra minus sign!
-         else if(v[0] == 1)
-            insert_crea_up_crea_down(mpo[L/2],row,0,val[0]);
-         else if(v[0] == 2)
-            insert_crea_up_anni_down(mpo[L/2],row,0,val[0]);
-         else
-            insert_crea_down_anni_up(mpo[L/2],row,0,val[0]);
-
-      }
-      else if(v.size() == 2)
-         insert_pair(mpo[L/2],row,0,val);
-
-      ++row;
-
-   }
-
-   //close down the complementary triple operators of this site
-   //basically the first 4 incoming states should be closed down
-   insert_crea_up(mpo[L/2],row,0,1.0);
-   ++row;
-
-   insert_crea_down_s(mpo[L/2],row,0,1.0);
-   ++row;
-
-   insert_anni_up(mpo[L/2],row,0,1.0);
-   ++row;
-
-   insert_anni_down_s(mpo[L/2],row,0,1.0);
-   ++row;
-
-   //finally insert the identity for the already closed terms coming in
-   insert_id(mpo[L/2],HamOp::ostates[L/2 - 1].size() - 1,0);
-
-   //next columns: outgoing singles
-   int col = 1;
-
-   while(HamOp::ostates[L/2][col].size() == 1){
-
-      int j = HamOp::ostates[L/2][col].gsite(0);
-      int sj = HamOp::ostates[L/2][col].gspin(0);
-      int aj = HamOp::ostates[L/2][col].gact(0);
-
-      //first row
-      if(sj == 0 && aj == 0)
-         insert_triple_crea_up_first(mpo[L/2],0,col,t(L/2,j),V(L/2,L/2,j,L/2));
-      else if(sj == 1 && aj == 0)
-         insert_triple_crea_down_first(mpo[L/2],0,col,t(L/2,j),V(L/2,L/2,j,L/2));
-      else if(sj == 0 && aj == 1)
-         insert_triple_anni_up_first(mpo[L/2],0,col,t(L/2,j),V(L/2,L/2,j,L/2));
-      else
-         insert_triple_anni_down_first(mpo[L/2],0,col,t(L/2,j),V(L/2,L/2,j,L/2));
-
-      //singles coming in:
-      row = 1;
-
-      while(HamOp::ostates[L/2 - 1][row].size() == 1){
-
-         std::vector<double> val(2);
-
-         std::vector<int> v = Ostate::get_double_complement(L/2,HamOp::ostates[L/2 - 1][row],HamOp::ostates[L/2][col],V,val);
-
-         if(v.size() == 1){
-
-            if(v[0] == 0)
-               insert_anni_down_anni_up(mpo[L/2],row,col,-val[0]);//extra minus sign!
-            else if(v[0] == 1)
-               insert_crea_up_crea_down(mpo[L/2],row,col,val[0]);
-            else if(v[0] == 2)
-               insert_crea_up_anni_down(mpo[L/2],row,col,val[0]);
-            else
-               insert_crea_down_anni_up(mpo[L/2],row,col,val[0]);
-
-         }
-         else if(v.size() == 2)//with sign because in the middle!
-            insert_pair_s(mpo[L/2],row,col,val);
-
-         ++row;
-
-      }
-
-      //pairs coming in
-      while(HamOp::ostates[L/2 - 1][row].size() == 2){
-
-         double val;
-
-         std::vector<int> v = Ostate::get_single_complement(L/2,HamOp::ostates[L/2 - 1][row],HamOp::ostates[L/2][col],V,val);
-
-         if(v.size() > 0){
-
-            if(v[0] == 0 && v[1] == 0)//create spin up
-               insert_crea_up_s(mpo[L/2],row,col,val);
-            else if(v[0] == 1 && v[1] == 0)//create spin down
-               insert_crea_down(mpo[L/2],row,col,val);
-            else if(v[0] == 0 && v[1] == 1)//annihilate spin up
-               insert_anni_up_s(mpo[L/2],row,col,val);
-            else//annihilate spin down
-               insert_anni_down(mpo[L/2],row,col,val);
-
-         }
-
-         ++row;
-
-      }
-
-      //signs: find row and column which are connected
-      while(HamOp::ostates[L/2 - 1][row] != HamOp::ostates[L/2][col])
-         ++row;
-
-      insert_sign(mpo[L/2],row,col);
-
-      col++;
-
-   }
-
-   //now outgoing pairs!
-   while(HamOp::ostates[L/2][col].size() == 2){
-
-      int k = HamOp::ostates[L/2][col].gsite(0);
-      int sk = HamOp::ostates[L/2][col].gspin(0);
-      int ak = HamOp::ostates[L/2][col].gact(0);
-
-      int l = HamOp::ostates[L/2][col].gsite(1);
-      int sl = HamOp::ostates[L/2][col].gspin(1);
-      int al = HamOp::ostates[L/2][col].gact(1);
-
-      //first row: id coming in, insert pairs
-      std::vector<double> val(2);
-
-      std::vector<int> v = Ostate::get_closing_pair_out(L/2,HamOp::ostates[L/2][col],V,val);
-
-      if(v.size() == 1){
-
-         if(v[0] == 0)
-            insert_anni_down_anni_up(mpo[L/2],0,col,-val[0]);//extra minus sign!
-         else if(v[0] == 1)
-            insert_crea_up_crea_down(mpo[L/2],0,col,val[0]);
-         else if(v[0] == 2)
-            insert_crea_up_anni_down(mpo[L/2],0,col,val[0]);
-         else
-            insert_crea_down_anni_up(mpo[L/2],0,col,val[0]);
-
-      }
-      else if(v.size() == 2)
-         insert_pair(mpo[L/2],0,col,val);
-
-      //singles coming in: insert single to match outgoing pair
-      row = 1;
-
-      while(HamOp::ostates[L/2 - 1][row].size() == 1){
-
-         double val;
-
-         std::vector<int> v = Ostate::get_single_complement(L/2,HamOp::ostates[L/2][col],HamOp::ostates[L/2 - 1][row],V,val);
-
-         if(v.size() > 0){
-
-            if(v[0] == 0 && v[1] == 0)//create spin up
-               insert_crea_up(mpo[L/2],row,col,val);
-            else if(v[0] == 1 && v[1] == 0)//create spin down
-               insert_crea_down_s(mpo[L/2],row,col,val);
-            else if(v[0] == 0 && v[1] == 1)//annihilate spin up
-               insert_anni_up(mpo[L/2],row,col,val);
-            else//annihilate spin down
-               insert_anni_down_s(mpo[L/2],row,col,val);
-
-         }
-
-         ++row;
-
-      }
-
-      //pairs coming in: convert incoming to outgoing pairs
-
-      while(HamOp::ostates[L/2 - 1][row].size() == 2){
-
-         double val;
-
-         int op = Ostate::transfer_pair_in_pair_out(HamOp::ostates[L/2 - 1][row],HamOp::ostates[L/2][col],V,val);
-
-         if(op == 1)
-            insert_id(mpo[L/2],row,col,val);
-
-         ++row;
-
-      }
-
-      ++col;
-
-   }
-
-   //then the outgoing "incoming" singles
-   while(col < HamOp::ostates[L/2].size() - 1){
-
-      int ci = HamOp::ostates[L/2][col].gsite(0);
-      int cs = HamOp::ostates[L/2][col].gspin(0);
-      int ca = HamOp::ostates[L/2][col].gact(0);
-
-      //insert single operators on the first row
-      if(ci == L/2){
-
-         if(cs == 0 && ca == 0)
-            insert_crea_up_s(mpo[L/2],0,col,1.0);
-         else if(cs == 1 && ca == 0)
-            insert_crea_down(mpo[L/2],0,col,1.0);
-         else if(cs == 0 && ca == 1)
-            insert_anni_up_s(mpo[L/2],0,col,1.0);
-         else
-            insert_anni_down(mpo[L/2],0,col,1.0);
-
-      }
-
-      row = 1;
-
-      while(HamOp::ostates[L/2 - 1][row].size() == 1){
-
-         int ri = HamOp::ostates[L/2 - 1][row].gsite(0);
-         int rs = HamOp::ostates[L/2 - 1][row].gspin(0);
-         int ra = HamOp::ostates[L/2 - 1][row].gact(0);
-
-         if(ri == ci && rs == cs && ra == ca)
-            insert_sign(mpo[L/2],row,col);
-
-         ++row;
-
-      }
-
-      ++col;
-
-   }
-
-   //finally insert id for incoming id
-   insert_id(mpo[L/2],0,HamOp::ostates[L/2].size() - 1);
-
-   //the rest of the blocks: L/2 + 1 --> L - 1
-   for(int i = L/2 + 1;i < L - 1;++i){
-
-      //now fill
-      mpo[i].resize(Q::zero(),make_array(-HamOp::qo[i - 1],qp,-qp,HamOp::qo[i]));
-
-      col = 0;
-
-      //first column is closed
-      insert_id(mpo[i],0,0);
-
-      //for incoming complementary triples, close down with single
-      row = 1;
-
-      while(HamOp::ostates[i - 1][row].size() == 1){
-
-         int ri = HamOp::ostates[i-1][row].gsite(0);
-         int rs = HamOp::ostates[i-1][row].gspin(0);
-         int ra = HamOp::ostates[i-1][row].gact(0);
-
-         if(ri == i){
-
-            if(rs == 0 && ra == 0)
-               insert_crea_up(mpo[i],row,col,1.0);
-            else if(rs == 1 && ra == 0)
-               insert_crea_down_s(mpo[i],row,col,1.0);
-            else if(rs == 0 && ra == 1)
-               insert_anni_up(mpo[i],row,col,1.0);
-            else
-               insert_anni_down_s(mpo[i],row,col,1.0);
-
-         }
-
-         ++row;
-
-      }
-
-      //close down incoming complementary doubles with pairs
-      while(HamOp::ostates[i - 1][row].size() == 2){
-
-         int ri_1 = HamOp::ostates[i-1][row].gsite(0);
-         int rs_1 = HamOp::ostates[i-1][row].gspin(0);
-         int ra_1 = HamOp::ostates[i-1][row].gact(0);
-
-         int ri_2 = HamOp::ostates[i-1][row].gsite(1);
-         int rs_2 = HamOp::ostates[i-1][row].gspin(1);
-         int ra_2 = HamOp::ostates[i-1][row].gact(1);
-
-         if(ri_1 == i && ri_2 == i){
-
-            if(ra_1 == 0){//first crea
-
-               if(rs_1 == 0){//first create up
-
-                  if(rs_2 == 1 && ra_2 == 0)
-                     insert_crea_up_crea_down(mpo[i],row,col,1.0);
-                  else if(rs_2 == 0 && ra_2 == 1)
-                     insert_crea_up_anni_up(mpo[i],row,col,1.0);
-                  else if(rs_2 == 1 && ra_2 == 1)
-                     insert_crea_up_anni_down(mpo[i],row,col,1.0);
-
-               }
-               else{//first create down
-
-                  if(rs_2 == 0 && ra_2 == 1)
-                     insert_crea_down_anni_up(mpo[i],row,col,1.0);
-                  else if(rs_2 == 1 && ra_2 == 1)
-                     insert_crea_down_anni_down(mpo[i],row,col,1.0);
-
-               }
-
-            }
-            else{//first anni
-
-               if(rs_1 == 1){//first anni down
-
-                  if(rs_2 == 0 && ra_2 == 1)//second anni up: extra minus sign!
-                     insert_anni_down_anni_up(mpo[i],row,col,1.0);
-
-               }
-
-            }
-
-         }
-
-         ++row;
-
-      }
-
-      //incoming singles, close with triples!
-      while(row < HamOp::ostates[i - 1].size() - 1){
-
-         //incoming operator
-         int k = HamOp::ostates[i-1][row].gsite(0);
-         int sk = HamOp::ostates[i-1][row].gspin(0);
-         int ak = HamOp::ostates[i-1][row].gact(0);
-
-         if(sk == 0 && ak == 0)//create up coming in
-            insert_triple_crea_up_last(mpo[i],row,0,V(k,i,i,i));
-         else if(sk == 1 && ak == 0)//create down coming in
-            insert_triple_crea_down_last(mpo[i],row,0,-V(i,k,i,i));
-         else if(sk == 0 && ak == 1)//annihilate up coming in
-            insert_triple_anni_up_last(mpo[i],row,0,V(i,i,k,i));
-         else //annihilate down coming in
-            insert_triple_anni_down_last(mpo[i],row,0,-V(i,i,i,k));
-
-         ++row;
-
-      }
-
-      //insert local terms
-      insert_local(mpo[i],HamOp::ostates[i - 1].size() - 1,0,t(i,i),V(i,i,i,i));
-
-      //outgoing complementary triples
-      col = 1;
-
-      while(HamOp::ostates[i][col].size() == 1){
-
-         int ci = HamOp::ostates[i][col].gsite(0);
-         int cs = HamOp::ostates[i][col].gspin(0);
-         int ca = HamOp::ostates[i][col].gact(0);
-
-         //incoming complementary triples
-         row = 1;
-
-         while(HamOp::ostates[i-1][row].size() == 1){
-
-            int ri = HamOp::ostates[i-1][row].gsite(0);
-            int rs = HamOp::ostates[i-1][row].gspin(0);
-            int ra = HamOp::ostates[i-1][row].gact(0);
-
-            if(ci == ri && cs == rs && ca == ra)
-               insert_sign(mpo[i],row,col,1.0);
-
-            ++row;
-
-         }
-
-         //incoming complementary pairs: add single
-         while(HamOp::ostates[i-1][row].size() == 2){
-
-            int ri1 = HamOp::ostates[i-1][row].gsite(0);
-            int rs1 = HamOp::ostates[i-1][row].gspin(0);
-            int ra1 = HamOp::ostates[i-1][row].gact(0);
-
-            int ri2 = HamOp::ostates[i-1][row].gsite(1);
-            int rs2 = HamOp::ostates[i-1][row].gspin(1);
-            int ra2 = HamOp::ostates[i-1][row].gact(1);
-
-            if(ri1 == i){//if first site of the complementary is this site i:
-
-               if(ri2 == ci && rs2 == cs && ra2 == ca){//and the second matches up with the outgoing single
-
-                  if(rs1 == 0 && ra1 == 0)
-                     insert_crea_up_s(mpo[i],row,col,1.0);
-                  else if(rs1 == 1 && ra1 == 0)
-                     insert_crea_down(mpo[i],row,col,1.0);
-                  else if(rs1 == 0 && ra1 == 1)
-                     insert_anni_up_s(mpo[i],row,col,1.0);
-                  else
-                     insert_anni_down(mpo[i],row,col,1.0);
-
-               }
-
-            }
-
-            ++row;
-
-         }
-
-         //singles coming in:
-         while(row < HamOp::ostates[i-1].size() - 1){
-
-            std::vector<double> val(2);
-
-            std::vector<int> v = Ostate::get_double_complement(i,HamOp::ostates[i-1][row],HamOp::ostates[i][col],V,val);
-
-            if(v.size() == 1){
-
-               if(v[0] == 0)
-                  insert_anni_down_anni_up(mpo[i],row,col,-val[0]);//extra minus sign!
-               else if(v[0] == 1)
-                  insert_crea_up_crea_down(mpo[i],row,col,val[0]);
-               else if(v[0] == 2)
-                  insert_crea_up_anni_down(mpo[i],row,col,val[0]);
-               else
-                  insert_crea_down_anni_up(mpo[i],row,col,val[0]);
-
-            }
-            else if(v.size() == 2)//with sign because in the middle!
-               insert_pair_s(mpo[i],row,col,val);
-
-            ++row;
-
-         }
-
-         if(cs == 0 && ca == 0)
-            insert_triple_crea_up_first(mpo[i],row,col,t(i,ci),V(i,i,ci,i));
-         else if(cs == 1 && ca == 0)
-            insert_triple_crea_down_first(mpo[i],row,col,t(i,ci),V(i,i,ci,i));
-         else if(cs == 0 && ca == 1)
-            insert_triple_anni_up_first(mpo[i],row,col,t(i,ci),V(i,i,ci,i));
-         else
-            insert_triple_anni_down_first(mpo[i],row,col,t(i,ci),V(i,i,ci,i));
-
-         ++col;
-
-      }
-
-      while(HamOp::ostates[i][col].size() == 2){
-
-         //now start from the bottom, with the last row
-         row = HamOp::ostates[i-1].size() - 1;
-
-         //last row: id coming in, insert pairs
-         std::vector<double> val(2);
-
-         std::vector<int> v = Ostate::get_closing_pair_out(i,HamOp::ostates[i][col],V,val);
-
-         if(v.size() == 1){
-
-            if(v[0] == 0)
-               insert_anni_down_anni_up(mpo[i],row,col,-val[0]);//extra minus sign!
-            else if(v[0] == 1)
-               insert_crea_up_crea_down(mpo[i],row,col,val[0]);
-            else if(v[0] == 2)
-               insert_crea_up_anni_down(mpo[i],row,col,val[0]);
-            else
-               insert_crea_down_anni_up(mpo[i],row,col,val[0]);
-
-         }
-         else if(v.size() == 2)
-            insert_pair(mpo[i],row,col,val);
-
-         row--;
-
-         //now decrease the row: incoming singles
-         while(HamOp::ostates[i-1][row].size() == 1){
-
-            double val;
-
-            std::vector<int> v = Ostate::get_single_complement(i,HamOp::ostates[i][col],HamOp::ostates[i-1][row],V,val);
-
-            if(v.size() > 0){
-
-               if(v[0] == 0 && v[1] == 0)//create spin up
-                  insert_crea_up(mpo[i],row,col,val);
-               else if(v[0] == 1 && v[1] == 0)//create spin down
-                  insert_crea_down_s(mpo[i],row,col,val);
-               else if(v[0] == 0 && v[1] == 1)//annihilate spin up
-                  insert_anni_up(mpo[i],row,col,val);
-               else//annihilate spin down
-                  insert_anni_down_s(mpo[i],row,col,val);
-
-            }
-
-            --row;
-
-         }
-
-         //incoming complementary pairs: put in id on the right place
-         while(HamOp::ostates[i-1][row].size() == 2){
-
-            if(HamOp::ostates[i-1][row] == HamOp::ostates[i][col])
-               insert_id(mpo[i],row,col);
-
-            --row;
-
-         }
-
-         ++col;
-
-      }
-
-      //outgoing singles
-      while(col < HamOp::ostates[i].size() - 1){
-
-         int ci = HamOp::ostates[i][col].gsite(0);
-         int cs = HamOp::ostates[i][col].gspin(0);
-         int ca = HamOp::ostates[i][col].gact(0);
-
-         row = HamOp::ostates[i - 1].size() - 1;
-
-         //insert correct operator:
-         if(ci == i){
-
-            if(cs == 0 && ca == 0)
-               insert_crea_up_s(mpo[i],row,col,1.0);
-            else if(cs == 1 && ca == 0)
-               insert_crea_down(mpo[i],row,col,1.0);
-            else if(cs == 0 && ca == 1)
-               insert_anni_up_s(mpo[i],row,col,1.0);
-            else
-               insert_anni_down(mpo[i],row,col,1.0);
-
-         }
-
-         row--;
-
-         //insert sign for incoming singles to transfer to outgoing singles
-         while(HamOp::ostates[i - 1][row].size() == 1){
-
-            if(HamOp::ostates[i - 1][row] == HamOp::ostates[i][col])
-               insert_sign(mpo[i],row,col);
-
-            --row;
-
-         }
-
-         ++col;
-
-      }
-
-      //finally insert id in bottom right
-      insert_id(mpo[i],HamOp::ostates[i - 1].size() - 1,HamOp::ostates[i].size() - 1);
-
-   }
-
-   //finally the last mpo:
-   mpo[L - 1].resize(Q::zero(),make_array(-HamOp::qo[L - 2],qp,-qp,qz));
-
-   insert_id(mpo[L - 1],0,0);
-
-   //for incoming complementary triples, close down with single
-   row = 1;
-
-   while(HamOp::ostates[L - 2][row].size() == 1){
-
-      int ri = HamOp::ostates[L-2][row].gsite(0);
-      int rs = HamOp::ostates[L-2][row].gspin(0);
-      int ra = HamOp::ostates[L-2][row].gact(0);
-
-      if(ri == L - 1){
-
-         if(rs == 0 && ra == 0)
-            insert_crea_up(mpo[L - 1],row,0,1.0);
-         else if(rs == 1 && ra == 0)
-            insert_crea_down_s(mpo[L - 1],row,0,1.0);
-         else if(rs == 0 && ra == 1)
-            insert_anni_up(mpo[L - 1],row,0,1.0);
-         else
-            insert_anni_down_s(mpo[L - 1],row,0,1.0);
-
-      }
-
-      ++row;
-
-   }
-
-   //close down incoming complementary doubles with pairs
-   while(HamOp::ostates[L-2][row].size() == 2){
-
-      int ri_1 = HamOp::ostates[L-2][row].gsite(0);
-      int rs_1 = HamOp::ostates[L-2][row].gspin(0);
-      int ra_1 = HamOp::ostates[L-2][row].gact(0);
-
-      int ri_2 = HamOp::ostates[L-2][row].gsite(1);
-      int rs_2 = HamOp::ostates[L-2][row].gspin(1);
-      int ra_2 = HamOp::ostates[L-2][row].gact(1);
-
-      if(ri_1 == L - 1 && ri_2 == L - 1){
-
-         if(ra_1 == 0){//first crea
-
-            if(rs_1 == 0){//first create up
-
-               if(rs_2 == 1 && ra_2 == 0)
-                  insert_crea_up_crea_down(mpo[L - 1],row,0,1.0);
-               else if(rs_2 == 0 && ra_2 == 1)
-                  insert_crea_up_anni_up(mpo[L - 1],row,0,1.0);
-               else if(rs_2 == 1 && ra_2 == 1)
-                  insert_crea_up_anni_down(mpo[L - 1],row,0,1.0);
-
-            }
-            else{//first create down
-
-               if(rs_2 == 0 && ra_2 == 1)
-                  insert_crea_down_anni_up(mpo[L - 1],row,0,1.0);
-               else if(rs_2 == 1 && ra_2 == 1)
-                  insert_crea_down_anni_down(mpo[L - 1],row,0,1.0);
-
-            }
-
-         }
-         else{//first anni
-
-            if(rs_1 == 1){//first anni down
-
-               if(rs_2 == 0 && ra_2 == 1)//second anni up: extra minus sign!
-                  insert_anni_down_anni_up(mpo[L - 1],row,0,1.0);
-
-            }
-
-         }
-
-      }
-
-      ++row;
-
-   }
-
-   //incoming singles, close with triples!
-   while(row < HamOp::ostates[L-2].size() - 1){
+   while(HamOp::ostates[L-2][row].size() == 1){
 
       //incoming operator
       int k = HamOp::ostates[L-2][row].gsite(0);
@@ -6379,20 +5714,60 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       int ak = HamOp::ostates[L-2][row].gact(0);
 
       if(sk == 0 && ak == 0)//create up coming in
-         insert_triple_crea_up_last(mpo[L - 1],row,0,V(k,L - 1,L - 1,L - 1));
+         insert_triple_crea_up_last(mpo[L-1],row,column,V(k,L-1,L-1,L-1));
       else if(sk == 1 && ak == 0)//create down coming in
-         insert_triple_crea_down_last(mpo[L - 1],row,0,-V(L - 1,k,L - 1,L - 1));
+         insert_triple_crea_down_last(mpo[L-1],row,column,-V(L-1,k,L-1,L-1));
       else if(sk == 0 && ak == 1)//annihilate up coming in
-         insert_triple_anni_up_last(mpo[L - 1],row,0,V(L - 1,L - 1,k,L - 1));
+         insert_triple_anni_up_last(mpo[L-1],row,column,V(L-1,L-1,k,L-1));
       else //annihilate down coming in
-         insert_triple_anni_down_last(mpo[L - 1],row,0,-V(L - 1,L - 1,L - 1,k));
+         insert_triple_anni_down_last(mpo[L-1],row,column,-V(L-1,L-1,L-1,k));
 
       ++row;
 
    }
 
-   //insert local terms
-   insert_local(mpo[L - 1],HamOp::ostates[L-2].size() - 1,0,t(L - 1,L - 1),V(L - 1,L - 1,L - 1,L - 1));
+   //close down the doubles coming in with a pair
+   while(HamOp::ostates[L-2][row].size() == 2){
+
+      std::vector<double> val(2);
+
+      std::vector<int> v = Ostate::get_closing_pair_in(L-1,HamOp::ostates[L-2][row],V,val);
+
+      if(v.size() == 1){
+
+         if(v[0] == 0)
+            insert_anni_down_anni_up(mpo[L-1],row,0,-val[0]);//extra minus sign!
+         else if(v[0] == 1)
+            insert_crea_up_crea_down(mpo[L-1],row,0,val[0]);
+         else if(v[0] == 2)
+            insert_crea_up_anni_down(mpo[L-1],row,0,val[0]);
+         else
+            insert_crea_down_anni_up(mpo[L-1],row,0,val[0]);
+
+      }
+      else if(v.size() == 2)
+         insert_pair(mpo[L-1],row,0,val);
+
+      ++row;
+
+   }
+
+   //close down the complementary operators of this site
+   //basically the first 4 incoming states should be closed down
+   insert_crea_up(mpo[L-1],row,0,1.0);
+   ++row;
+
+   insert_crea_down_s(mpo[L-1],row,0,1.0);
+   ++row;
+
+   insert_anni_up(mpo[L-1],row,0,1.0);
+   ++row;
+
+   insert_anni_down_s(mpo[L-1],row,0,1.0);
+   ++row;
+
+   //finally insert the identity on the lower right element
+   insert_id(mpo[L-1],HamOp::ostates[L-2].size() - 1,0);
 
    if(merge == true){
 

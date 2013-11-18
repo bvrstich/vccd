@@ -135,6 +135,7 @@ int main(int argc,char *argv[]){
    cout << compress(A,mpsxx::Right,1000) << endl;
 
    ro::construct(mpsxx::Left,A);
+   ro::construct(mpsxx::Right,A);
 
    Operator::clear();
 
