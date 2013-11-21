@@ -111,6 +111,7 @@ int main(int argc,char *argv[]){
 
    //hartree fock energy
    cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
+
 /*
    //construct the mp2 guess
    DArray<4> t(no,no,nv,nv);
@@ -129,13 +130,42 @@ int main(int argc,char *argv[]){
 
    cout << inprod(mpsxx::Left,eTA,qc,eTA) << endl;
 */   
+
    MPS<Quantum> A = mpsxx::create(L,Quantum(n_u,n_d),qp,100,rgen);
 
    cout << compress(A,mpsxx::Left,0) << endl;
    cout << compress(A,mpsxx::Right,1000) << endl;
 
+   normalize(A);
+
+   cout << inprod(mpsxx::Left,A,qc,A) << endl;
+
    ro::construct(mpsxx::Left,A);
    ro::construct(mpsxx::Right,A);
+
+   for(int site = 0;site < L - 1;++site){
+
+      //now test:
+      double ener = 0.0;
+
+      QSDArray<2> left;
+      QSDArray<2> right;
+
+      for(int i = 0;i < HamOp::ostates[site].size();++i){
+
+         left.clear();
+         ro::read(mpsxx::Left,site,i,left);
+
+         right.clear();
+         ro::read(mpsxx::Right,site + 1,i,right);
+
+         ener += QSDdotc(left,right.conjugate());
+
+      }
+
+      cout << ener << endl;
+
+   }
 
    Operator::clear();
 

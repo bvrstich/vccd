@@ -5701,7 +5701,7 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
    mpo[L - 1].resize(Q::zero(),make_array(-HamOp::qo[L-2],qp,-qp,qz));
 
    //first row
-   insert_local(mpo[L-1],0,column,t(L-1,L-1),V(L-1,L-1,L-1,L-1));
+   insert_local(mpo[L-1],0,0,t(L-1,L-1),V(L-1,L-1,L-1,L-1));
 
    //close down the singles coming in with a triplet
    row = 1;
@@ -5714,13 +5714,13 @@ MPO<Q> qcham(const DArray<2> &t,const DArray<4> &V,bool merge){
       int ak = HamOp::ostates[L-2][row].gact(0);
 
       if(sk == 0 && ak == 0)//create up coming in
-         insert_triple_crea_up_last(mpo[L-1],row,column,V(k,L-1,L-1,L-1));
+         insert_triple_crea_up_last(mpo[L-1],row,0,V(k,L-1,L-1,L-1));
       else if(sk == 1 && ak == 0)//create down coming in
-         insert_triple_crea_down_last(mpo[L-1],row,column,-V(L-1,k,L-1,L-1));
+         insert_triple_crea_down_last(mpo[L-1],row,0,-V(L-1,k,L-1,L-1));
       else if(sk == 0 && ak == 1)//annihilate up coming in
-         insert_triple_anni_up_last(mpo[L-1],row,column,V(L-1,L-1,k,L-1));
+         insert_triple_anni_up_last(mpo[L-1],row,0,V(L-1,L-1,k,L-1));
       else //annihilate down coming in
-         insert_triple_anni_down_last(mpo[L-1],row,column,-V(L-1,L-1,L-1,k));
+         insert_triple_anni_down_last(mpo[L-1],row,0,-V(L-1,L-1,L-1,k));
 
       ++row;
 

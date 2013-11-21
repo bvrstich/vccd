@@ -310,8 +310,8 @@ namespace ro {
       if(dir == mpsxx::Left){
 
          //first site:
-         for(int col = 0;col < HamOp::ostates[0].size();++col)
-            print_op(0,col,Operator::gop(0,0,col),wccd[0]);
+         for(int col = 0;col < Operator::gdim(0,1);++col)
+            print_op(mpsxx::Left,0,col,Operator::gop(0,0,col),wccd[0]);
 
          QSDArray<2> tmp2;
 
@@ -326,14 +326,14 @@ namespace ro {
             QSDArray<4> tmp4;
 
             //first row = 0: id coming in
-            get_op(i - 1,0,wccd[i],tmp4);
+            get_op(mpsxx::Left,i - 1,0,wccd[i],tmp4);
 
             int col = 0;
 
             while(HamOp::ostates[i][col].size() == 1){
 
                if(Operator::gsparse(i,0,col))
-                  print_op(i,col,Operator::gop(i,0,col),tmp4);
+                  print_op(mpsxx::Left,i,col,Operator::gop(i,0,col),tmp4);
 
                ++col;
 
@@ -342,7 +342,7 @@ namespace ro {
             while(HamOp::ostates[i][col].size() == 2){
 
                if(Operator::gsparse(i,0,col))
-                  print_op(i,col,Operator::gop(i,0,col),tmp4);
+                  print_op(mpsxx::Left,i,col,Operator::gop(i,0,col),tmp4);
 
                ++col;
 
@@ -354,7 +354,8 @@ namespace ro {
 
             while(col < HamOp::ostates[i].size()){
 
-               QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,0,col),shape(0,1),0.0,os[col - osbar]);
+               if(Operator::gsparse(i,0,col))
+                  QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,0,col),shape(0,1),0.0,os[col - osbar]);
 
                ++col;
 
@@ -365,11 +366,11 @@ namespace ro {
                cout << i << "\t" << row << "\t" << HamOp::ostates[i-1].size() << endl;
 
                tmp4.clear();
-               get_op(i - 1,row,wccd[i],tmp4);
+               get_op(mpsxx::Left,i - 1,row,wccd[i],tmp4);
 
                for(int col = 0;col < osbar;++col)
                   if(Operator::gsparse(i,row,col))
-                     print_op(i,col,Operator::gop(i,row,col),tmp4);
+                     print_op(mpsxx::Left,i,col,Operator::gop(i,row,col),tmp4);
 
                for(int col = osbar;col < HamOp::ostates[i].size();++col)
                   if(Operator::gsparse(i,row,col))
@@ -379,17 +380,165 @@ namespace ro {
 
             //print out the os part for the next site
             for(int col = osbar;col < HamOp::ostates[i].size();++col)
-               save(i,col,os[col - osbar]);
+               save(mpsxx::Left,i,col,os[col - osbar]);
 
          }
 
       }
       else{
 
-         //first site:
-         for(int col = 0;col < HamOp::ostates[0].size();++col)
-            print_op(0,col,Operator::gop(0,0,col),wccd[0]);
+         std::vector< std::vector<bool> > flag(2);
 
+         flag[0].resize(HamOp::ostates[L - 2].size());
+
+         //last site:
+         for(int row = 0;row < HamOp::ostates[L - 2].size();++row){
+
+            flag[0][row] = false;
+
+            if(Operator::gsparse(L-1,row,0)){
+
+               print_op(mpsxx::Right,L-1,row,Operator::gop(L-1,row,0),wccd[L-1]);
+               flag[0][row] = true;
+
+            }
+
+         }
+
+         QSDArray<2> tmp2;
+
+         //rest of the sites
+         for(int i = L - 2;i > 0;--i){
+
+            //copy the flag and init new one
+            flag[1] = flag[0];
+
+            flag[0].resize(HamOp::ostates[i - 1].size());
+
+            for(int row = 0;row < flag[0].size();++row)
+               flag[0][row] = false;
+
+            cout << endl;
+            cout << i << endl;
+            cout << endl;
+
+            //first find where the incoming singles stop
+            int isbar = 0;
+
+            while(HamOp::ostates[i - 1][isbar].size() == 1)
+               isbar++;
+
+            std::vector< QSDArray<2> > is(isbar);
+
+            QSDArray<4> tmp4;
+
+            int col = 0;
+
+            while(HamOp::ostates[i][col].size() == 1){
+
+               cout << i << "\t" << col << "\t" << HamOp::ostates[i].size() << endl;
+
+               tmp4.clear();
+               get_op(mpsxx::Right,i + 1,col,wccd[i],tmp4);
+
+               for(int row = 0;row < isbar;++row)
+                  if(Operator::gsparse(i,row,col))
+                     QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,is[row]);
+
+               ++col;
+
+            }
+
+            while(HamOp::ostates[i][col].size() == 2){
+
+               cout << i << "\t" << col << "\t" << HamOp::ostates[i].size() << endl;
+
+               tmp4.clear();
+
+               if(flag[1][col]){
+
+                  get_op(mpsxx::Right,i + 1,col,wccd[i],tmp4);
+
+                  for(int row = 0;row < isbar;++row)
+                     if(Operator::gsparse(i,row,col))
+                        QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,is[row]);
+
+                  for(int row = isbar;row < HamOp::ostates[i - 1].size();++row){
+
+                     if(Operator::gsparse(i,row,col)){
+
+                        print_op(mpsxx::Right,i,row,Operator::gop(i,row,col),tmp4);
+                        flag[0][row] = true;
+
+                     }
+
+                  }
+
+               }
+
+               ++col;
+
+            }
+
+            int osbar = col;
+
+            //read in the last columns : closed and outgoing singles coming in
+            std::vector< QSDArray<4> > os(HamOp::ostates[i].size() - osbar);
+
+            for(int col = osbar;col < HamOp::ostates[i].size();++col)
+               get_op(mpsxx::Right,i + 1,col,wccd[i],os[col - osbar]);
+
+            for(int row = 0;row < isbar;++row){
+
+               cout << i << "\t" << row << "\t" << HamOp::ostates[i - 1].size() << endl;
+               
+               for(int col = osbar;col < HamOp::ostates[i].size();++col)
+                  if(Operator::gsparse(i,row,col))
+                     QSDcontract(1.0,os[col - osbar],shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,is[row]);
+
+               save(mpsxx::Right,i,row,is[row]);
+               flag[0][row] = true;
+
+            }
+
+            //doubles
+            int row = isbar;
+
+            while(HamOp::ostates[i - 1][row].size() == 2){
+
+               cout << i << "\t" << row << "\t" << HamOp::ostates[i - 1].size() << endl;
+
+               tmp2.clear();
+
+               if(flag[0][row])
+                  read(mpsxx::Right,i,row,tmp2);
+
+               for(int col = osbar;col < HamOp::ostates[i].size();++col)
+                  if(Operator::gsparse(i,row,col))
+                     QSDcontract(1.0,os[col - osbar],shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,tmp2);
+
+               save(mpsxx::Right,i,row,tmp2);
+               flag[0][row] = true;
+
+               ++row;
+
+            }
+
+            while(row < HamOp::ostates[i - 1].size()){
+
+               cout << i << "\t" << row << "\t" << HamOp::ostates[i - 1].size() << endl;
+
+               tmp2.clear();
+
+               for(int col = osbar;col < HamOp::ostates[i].size();++col)
+                  if(Operator::gsparse(i,row,col))
+                     print_op(mpsxx::Right,i,row,Operator::gop(i,row,col),os[col - osbar]);
+
+               ++row;
+
+            }
+
+         }
 
       }
 
@@ -398,59 +547,111 @@ namespace ro {
    /**
     * print the contraction of two QSDArrays A on site 'site'
     */
-   void print_op(int site,int opnum,const QSDArray<2> &op,const QSDArray<3> &A){
+   void print_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<2> &op,const QSDArray<3> &A){
 
-      enum {j,k,l,m};
+      if(dir == mpsxx::Left){
 
-      QSDArray<3> tmp;
+         enum {j,k,l,m};
 
-      QSDindexed_contract(1.0,A,shape(j,k,l),op,shape(m,k),0.0,tmp,shape(j,m,l));
+         QSDArray<3> tmp;
 
-      QSDArray<2> E;
+         QSDindexed_contract(1.0,A,shape(j,k,l),op,shape(m,k),0.0,tmp,shape(j,m,l));
 
-      QSDindexed_contract(1.0,tmp,shape(j,k,l),A.conjugate(),shape(j,k,m),0.0,E,shape(l,m));
+         QSDArray<2> E;
 
-      char name[100];
+         QSDindexed_contract(1.0,tmp,shape(j,k,l),A.conjugate(),shape(j,k,m),0.0,E,shape(l,m));
 
-      sprintf(name,"scratch/site_%d/%d.mpx",site,opnum);
+         char name[100];
 
-      std::ofstream fout(name);
-      boost::archive::binary_oarchive oar(fout);
+         sprintf(name,"scratch/Left/site_%d/%d.mpx",site,opnum);
 
-      oar << E;
+         std::ofstream fout(name);
+         boost::archive::binary_oarchive oar(fout);
+
+         oar << E;
+
+      }
+      else{
+
+         enum {j,k,l,m};
+
+         QSDArray<3> tmp;
+
+         QSDindexed_contract(1.0,A,shape(l,k,j),op,shape(m,k),0.0,tmp,shape(l,m,j));
+
+         QSDArray<2> E;
+
+         QSDindexed_contract(1.0,tmp,shape(l,k,j),A.conjugate(),shape(m,k,j),0.0,E,shape(l,m));
+
+         char name[100];
+
+         sprintf(name,"scratch/Right/site_%d/%d.mpx",site,opnum);
+
+         std::ofstream fout(name);
+         boost::archive::binary_oarchive oar(fout);
+
+         oar << E;
+
+      }
 
    }
 
    /**
     * read in the operator on the previous site with number opnum, paste the next site to it:
     */
-   void get_op(int site,int opnum,const QSDArray<3> &A,QSDArray<4> &E_op){
+   void get_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<3> &A,QSDArray<4> &E_op){
 
-      enum {i,j,k,l,m};
+      if(dir == mpsxx::Left){
 
-      char name[100];
+         enum {i,j,k,l,m};
 
-      sprintf(name,"scratch/site_%d/%d.mpx",site,opnum);
+         char name[100];
 
-      std::ifstream fin(name);
-      boost::archive::binary_iarchive iar(fin);
+         sprintf(name,"scratch/Left/site_%d/%d.mpx",site,opnum);
 
-      QSDArray<2> tmp2;
+         std::ifstream fin(name);
+         boost::archive::binary_iarchive iar(fin);
 
-      iar >> tmp2;
+         QSDArray<2> tmp2;
 
-      QSDArray<3> tmp3;
+         iar >> tmp2;
 
-      QSDindexed_contract(1.0,tmp2,shape(l,m),A,shape(l,j,k),0.0,tmp3,shape(m,k,j));
+         QSDArray<3> tmp3;
 
-      QSDindexed_contract(1.0,tmp3,shape(m,k,j),A.conjugate(),shape(m,i,l),0.0,E_op,shape(k,l,i,j));
+         QSDindexed_contract(1.0,tmp2,shape(l,m),A,shape(l,j,k),0.0,tmp3,shape(m,k,j));
+
+         QSDindexed_contract(1.0,tmp3,shape(m,k,j),A.conjugate(),shape(m,i,l),0.0,E_op,shape(k,l,i,j));
+
+      }
+      else{
+
+         enum {i,j,k,l,m};
+
+         char name[100];
+
+         sprintf(name,"scratch/Right/site_%d/%d.mpx",site,opnum);
+
+         std::ifstream fin(name);
+         boost::archive::binary_iarchive iar(fin);
+
+         QSDArray<2> tmp2;
+
+         iar >> tmp2;
+
+         QSDArray<3> tmp3;
+
+         QSDindexed_contract(1.0,A,shape(k,j,l),tmp2,shape(l,m),0.0,tmp3,shape(k,j,m));
+
+         QSDindexed_contract(1.0,A.conjugate(),shape(l,i,m),tmp3,shape(k,j,m),0.0,E_op,shape(k,l,i,j));
+
+      }
 
    }
 
    /**
     * print the contraction of two QSDArrays A on site 'site'
     */
-   void print_op(int site,int opnum,const QSDArray<2> &op,const QSDArray<4> &E_op){
+   void print_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<2> &op,const QSDArray<4> &E_op){
 
       enum {i,j,k,l,m};
 
@@ -461,7 +662,10 @@ namespace ro {
 
       char name[100];
 
-      sprintf(name,"scratch/site_%d/%d.mpx",site,opnum);
+      if(dir == mpsxx::Left)
+         sprintf(name,"scratch/Left/site_%d/%d.mpx",site,opnum);
+      else
+         sprintf(name,"scratch/Right/site_%d/%d.mpx",site,opnum);
 
       std::ofstream fout(name);
       boost::archive::binary_oarchive oar(fout);
@@ -473,11 +677,14 @@ namespace ro {
    /**
     * read in the matrix on site i with identifier opnum
     */
-   void read(int site,int opnum,QSDArray<2> &E){
+   void read(const MPS_DIRECTION &dir,int site,int opnum,QSDArray<2> &E){
 
       char name[100];
 
-      sprintf(name,"scratch/site_%d/%d.mpx",site,opnum);
+      if(dir == mpsxx::Left)
+         sprintf(name,"scratch/Left/site_%d/%d.mpx",site,opnum);
+      else
+         sprintf(name,"scratch/Right/site_%d/%d.mpx",site,opnum);
 
       std::ifstream fin(name);
       boost::archive::binary_iarchive iar(fin);
@@ -490,11 +697,14 @@ namespace ro {
    /**
     * save the matrix on site i with id opnum
     */
-   void save(int site,int opnum,const QSDArray<2> &E){
+   void save(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<2> &E){
 
       char name[100];
 
-      sprintf(name,"scratch/site_%d/%d.mpx",site,opnum);
+      if(dir == mpsxx::Left)
+         sprintf(name,"scratch/Left/site_%d/%d.mpx",site,opnum);
+      else
+         sprintf(name,"scratch/Right/site_%d/%d.mpx",site,opnum);
 
       std::ofstream fout(name);
       boost::archive::binary_oarchive oar(fout);

@@ -89,6 +89,8 @@ class Operator {
 
       static bool gsparse(int site,int row,int col);
 
+      static int gdim(int site,int ind);
+
    private:
 
       //!physical dimension of the operators:

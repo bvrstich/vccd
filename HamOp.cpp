@@ -397,6 +397,10 @@ void HamOp::print_states(){
       for(int j = 0;j < ostates[i].size();++j){
 
          cout << endl;
+         cout << j << endl;
+         cout << endl;
+
+         cout << endl;
          cout << ostates[i][j] << qo[i][j] << endl;
          cout << endl;
 

@@ -350,7 +350,7 @@ void Operator::init(const DArray<2> &t,const DArray<4> &V){
    }
 
    //close down everything on last site
-   construct_local(L-1,0,col,t(L-1,L-1),V(L-1,L-1,L-1,L-1));
+   construct_local(L-1,0,0,t(L-1,L-1),V(L-1,L-1,L-1,L-1));
 
    //close down the singles coming in with a triplet
    row = 1;
@@ -1020,5 +1020,14 @@ const QSDArray<2> &Operator::gop(int site,int row,int col){
 bool Operator::gsparse(int site,int row,int col){
 
    return sparse[site][row*dim[site][1] + col];
+
+}
+
+/**
+ * access to the dimensions of the matrix
+ */
+int Operator::gdim(int site,int ind){
+
+   return dim[site][ind];
 
 }

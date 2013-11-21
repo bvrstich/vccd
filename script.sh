@@ -1,6 +1,14 @@
 #!/bin/bash
 mkdir scratch
-for i in `seq 0 13`;
+mkdir scratch/Left
+mkdir scratch/Right
+
+for i in `seq 0 12`;
 do
-mkdir scratch/site_$i
+mkdir scratch/Left/site_$i
+done
+
+for i in `seq 1 13`;
+do
+mkdir scratch/Right/site_$i
 done
