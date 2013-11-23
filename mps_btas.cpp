@@ -73,16 +73,14 @@ int main(int argc,char *argv[]){
 
    //construct the qc hamiltonian
    DArray<2> K(L,L);
-   //read_oei(oeifile,K,order);
-   random_oei(K);
+   read_oei(oeifile,K,order);
 
    char teifile[100];
    sprintf(teifile,"%sTEI.in",dirpath);
 
    //construct the qc hamiltonian
    DArray<4> V(L,L,L,L);
-   //read_tei(teifile,V,order);
-   random_tei(V);
+   read_tei(teifile,V,order);
 
    //construct the complementary operators
    Operator::init(K,V);
@@ -112,7 +110,6 @@ int main(int argc,char *argv[]){
    //hartree fock energy
    cout << inprod(mpsxx::Left,hf,qc,hf) << endl;
 
-/*
    //construct the mp2 guess
    DArray<4> t(no,no,nv,nv);
 
@@ -123,26 +120,21 @@ int main(int argc,char *argv[]){
    cout << compress(T,mpsxx::Left,0) << endl;
    cout << compress(T,mpsxx::Right,0) << endl;
 
-   MPS<Quantum> eTA = exp(T,hf,no,100);
+   //MPS<Quantum> eTA = exp(T,hf,no,300);
+   MPS<Quantum> eTA = create(L,Quantum(n_u,n_d),qp,100,rgen);
+
+   cout << compress(eTA,mpsxx::Left,0) << endl;
+   cout << compress(eTA,mpsxx::Right,500) << endl;
+
    normalize(eTA);
 
    print_dim(eTA);
 
    cout << inprod(mpsxx::Left,eTA,qc,eTA) << endl;
-*/   
 
-   MPS<Quantum> A = mpsxx::create(L,Quantum(n_u,n_d),qp,100,rgen);
-
-   cout << compress(A,mpsxx::Left,0) << endl;
-   cout << compress(A,mpsxx::Right,1000) << endl;
-
-   normalize(A);
-
-   cout << inprod(mpsxx::Left,A,qc,A) << endl;
-
-   ro::construct(mpsxx::Left,A);
-   ro::construct(mpsxx::Right,A);
-
+   ro::construct(mpsxx::Left,T,eTA);
+   ro::construct(mpsxx::Right,T,eTA);
+/*
    for(int site = 0;site < L - 1;++site){
 
       //now test:
@@ -166,7 +158,7 @@ int main(int argc,char *argv[]){
       cout << ener << endl;
 
    }
-
+*/
    Operator::clear();
 
    return 0;

@@ -22,7 +22,7 @@ namespace vccd {
 
          int no = grad.shape(0);//number of occupied orbitals
          int nv = grad.shape(2);//number of virtual orbitals
-
+/*
          MPO<Q> T = T2<Q>(t,merged);
 
          MPO<Q> rolH = ro::construct(mpsxx::Left,tccd,T,qcham,wccd);
@@ -54,7 +54,7 @@ namespace vccd {
                for(int a = 0;a < nv;++a)
                   for(int b = 0;b < nv;++b)
                      grad(j,i,a,b) = grad(i,j,a,b);
-
+*/
       }
 
    /**

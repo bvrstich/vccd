@@ -15,163 +15,26 @@ using namespace mpsxx;
 namespace ro {
 
    /**
-    * construct a renormalized operator for <B|O|A> and store it in an MPS
+    * construct a renormalized operator for <wccd| H T |wccd> dmrg style, write everything to disk
     * @param dir left renormalized or right renormalized
-    * @param A input MPS
-    * @param O input MPO
-    * @param B input MPS
-    */
-   MPS<Quantum> construct(const MPS_DIRECTION &dir,const MPS<Quantum> &A,const MPO<Quantum> &O,const MPS<Quantum> &B){
-
-      int L = O.size();
-
-      MPS<Quantum> RO(L - 1);
-
-      if(dir == mpsxx::Left){
-
-         enum {j,k,l,m,n,o};
-
-         //from left to right
-         QSDArray<5> loc;
-
-         QSDindexed_contract(1.0,O[0],shape(m,n,k,o),A[0],shape(j,k,l),0.0,loc,shape(j,m,n,l,o));
-
-         //merge 2 rows together
-         TVector<Qshapes<Quantum>,2> qmerge;
-         TVector<Dshapes,2> dmerge;
-
-         for(int i = 0;i < 2;++i){
-
-            qmerge[i] = loc.qshape(i);
-            dmerge[i] = loc.dshape(i);
-
-         }
-
-         QSTmergeInfo<2> info(qmerge,dmerge);
-
-         QSDArray<4> tmp;
-         QSTmerge(info,loc,tmp);
-
-         //this will contain the right going part
-         QSDindexed_contract(1.0,B[0].conjugate(),shape(j,k,l),tmp,shape(j,k,m,n),0.0,RO[0],shape(m,n,l));
-
-         QSDArray<4> I1;
-         QSDArray<4> I2;
-
-         for(int i = 1;i < L - 1;++i){
-
-            I1.clear();
-
-            QSDindexed_contract(1.0,RO[i - 1],shape(j,k,l),A[i],shape(j,m,n),0.0,I1,shape(k,l,n,m));
-
-            I2.clear();
-
-            QSDindexed_contract(1.0,I1,shape(k,l,n,m),O[i],shape(k,j,m,o),0.0,I2,shape(l,j,n,o));
-
-            QSDindexed_contract(1.0,I2,shape(l,j,n,o),B[i].conjugate(),shape(l,j,k),0.0,RO[i],shape(n,o,k));
-
-         }
-
-      }
-      else{
-
-         enum {j,k,l,m,n,o};
-
-         //from right to left
-         QSDArray<5> loc;
-
-         QSDindexed_contract(1.0,O[L - 1],shape(j,k,l,m),A[L - 1],shape(o,l,n),0.0,loc,shape(o,j,k,n,m));
-
-         //merge 2 columns together
-         TVector<Qshapes<Quantum>,2> qmerge;
-         TVector<Dshapes,2> dmerge;
-
-         for(int i = 0;i < 2;++i){
-
-            qmerge[i] = loc.qshape(3 + i);
-            dmerge[i] = loc.dshape(3 + i);
-
-         }
-
-         QSTmergeInfo<2> info(qmerge,dmerge);
-
-         QSDArray<4> tmp;
-         QSTmerge(loc,info,tmp);
-
-         //this will contain the left going part
-         QSDindexed_contract(1.0,tmp,shape(j,k,l,m),B[L-1].conjugate(),shape(n,l,m),0.0,RO[L - 2],shape(j,k,n));
-
-         QSDArray<4> I1;
-         QSDArray<4> I2;
-
-         for(int i = L - 2;i > 0;--i){
-
-            I1.clear();
-
-            QSDindexed_contract(1.0,A[i],shape(j,k,l),RO[i],shape(l,m,n),0.0,I1,shape(j,k,m,n));
-
-            I2.clear();
-
-            QSDindexed_contract(1.0,O[i],shape(l,o,k,m),I1,shape(j,k,m,n),0.0,I2,shape(j,l,o,n));
-
-            QSDindexed_contract(1.0,B[i].conjugate(),shape(k,o,n),I2,shape(j,l,o,n),0.0,RO[i - 1],shape(j,l,k));
-
-         }
-
-      }
-
-      return RO;
-
-   }
-
-   /**
-    * check if the renormalized operators are correctly constructed
-    */
-   void check(const MPS<Quantum> &ror,const MPS<Quantum> &rol){
-
-      for(int i = 0;i < ror.size();++i)
-         cout << QSDdotc(rol[i],ror[i].conjugate()) << endl;
-
-   }
-
-   /**
-    * check if the renormalized operators are correctly constructed
-    */
-   void check(const MPO<Quantum> &ror,const MPO<Quantum> &rol){
-
-      for(int i = 0;i < ror.size();++i)
-         cout << QSDdotc(rol[i],ror[i].conjugate()) << endl;
-
-   }
-
-
-   /**
-    * construct a renormalized operator for <tccd| T H |wccd> and store it in an MPO
-    * @param dir left renormalized or right renormalized
-    * @param tccd input MPS
-    * @param T input MPO
-    * @param H input MPO
     * @param wccd input MPS
     */
-   MPO<Quantum> construct(const MPS_DIRECTION &dir,const MPS<Quantum> &tccd,const MPO<Quantum> &T,const MPO<Quantum> &H,const MPS<Quantum> &wccd){
+   void construct(const MPS_DIRECTION &dir,const MPO<Quantum> &T,const MPS<Quantum> &wccd){
 
       int L = wccd.size();
 
-      MPO<Quantum> RO(L - 1);
-
       if(dir == mpsxx::Left){
 
-         enum {j,k,l,m,n,o,p};
-
-         //from left to right
          QSDArray<5> tmp5;
 
-         QSDindexed_contract(1.0,T[0],shape(m,n,k,o),tccd[0],shape(j,k,l),0.0,tmp5,shape(j,m,n,l,o));
+         enum {j,k,l,m,n,o};
 
-         //merge 2 rows together
+         QSDindexed_contract(1.0,wccd[0],shape(j,k,l),T[0],shape(m,n,k,o),0.0,tmp5,shape(j,m,n,l,o));
+
+         //merge the row quantumnumbers together
          TVector<Qshapes<Quantum>,2> qmerge;
          TVector<Dshapes,2> dmerge;
-
+         
          for(int i = 0;i < 2;++i){
 
             qmerge[i] = tmp5.qshape(i);
@@ -181,139 +44,13 @@ namespace ro {
 
          QSTmergeInfo<2> info(qmerge,dmerge);
 
+         //then merge into tmp4
          QSDArray<4> tmp4;
          QSTmerge(info,tmp5,tmp4);
 
-         QSDArray<6> tmp6;
-
-         QSDindexed_contract(1.0,H[0],shape(j,m,n,p),tmp4,shape(k,n,l,o),0.0,tmp6,shape(k,j,m,l,o,p));
-
-         //merge again
-         for(int i = 0;i < 2;++i){
-
-            qmerge[i] = tmp6.qshape(i);
-            dmerge[i] = tmp6.dshape(i);
-
-         }
-
-         info.reset(qmerge,dmerge);
-
-         tmp5.clear();
-         QSTmerge(info,tmp6,tmp5);
-
-         //this will contain the right going part
-         QSDindexed_contract(1.0,wccd[0].conjugate(),shape(j,m,k),tmp5,shape(j,m,l,o,p),0.0,RO[0],shape(l,o,p,k));
-
-         QSDArray<5> I1;
-         QSDArray<5> I2;
-
-         for(int i = 1;i < L - 1;++i){
-
-            tmp5.clear();
-
-            QSDindexed_contract(1.0,RO[i - 1],shape(j,k,l,m),tccd[i],shape(j,n,o),0.0,tmp5,shape(o,n,k,l,m));
-
-            I1.clear();
-
-            QSDindexed_contract(1.0,tmp5,shape(o,n,k,l,m),T[i],shape(k,j,n,p),0.0,I1,shape(o,p,j,l,m));
-
-            I2.clear();
-
-            QSDindexed_contract(1.0,I1,shape(o,p,j,l,m),H[i],shape(l,k,j,n),0.0,I2,shape(o,p,n,k,m));
-
-            QSDindexed_contract(1.0,I2,shape(o,p,n,k,m),wccd[i].conjugate(),shape(m,k,l),0.0,RO[i],shape(o,p,n,l));
-
-         }
-
-      }
-      else{
-
-         enum {j,k,l,m,n,o,p};
-
-         //from right to left
-         QSDArray<5> tmp5;
-
-         QSDindexed_contract(1.0,T[L - 1],shape(m,n,k,o),tccd[L - 1],shape(j,k,l),0.0,tmp5,shape(j,m,n,l,o));
-
-         //merge 2 columns together
-         TVector<Qshapes<Quantum>,2> qmerge;
-         TVector<Dshapes,2> dmerge;
-
-         for(int i = 0;i < 2;++i){
-
-            qmerge[i] = tmp5.qshape(i + 3);
-            dmerge[i] = tmp5.dshape(i + 3);
-
-         }
-
-         QSTmergeInfo<2> info(qmerge,dmerge);
-
-         QSDArray<4> tmp4;
-         QSTmerge(tmp5,info,tmp4);
-
-         QSDArray<6> tmp6;
-
-         QSDindexed_contract(1.0,H[L - 1],shape(k,l,n,o),tmp4,shape(j,m,n,p),0.0,tmp6,shape(j,m,k,l,p,o));
-
-         //merge again
-         for(int i = 0;i < 2;++i){
-
-            qmerge[i] = tmp6.qshape(i + 4);
-            dmerge[i] = tmp6.dshape(i + 4);
-
-         }
-
-         info.reset(qmerge,dmerge);
-
-         tmp5.clear();
-         QSTmerge(tmp6,info,tmp5);
-
-         //this will contain the right going part
-         QSDindexed_contract(1.0,wccd[L - 1].conjugate(),shape(n,l,p),tmp5,shape(j,m,k,l,p),0.0,RO[L - 2],shape(j,m,k,n));
-
-         QSDArray<5> I1;
-         QSDArray<5> I2;
-
-         for(int i = L - 2;i > 0;--i){
-
-            tmp5.clear();
-
-            QSDindexed_contract(1.0,tccd[i],shape(n,o,j),RO[i],shape(j,k,l,m),0.0,tmp5,shape(n,o,k,l,m));
-
-            I1.clear();
-
-            QSDindexed_contract(1.0,T[i],shape(j,p,o,k),tmp5,shape(n,o,k,l,m),0.0,I1,shape(n,j,p,l,m));
-
-            I2.clear();
-
-            QSDindexed_contract(1.0,H[i],shape(k,o,p,l),I1,shape(n,j,p,l,m),0.0,I2,shape(n,j,k,o,m));
-
-            QSDindexed_contract(1.0,wccd[i].conjugate(),shape(l,o,m),I2,shape(n,j,k,o,m),0.0,RO[i - 1],shape(n,j,k,l));
-
-         }
-
-      }
-
-      return RO;
-
-   }
-
-   /**
-    * construct a renormalized operator for <wccd| H |wccd> dmrg style, write everything to disk
-    * @param dir left renormalized or right renormalized
-    * @param wccd input MPS
-    */
-   void construct(const MPS_DIRECTION &dir,const MPS<Quantum> &wccd){
-
-      int L = wccd.size();
-
-      if(dir == mpsxx::Left){
-
          //first site:
          for(int col = 0;col < Operator::gdim(0,1);++col)
-            print_op(mpsxx::Left,0,col,Operator::gop(0,0,col),wccd[0]);
-
-         QSDArray<2> tmp2;
+            print_op(mpsxx::Left,0,col,Operator::gop(0,0,col),tmp4,wccd[0]);
 
          //middle sites:
          for(int i = 1;i < L - 1;++i){
@@ -323,17 +60,17 @@ namespace ro {
             cout << endl;
 
             //get the previous operator from memory and paste the next sites onto it:
-            QSDArray<4> tmp4;
+            tmp5.clear();
 
             //first row = 0: id coming in
-            get_op(mpsxx::Left,i - 1,0,wccd[i],tmp4);
+            get_op(mpsxx::Left,i - 1,0,T[i],wccd[i],tmp5);
 
             int col = 0;
 
             while(HamOp::ostates[i][col].size() == 1){
 
                if(Operator::gsparse(i,0,col))
-                  print_op(mpsxx::Left,i,col,Operator::gop(i,0,col),tmp4);
+                  print_op(mpsxx::Left,i,col,Operator::gop(i,0,col),tmp5);
 
                ++col;
 
@@ -342,7 +79,7 @@ namespace ro {
             while(HamOp::ostates[i][col].size() == 2){
 
                if(Operator::gsparse(i,0,col))
-                  print_op(mpsxx::Left,i,col,Operator::gop(i,0,col),tmp4);
+                  print_op(mpsxx::Left,i,col,Operator::gop(i,0,col),tmp5);
 
                ++col;
 
@@ -350,12 +87,12 @@ namespace ro {
 
             int osbar = col;
 
-            std::vector< QSDArray<2> > os(HamOp::ostates[i].size() - osbar);
+            std::vector< QSDArray<3> > os(HamOp::ostates[i].size() - osbar);
 
             while(col < HamOp::ostates[i].size()){
 
                if(Operator::gsparse(i,0,col))
-                  QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,0,col),shape(0,1),0.0,os[col - osbar]);
+                  QSDcontract(1.0,tmp5,shape(3,4),Operator::gop(i,0,col),shape(0,1),0.0,os[col - osbar]);
 
                ++col;
 
@@ -365,16 +102,16 @@ namespace ro {
 
                cout << i << "\t" << row << "\t" << HamOp::ostates[i-1].size() << endl;
 
-               tmp4.clear();
-               get_op(mpsxx::Left,i - 1,row,wccd[i],tmp4);
+               tmp5.clear();
+               get_op(mpsxx::Left,i - 1,row,T[i],wccd[i],tmp5);
 
                for(int col = 0;col < osbar;++col)
                   if(Operator::gsparse(i,row,col))
-                     print_op(mpsxx::Left,i,col,Operator::gop(i,row,col),tmp4);
+                     print_op(mpsxx::Left,i,col,Operator::gop(i,row,col),tmp5);
 
                for(int col = osbar;col < HamOp::ostates[i].size();++col)
                   if(Operator::gsparse(i,row,col))
-                     QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,os[col - osbar]);
+                    QSDcontract(1.0,tmp5,shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,os[col - osbar]);
 
             }
 
@@ -387,6 +124,29 @@ namespace ro {
       }
       else{
 
+         QSDArray<5> tmp5;
+
+         enum {j,k,l,m,n,o};
+
+         QSDindexed_contract(1.0,wccd[L - 1],shape(j,k,l),T[L - 1],shape(m,n,k,o),0.0,tmp5,shape(j,m,n,l,o));
+
+         //merge the column quantumnumbers together
+         TVector<Qshapes<Quantum>,2> qmerge;
+         TVector<Dshapes,2> dmerge;
+
+         for(int i = 0;i < 2;++i){
+
+            qmerge[i] = tmp5.qshape(3 + i);
+            dmerge[i] = tmp5.dshape(3 + i);
+
+         }
+
+         QSTmergeInfo<2> info(qmerge,dmerge);
+
+         //then merge into tmp4
+         QSDArray<4> tmp4;
+         QSTmerge(tmp5,info,tmp4);
+
          std::vector< std::vector<bool> > flag(2);
 
          flag[0].resize(HamOp::ostates[L - 2].size());
@@ -398,14 +158,12 @@ namespace ro {
 
             if(Operator::gsparse(L-1,row,0)){
 
-               print_op(mpsxx::Right,L-1,row,Operator::gop(L-1,row,0),wccd[L-1]);
+               print_op(mpsxx::Right,L-1,row,Operator::gop(L-1,row,0),tmp4,wccd[L-1]);
                flag[0][row] = true;
 
             }
 
          }
-
-         QSDArray<2> tmp2;
 
          //rest of the sites
          for(int i = L - 2;i > 0;--i){
@@ -428,9 +186,7 @@ namespace ro {
             while(HamOp::ostates[i - 1][isbar].size() == 1)
                isbar++;
 
-            std::vector< QSDArray<2> > is(isbar);
-
-            QSDArray<4> tmp4;
+            std::vector< QSDArray<3> > is(isbar);
 
             int col = 0;
 
@@ -438,12 +194,12 @@ namespace ro {
 
                cout << i << "\t" << col << "\t" << HamOp::ostates[i].size() << endl;
 
-               tmp4.clear();
-               get_op(mpsxx::Right,i + 1,col,wccd[i],tmp4);
+               tmp5.clear();
+               get_op(mpsxx::Right,i + 1,col,T[i],wccd[i],tmp5);
 
                for(int row = 0;row < isbar;++row)
                   if(Operator::gsparse(i,row,col))
-                     QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,is[row]);
+                     QSDcontract(1.0,tmp5,shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,is[row]);
 
                ++col;
 
@@ -453,21 +209,21 @@ namespace ro {
 
                cout << i << "\t" << col << "\t" << HamOp::ostates[i].size() << endl;
 
-               tmp4.clear();
+               tmp5.clear();
 
                if(flag[1][col]){
 
-                  get_op(mpsxx::Right,i + 1,col,wccd[i],tmp4);
+                  get_op(mpsxx::Right,i + 1,col,T[i],wccd[i],tmp5);
 
                   for(int row = 0;row < isbar;++row)
                      if(Operator::gsparse(i,row,col))
-                        QSDcontract(1.0,tmp4,shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,is[row]);
+                        QSDcontract(1.0,tmp5,shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,is[row]);
 
                   for(int row = isbar;row < HamOp::ostates[i - 1].size();++row){
 
                      if(Operator::gsparse(i,row,col)){
 
-                        print_op(mpsxx::Right,i,row,Operator::gop(i,row,col),tmp4);
+                        print_op(mpsxx::Right,i,row,Operator::gop(i,row,col),tmp5);
                         flag[0][row] = true;
 
                      }
@@ -483,15 +239,15 @@ namespace ro {
             int osbar = col;
 
             //read in the last columns : closed and outgoing singles coming in
-            std::vector< QSDArray<4> > os(HamOp::ostates[i].size() - osbar);
+            std::vector< QSDArray<5> > os(HamOp::ostates[i].size() - osbar);
 
             for(int col = osbar;col < HamOp::ostates[i].size();++col)
-               get_op(mpsxx::Right,i + 1,col,wccd[i],os[col - osbar]);
+               get_op(mpsxx::Right,i + 1,col,T[i],wccd[i],os[col - osbar]);
 
             for(int row = 0;row < isbar;++row){
 
                cout << i << "\t" << row << "\t" << HamOp::ostates[i - 1].size() << endl;
-               
+
                for(int col = osbar;col < HamOp::ostates[i].size();++col)
                   if(Operator::gsparse(i,row,col))
                      QSDcontract(1.0,os[col - osbar],shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,is[row]);
@@ -504,20 +260,22 @@ namespace ro {
             //doubles
             int row = isbar;
 
+            QSDArray<3> tmp3;
+
             while(HamOp::ostates[i - 1][row].size() == 2){
 
                cout << i << "\t" << row << "\t" << HamOp::ostates[i - 1].size() << endl;
 
-               tmp2.clear();
+               tmp3.clear();
 
                if(flag[0][row])
-                  read(mpsxx::Right,i,row,tmp2);
+                  read(mpsxx::Right,i,row,tmp3);
 
                for(int col = osbar;col < HamOp::ostates[i].size();++col)
                   if(Operator::gsparse(i,row,col))
-                     QSDcontract(1.0,os[col - osbar],shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,tmp2);
+                     QSDcontract(1.0,os[col - osbar],shape(3,4),Operator::gop(i,row,col),shape(0,1),1.0,tmp3);
 
-               save(mpsxx::Right,i,row,tmp2);
+               save(mpsxx::Right,i,row,tmp3);
                flag[0][row] = true;
 
                ++row;
@@ -528,8 +286,6 @@ namespace ro {
 
                cout << i << "\t" << row << "\t" << HamOp::ostates[i - 1].size() << endl;
 
-               tmp2.clear();
-
                for(int col = osbar;col < HamOp::ostates[i].size();++col)
                   if(Operator::gsparse(i,row,col))
                      print_op(mpsxx::Right,i,row,Operator::gop(i,row,col),os[col - osbar]);
@@ -539,7 +295,7 @@ namespace ro {
             }
 
          }
-
+         
       }
 
    }
@@ -547,19 +303,19 @@ namespace ro {
    /**
     * print the contraction of two QSDArrays A on site 'site'
     */
-   void print_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<2> &op,const QSDArray<3> &A){
+   void print_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<2> &op,const QSDArray<4> &TA,const QSDArray<3> &A){
 
       if(dir == mpsxx::Left){
 
-         enum {j,k,l,m};
+         enum {j,k,l,m,n};
 
          QSDArray<3> tmp;
 
-         QSDindexed_contract(1.0,A,shape(j,k,l),op,shape(m,k),0.0,tmp,shape(j,m,l));
+         QSDindexed_contract(1.0,A.conjugate(),shape(j,k,m),op,shape(k,n),0.0,tmp,shape(j,n,m));
 
-         QSDArray<2> E;
+         QSDArray<3> E;
 
-         QSDindexed_contract(1.0,tmp,shape(j,k,l),A.conjugate(),shape(j,k,m),0.0,E,shape(l,m));
+         QSDindexed_contract(1.0,TA,shape(j,n,l,k),tmp,shape(j,n,m),0.0,E,shape(l,k,m));
 
          char name[100];
 
@@ -573,15 +329,15 @@ namespace ro {
       }
       else{
 
-         enum {j,k,l,m};
+         enum {j,k,l,m,n};
 
          QSDArray<3> tmp;
 
-         QSDindexed_contract(1.0,A,shape(l,k,j),op,shape(m,k),0.0,tmp,shape(l,m,j));
+         QSDindexed_contract(1.0,A.conjugate(),shape(m,k,j),op,shape(k,n),0.0,tmp,shape(m,n,j));
 
-         QSDArray<2> E;
+         QSDArray<3> E;
 
-         QSDindexed_contract(1.0,tmp,shape(l,k,j),A.conjugate(),shape(m,k,j),0.0,E,shape(l,m));
+         QSDindexed_contract(1.0,TA,shape(l,k,n,j),tmp,shape(m,n,j),0.0,E,shape(l,k,m));
 
          char name[100];
 
@@ -599,11 +355,11 @@ namespace ro {
    /**
     * read in the operator on the previous site with number opnum, paste the next site to it:
     */
-   void get_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<3> &A,QSDArray<4> &E_op){
+   void get_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<4> &T,const QSDArray<3> &A,QSDArray<5> &E_op){
 
       if(dir == mpsxx::Left){
 
-         enum {i,j,k,l,m};
+         enum {i,j,k,l,m,n,o};
 
          char name[100];
 
@@ -612,20 +368,24 @@ namespace ro {
          std::ifstream fin(name);
          boost::archive::binary_iarchive iar(fin);
 
-         QSDArray<2> tmp2;
-
-         iar >> tmp2;
-
          QSDArray<3> tmp3;
 
-         QSDindexed_contract(1.0,tmp2,shape(l,m),A,shape(l,j,k),0.0,tmp3,shape(m,k,j));
+         iar >> tmp3;
 
-         QSDindexed_contract(1.0,tmp3,shape(m,k,j),A.conjugate(),shape(m,i,l),0.0,E_op,shape(k,l,i,j));
+         QSDArray<4> tmp4;
+
+         QSDindexed_contract(1.0,tmp3,shape(o,k,m),A,shape(o,n,l),0.0,tmp4,shape(l,k,m,n));
+
+         QSDArray<4> tmp4_bis;
+
+         QSDindexed_contract(1.0,tmp4,shape(l,o,m,n),T,shape(o,j,n,k),0.0,tmp4_bis,shape(l,k,m,j));
+
+         QSDindexed_contract(1.0,tmp4_bis,shape(l,k,o,j),A.conjugate(),shape(o,i,m),0.0,E_op,shape(l,k,m,i,j));
 
       }
       else{
 
-         enum {i,j,k,l,m};
+         enum {i,j,k,l,m,n,o};
 
          char name[100];
 
@@ -634,15 +394,19 @@ namespace ro {
          std::ifstream fin(name);
          boost::archive::binary_iarchive iar(fin);
 
-         QSDArray<2> tmp2;
-
-         iar >> tmp2;
-
          QSDArray<3> tmp3;
 
-         QSDindexed_contract(1.0,A,shape(k,j,l),tmp2,shape(l,m),0.0,tmp3,shape(k,j,m));
+         iar >> tmp3;
 
-         QSDindexed_contract(1.0,A.conjugate(),shape(l,i,m),tmp3,shape(k,j,m),0.0,E_op,shape(k,l,i,j));
+         QSDArray<4> tmp4;
+
+         QSDindexed_contract(1.0,A,shape(o,n,l),tmp3,shape(l,k,m),0.0,tmp4,shape(o,k,m,n));
+
+         QSDArray<4> tmp4_bis;
+
+         QSDindexed_contract(1.0,tmp4,shape(o,k,m,n),T,shape(l,j,n,k),0.0,tmp4_bis,shape(o,l,m,j));
+
+         QSDindexed_contract(1.0,A.conjugate(),shape(m,i,n),tmp4_bis,shape(l,k,n,j),0.0,E_op,shape(l,k,m,i,j));
 
       }
 
@@ -651,11 +415,11 @@ namespace ro {
    /**
     * print the contraction of two QSDArrays A on site 'site'
     */
-   void print_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<2> &op,const QSDArray<4> &E_op){
+   void print_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<2> &op,const QSDArray<5> &E_op){
 
       enum {i,j,k,l,m};
 
-      QSDArray<2> E;
+      QSDArray<3> E;
       E.clear();
 
       QSDcontract(1.0,E_op,shape(3,4),op,shape(0,1),0.0,E);
@@ -677,7 +441,7 @@ namespace ro {
    /**
     * read in the matrix on site i with identifier opnum
     */
-   void read(const MPS_DIRECTION &dir,int site,int opnum,QSDArray<2> &E){
+   void read(const MPS_DIRECTION &dir,int site,int opnum,QSDArray<3> &E){
 
       char name[100];
 
@@ -697,7 +461,7 @@ namespace ro {
    /**
     * save the matrix on site i with id opnum
     */
-   void save(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<2> &E){
+   void save(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<3> &E){
 
       char name[100];
 

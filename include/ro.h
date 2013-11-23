@@ -10,8 +10,6 @@ using std::ostream;
 using namespace mpsxx;
 using namespace btas;
 
-class TeMPS;
-
 /**
  * @author Brecht Verstichel
  * @date 10-09-2013
@@ -19,26 +17,17 @@ class TeMPS;
  */
 namespace ro {
 
-      //constructor
-      MPS<Quantum> construct(const MPS_DIRECTION &dir,const MPS<Quantum> &,const MPO<Quantum> &,const MPS<Quantum> &);
+      void construct(const MPS_DIRECTION &dir,const MPO<Quantum> &T,const MPS<Quantum> &wccd);
 
-      MPO<Quantum> construct(const MPS_DIRECTION &dir,const MPS<Quantum> &,const MPO<Quantum> &,const MPO<Quantum> &,const MPS<Quantum> &);
+      void print_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<2> &op,const QSDArray<4> &,const QSDArray<3> &A);
 
-      void construct(const MPS_DIRECTION &dir,const MPS<Quantum> &wccd);
+      void print_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<2> &op,const QSDArray<5> &A);
 
-      void check(const MPS<Quantum> &ror,const MPS<Quantum> &rol);
+      void get_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<4> &,const QSDArray<3> &A,QSDArray<5> &);
 
-      void check(const MPO<Quantum> &ror,const MPO<Quantum> &rol);
-
-      void print_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<2> &op,const QSDArray<3> &A);
-
-      void print_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<2> &op,const QSDArray<4> &A);
-
-      void get_op(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<3> &A,QSDArray<4> &);
-
-      void read(const MPS_DIRECTION &dir,int site,int opnum,QSDArray<2> &);
+      void read(const MPS_DIRECTION &dir,int site,int opnum,QSDArray<3> &);
       
-      void save(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<2> &);
+      void save(const MPS_DIRECTION &dir,int site,int opnum,const QSDArray<3> &);
 
 }
 
