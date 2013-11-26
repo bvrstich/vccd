@@ -1918,6 +1918,73 @@ double T2_2_mpo::get(const MPO<Q> &grad,int i,int j,int a,int b,bool merged) con
 }
 
 /**
+ * print the elements from input MPO corresponding to the t2 element t(i,j,a,b), for testing
+ */
+template <class Q>
+void T2_2_mpo::print(const MPO<Q> &grad,int i,int j,int a,int b,bool merged) const {
+
+   int o = ij2o[i][j];
+   int vi = ab2v[a][b];
+
+   int s = ov2s[o][vi];
+
+   std::vector<int> v;
+
+   IVector<4> ind;
+   QSDArray<4>::const_iterator it;
+
+   if(merged){
+
+      std::vector<int> br;
+      std::vector<int> bc;
+
+      double sum = 0.0;
+
+      for(int n = 0;n < list[s].size();++n){
+
+         v = list[s][n];
+
+         br = merged_row[v[0]][v[1]];
+         bc = merged_col[v[0]][v[4]];
+
+         ind[0] = br[0];
+         ind[1] = v[2];
+         ind[2] = v[3];
+         ind[3] = bc[0];
+
+         it = grad[v[0]].find(ind);
+
+         if(it != grad[v[0]].end())//if the block exists!
+            cout << n << "\t" << (*it->second).at(br[1],0,0,bc[1]) * v[5] << endl;
+
+      }
+
+   }
+   else{
+
+      double sum = 0.0;
+
+      for(int n = 0;n < list[s].size();++n){
+
+         v = list[s][n];
+
+         ind[0] = v[1];
+         ind[1] = v[2];
+         ind[2] = v[3];
+         ind[3] = v[4];
+
+         it = grad[v[0]].find(ind);
+
+         if(it != grad[v[0]].end())//if the block exists!
+            cout << n << "\t" << (*it->second).at(0,0,0,0) * v[5] << endl;
+
+      }
+
+   }
+
+}
+
+/**
  * get the complementary operator between in and out, when a pair is coming and one is going out and give the correct sign to rearrange to normal order: for the T2 operator
  */
 void T2_2_mpo::push_single_out_complement(int site,const Ostate &in,int row,const Ostate &out,int col){
@@ -2038,3 +2105,4 @@ void T2_2_mpo::push_single_out_complement(int site,const Ostate &in,int row,cons
 }
 
 template double T2_2_mpo::get(const MPO<Quantum> &,int,int,int,int,bool) const;
+template void T2_2_mpo::print(const MPO<Quantum> &,int,int,int,int,bool) const;

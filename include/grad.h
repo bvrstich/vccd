@@ -18,11 +18,11 @@ using namespace btas;
 namespace grad {
 
       //constructor
-      MPO<Quantum> construct(const MPS<Quantum> &rol,const MPS<Quantum> &ror,const MPS<Quantum> &A,const MPS<Quantum> &B);
+      MPO<Quantum> construct(int,int,double,const MPS<Quantum> &);
 
-      MPO<Quantum> construct(const MPO<Quantum> &rol,const MPO<Quantum> &ror,const MPS<Quantum> &A,const MPO<Quantum> &,const MPS<Quantum> &B);
+      void get_op(int site,int opnum,const QSDArray<3> &A,QSDArray<5> &);
 
-      void check(const MPO<Quantum> &grad,const MPO<Quantum> &O);
+      void contract_op(int site,int opnum,const QSDArray<2> &op,const QSDArray<5> &E,QSDArray<4> &G);
 
 }
 

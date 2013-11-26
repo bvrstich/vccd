@@ -51,6 +51,9 @@ class T2_2_mpo {
       template<class Q>
          double get(const MPO<Q> &,int,int,int,int,bool) const;
 
+      template<class Q>
+         void print(const MPO<Q> &,int,int,int,int,bool) const;
+
    private:
 
       std::vector< std::vector<int> > *list;

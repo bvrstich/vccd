@@ -56,7 +56,7 @@ int main(int argc,char *argv[]){
    while(ener_in >> i >> value)
       e.push_back(value);
 
-      std::vector<int> order;
+   std::vector<int> order;
 
    char orderfile[100];
    sprintf(orderfile,"%sorder.in",dirpath);
@@ -117,48 +117,66 @@ int main(int argc,char *argv[]){
 
    MPO<Quantum> T = T2<Quantum>(t,false);
 
-   cout << compress(T,mpsxx::Left,0) << endl;
-   cout << compress(T,mpsxx::Right,0) << endl;
+   compress(T,mpsxx::Right,0);
+   compress(T,mpsxx::Left,0);
 
-   //MPS<Quantum> eTA = exp(T,hf,no,300);
-   MPS<Quantum> eTA = create(L,Quantum(n_u,n_d),qp,100,rgen);
+   MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,100,rgen);
 
-   cout << compress(eTA,mpsxx::Left,0) << endl;
-   cout << compress(eTA,mpsxx::Right,500) << endl;
+   cout << compress(A,mpsxx::Left,0) << endl;
+   cout << compress(A,mpsxx::Right,200) << endl;
 
-   normalize(eTA);
+   normalize(A);
 
-   print_dim(eTA);
+   print_dim(A);
 
-   cout << inprod(mpsxx::Left,eTA,qc,eTA) << endl;
+   ro::construct(mpsxx::Left,T,A);
+   ro::construct(mpsxx::Right,T,A);
 
-   ro::construct(mpsxx::Left,T,eTA);
-   ro::construct(mpsxx::Right,T,eTA);
-/*
-   for(int site = 0;site < L - 1;++site){
+   QSDArray<3> left;
+   QSDArray<3> right;
 
-      //now test:
-      double ener = 0.0;
+   for(int i = 1;i < L - 2;++i){
 
-      QSDArray<2> left;
-      QSDArray<2> right;
+      cout << endl;
+      cout << "SITE " << i << endl;
+      cout << endl;
 
-      for(int i = 0;i < HamOp::ostates[site].size();++i){
+      double energy = 0.0;
+
+      for(int col = 0;col < Operator::gdim(i,1);++col){
 
          left.clear();
-         ro::read(mpsxx::Left,site,i,left);
+         ro::read(mpsxx::Left,i,col,left);
 
          right.clear();
-         ro::read(mpsxx::Right,site + 1,i,right);
+         ro::read(mpsxx::Right,i+1,col,right);
 
-         ener += QSDdotc(left,right.conjugate());
+         energy += QSDdotc(left,right.conjugate());
 
       }
 
-      cout << ener << endl;
+      cout << "E  = " << energy << endl;
+      cout << endl;
 
    }
-*/
+
+   cout << endl;
+   cout << "Start MPO*MPS TA" << endl;
+   cout << endl;
+
+   MPS<Quantum> TA = T*A;
+
+   cout << compress(TA,mpsxx::Left,0) << endl;
+   cout << compress(TA,mpsxx::Right,0) << endl;
+   
+   cout << endl;
+   cout << "evaluation of the energy:" << endl;
+   cout << endl;
+
+   cout << inprod(mpsxx::Left,A,qc,TA) << endl;
+
+   //   vccd::conjugate_gradient(t,qc,hf,e,200,no);
+
    Operator::clear();
 
    return 0;
