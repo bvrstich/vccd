@@ -114,11 +114,8 @@ int main(int argc,char *argv[]){
    DArray<4> t(no,no,nv,nv);
 
    fill_mp2(t,V,e);
-
-   MPO<Quantum> T = T2<Quantum>(t,false);
-
-   compress(T,mpsxx::Right,0);
-   compress(T,mpsxx::Left,0);
+/*
+   MPO<Quantum> T = T2<Quantum>(t,true);
 
    MPS<Quantum> A = create(L,Quantum(n_u,n_d),qp,100,rgen);
 
@@ -135,13 +132,17 @@ int main(int argc,char *argv[]){
    QSDArray<3> left;
    QSDArray<3> right;
 
+   QSDArray<2> tmp2;
+
+   enum {k,l,m,n};
+
    for(int i = 1;i < L - 2;++i){
 
       cout << endl;
       cout << "SITE " << i << endl;
       cout << endl;
 
-      double energy = 0.0;
+      double energy = 0;
 
       for(int col = 0;col < Operator::gdim(i,1);++col){
 
@@ -155,27 +156,18 @@ int main(int argc,char *argv[]){
 
       }
 
-      cout << "E  = " << energy << endl;
-      cout << endl;
+      cout << energy << endl;
 
    }
-
-   cout << endl;
-   cout << "Start MPO*MPS TA" << endl;
-   cout << endl;
 
    MPS<Quantum> TA = T*A;
 
    cout << compress(TA,mpsxx::Left,0) << endl;
    cout << compress(TA,mpsxx::Right,0) << endl;
-   
-   cout << endl;
-   cout << "evaluation of the energy:" << endl;
-   cout << endl;
 
-   cout << inprod(mpsxx::Left,A,qc,TA) << endl;
-
-   //   vccd::conjugate_gradient(t,qc,hf,e,200,no);
+   cout << inprod(mpsxx::Left,TA,qc,A) << endl;
+*/
+   vccd::conjugate_gradient(t,qc,hf,e,400,no);
 
    Operator::clear();
 

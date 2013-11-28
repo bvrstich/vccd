@@ -96,6 +96,8 @@ class Operator {
       //!physical dimension of the operators:
       static Qshapes<Quantum> qp;
 
+      static Dshapes dp;
+
       //!vector containing all the 4x4 operators on every site for incoming and outgoing.
       static std::vector< QSDArray<2> ** > op;
 

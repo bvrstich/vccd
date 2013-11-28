@@ -14,6 +14,7 @@ std::vector< QSDArray<2> ** > Operator::op;
 std::vector< bool * > Operator::sparse;
 std::vector< std::vector<int> > Operator::dim;
 Qshapes<Quantum> Operator::qp;
+Dshapes Operator::dp;
 
 int Operator::L;
 
@@ -37,6 +38,13 @@ void Operator::init(const DArray<2> &t,const DArray<4> &V){
    qp.push_back(Quantum(1,0));//up
    qp.push_back(Quantum(0,1));//down
    qp.push_back(Quantum(1,1));//up down pair
+
+   dp.clear();
+
+   dp.push_back(1);
+   dp.push_back(1);
+   dp.push_back(1);
+   dp.push_back(1);
 
    L = t.shape(0);
 
@@ -444,7 +452,7 @@ void Operator::clear(){
  */
 void Operator::construct_id(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -461,7 +469,7 @@ void Operator::construct_id(int site,int row,int col,double val){
  */
 void Operator::construct_s(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -481,7 +489,7 @@ void Operator::construct_s(int site,int row,int col,double val){
  */
 void Operator::construct_cu(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(1,0),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(1,0),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -497,7 +505,7 @@ void Operator::construct_cu(int site,int row,int col,double val){
  */
 void Operator::construct_cus(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(1,0),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(1,0),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -517,7 +525,7 @@ void Operator::construct_cus(int site,int row,int col,double val){
  */
 void Operator::construct_cd(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,1),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,1),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -534,7 +542,7 @@ void Operator::construct_cd(int site,int row,int col,double val){
  */
 void Operator::construct_cds(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,1),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,1),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -553,7 +561,7 @@ void Operator::construct_cds(int site,int row,int col,double val){
  */
 void Operator::construct_au(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(-1,0),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(-1,0),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -570,7 +578,7 @@ void Operator::construct_au(int site,int row,int col,double val){
  */
 void Operator::construct_aus(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(-1,0),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(-1,0),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -589,7 +597,7 @@ void Operator::construct_aus(int site,int row,int col,double val){
  */
 void Operator::construct_ad(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,-1),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,-1),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -606,7 +614,7 @@ void Operator::construct_ad(int site,int row,int col,double val){
  */
 void Operator::construct_ads(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,-1),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,-1),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -626,7 +634,7 @@ void Operator::construct_ads(int site,int row,int col,double val){
  */
 void Operator::construct_cucd(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(1,1),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(1,1),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -642,7 +650,7 @@ void Operator::construct_cucd(int site,int row,int col,double val){
  */
 void Operator::construct_cuau(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -659,7 +667,7 @@ void Operator::construct_cuau(int site,int row,int col,double val){
 
 void Operator::construct_cuad(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(1,-1),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(1,-1),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -674,7 +682,7 @@ void Operator::construct_cuad(int site,int row,int col,double val){
  */
 void Operator::construct_cdau(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(-1,1),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(-1,1),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -689,7 +697,7 @@ void Operator::construct_cdau(int site,int row,int col,double val){
  */
 void Operator::construct_cdad(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -705,7 +713,7 @@ void Operator::construct_cdad(int site,int row,int col,double val){
  */
 void Operator::construct_adau(int site,int row,int col,double val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(-1,-1),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(-1,-1),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -720,7 +728,7 @@ void Operator::construct_adau(int site,int row,int col,double val){
  */
 void Operator::construct_tauf(int site,int row,int col,double tval,double Vval){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(1,0),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(1,0),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -738,7 +746,7 @@ void Operator::construct_tauf(int site,int row,int col,double tval,double Vval){
  */
 void Operator::construct_taul(int site,int row,int col,double Vval){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(1,0),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(1,0),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -753,7 +761,7 @@ void Operator::construct_taul(int site,int row,int col,double Vval){
  */
 void Operator::construct_tadf(int site,int row,int col,double tval,double Vval){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,1),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,1),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -771,7 +779,7 @@ void Operator::construct_tadf(int site,int row,int col,double tval,double Vval){
  */
 void Operator::construct_tadl(int site,int row,int col,double Vval){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,1),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,1),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -786,7 +794,7 @@ void Operator::construct_tadl(int site,int row,int col,double Vval){
  */
 void Operator::construct_tcdf(int site,int row,int col,double tval,double Vval){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,-1),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,-1),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -804,7 +812,7 @@ void Operator::construct_tcdf(int site,int row,int col,double tval,double Vval){
  */
 void Operator::construct_tcdl(int site,int row,int col,double Vval){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,-1),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(0,-1),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -819,7 +827,7 @@ void Operator::construct_tcdl(int site,int row,int col,double Vval){
  */
 void Operator::construct_tcuf(int site,int row,int col,double tval,double Vval){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(-1,0),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(-1,0),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -837,7 +845,7 @@ void Operator::construct_tcuf(int site,int row,int col,double tval,double Vval){
  */
 void Operator::construct_tcul(int site,int row,int col,double Vval){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(-1,0),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum(-1,0),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -852,7 +860,7 @@ void Operator::construct_tcul(int site,int row,int col,double Vval){
  */
 void Operator::construct_local(int site,int row,int col,double tval,double Vval){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -873,7 +881,7 @@ void Operator::construct_local(int site,int row,int col,double tval,double Vval)
  */
 void Operator::construct_pair_s(int site,int row,int col,const std::vector<double> &val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);
@@ -897,7 +905,7 @@ void Operator::construct_pair_s(int site,int row,int col,const std::vector<doubl
  */
 void Operator::construct_pair(int site,int row,int col,const std::vector<double> &val){
 
-   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp));
+   op[site][row*dim[site][1] + col] = new QSDArray<2>(Quantum::zero(),make_array(qp,-qp),make_array(dp,dp));
    sparse[site][row*dim[site][1] + col] = true;
 
    DArray<2> Ip(1,1);

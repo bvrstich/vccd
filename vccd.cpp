@@ -29,18 +29,17 @@ namespace vccd {
          ro::construct(mpsxx::Right,T,wccd);
 
          MPO<Q> mpogr = grad::construct(no,nv,E,wccd);
-         /*
 
          for(int i = 0;i < no;++i){
 
             for(int a = 0;a < nv;++a)
                for(int b = 0;b < nv;++b)
-                  grad(i,i,a,b) = 2.0 * ( list.get(mpogrH,i,i,b,a,merged) + list.get(mpogrH,i,i,a,b,merged) - E * (list.get(mpogrn,i,i,b,a,merged) + list.get(mpogrn,i,i,a,b,merged)) );
+                  grad(i,i,a,b) = 2.0 * ( list.get(mpogr,i,i,b,a,merged) + list.get(mpogr,i,i,a,b,merged) );
 
             for(int j = i + 1;j < no;++j)
                for(int a = 0;a < nv;++a)
                   for(int b = 0;b < nv;++b)
-                     grad(i,j,a,b) = 2.0 * ( list.get(mpogrH,i,j,a,b,merged) - E * list.get(mpogrn,i,j,a,b,merged) );
+                     grad(i,j,a,b) = 2.0 * ( list.get(mpogr,i,j,a,b,merged) );
 
          }
 
@@ -50,7 +49,7 @@ namespace vccd {
                for(int a = 0;a < nv;++a)
                   for(int b = 0;b < nv;++b)
                      grad(j,i,a,b) = grad(i,j,a,b);
-*/
+
       }
 
    /**
@@ -309,13 +308,13 @@ namespace vccd {
          T2_2_mpo list(no,nv);
 
          gradient(t,qc,E,wccd,list,grad_1,true);
-/*
+         /*
          //precondition the gradient
          for(int i = 0;i < no;++i)
-            for(int j = 0;j < no;++j)
-               for(int a = 0;a < nv;++a)
-                  for(int b = 0;b < nv;++b)
-                     grad_1(i,j,a,b) = grad_1(i,j,a,b)/M(i,j,a,b);
+         for(int j = 0;j < no;++j)
+         for(int a = 0;a < nv;++a)
+         for(int b = 0;b < nv;++b)
+         grad_1(i,j,a,b) = grad_1(i,j,a,b)/M(i,j,a,b);
 
          T = T2<Q>(grad_1,false);
          compress(T,mpsxx::Right,0);
@@ -336,68 +335,68 @@ namespace vccd {
 
          while(convergence > 1.0e-10){
 
-            ++iter;
+         ++iter;
 
-            //stepsize
-            step = line_search(qc,hf,t,dir,step,D);
+         //stepsize
+         step = line_search(qc,hf,t,dir,step,D);
 
-            convergence = Ddot(grad_1,grad_1) * step;
+         convergence = Ddot(grad_1,grad_1) * step;
 
-            //update t
-            Daxpy(step,dir,t);
+         //update t
+         Daxpy(step,dir,t);
 
-            T = T2<Q>(t,false);
-            compress(T,mpsxx::Right,0);
-            compress(T,mpsxx::Left,0);
+         T = T2<Q>(t,false);
+         compress(T,mpsxx::Right,0);
+         compress(T,mpsxx::Left,0);
 
-            //update the wavefunction
-            wccd = exp(T,hf,no,D);
-            normalize(wccd);
+         //update the wavefunction
+         wccd = exp(T,hf,no,D);
+         normalize(wccd);
 
-            cout << endl;
-            print_dim(wccd);
-            cout << endl;
+         cout << endl;
+         print_dim(wccd);
+         cout << endl;
 
-            E = inprod(mpsxx::Left,wccd,qc,wccd);
+         E = inprod(mpsxx::Left,wccd,qc,wccd);
 
-            cout << endl;
-            cout << step << "\t" << iter << "\t" << convergence << "\t" << E << endl;
-            cout << endl;
+         cout << endl;
+         cout << step << "\t" << iter << "\t" << convergence << "\t" << E << endl;
+         cout << endl;
 
-            //backup the gradient
-            grad_0 = grad_1;
+         //backup the gradient
+         grad_0 = grad_1;
 
-            //calculate the gradient for the new T
-            gradient(t,qc,E,wccd,list,grad_1,true);
+         //calculate the gradient for the new T
+         gradient(t,qc,E,wccd,list,grad_1,true);
 
-            //precondition the gradient
-            for(int i = 0;i < no;++i)
-               for(int j = 0;j < no;++j)
-                  for(int a = 0;a < nv;++a)
-                     for(int b = 0;b < nv;++b)
-                        grad_1(i,j,a,b) = grad_1(i,j,a,b)/M(i,j,a,b);
+         //precondition the gradient
+         for(int i = 0;i < no;++i)
+         for(int j = 0;j < no;++j)
+         for(int a = 0;a < nv;++a)
+         for(int b = 0;b < nv;++b)
+         grad_1(i,j,a,b) = grad_1(i,j,a,b)/M(i,j,a,b);
 
-            rnorm_1 = Ddot(grad_1,grad_1);
+         rnorm_1 = Ddot(grad_1,grad_1);
 
-            //polak-ribiery update
-            double beta = (rnorm_1 - Ddot(grad_0,grad_1))/rnorm_0;
+         //polak-ribiery update
+         double beta = (rnorm_1 - Ddot(grad_0,grad_1))/rnorm_0;
 
-            if(beta < 0.0)
-               beta = 0.0;
+         if(beta < 0.0)
+            beta = 0.0;
 
-            //update the direction
-            Dscal(beta,dir);
-            Daxpy(1.0,grad_1,dir);
+         //update the direction
+         Dscal(beta,dir);
+         Daxpy(1.0,grad_1,dir);
 
-            rnorm_0 = rnorm_1;
+         rnorm_0 = rnorm_1;
 
-            //construct the T for the line search
-            T = T2<Q>(dir,false);
-            compress(T,mpsxx::Right,0);
-            compress(T,mpsxx::Left,0);
+         //construct the T for the line search
+         T = T2<Q>(dir,false);
+         compress(T,mpsxx::Right,0);
+         compress(T,mpsxx::Left,0);
 
-         }
-*/
+      }
+      */
       }
 
    template void gradient<Quantum>(const DArray<4> &,const MPO<Quantum> &,double E,const MPS<Quantum> &wccd,const T2_2_mpo &list,DArray<4> &grad,bool merged);
